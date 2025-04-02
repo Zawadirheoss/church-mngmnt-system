@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gospel Springs Mission Badge Manager</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .badge-card {
+            width: 85.6mm;
+            height: 53.98mm;
+            background: white;
+            border: 1px solid #ccc;
+            margin: 10px;
+            display: inline-block;
+            position: relative;
+            overflow: hidden;
+            box-sizing: border-box;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .badge-header {
+            padding: 10px 15px;
+            background-color: #dc3545 !important;
+            color: white;
+            font-weight: bold;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            font-size: 17px;
+            letter-spacing: 0.8px;
+        }
+        .badge-content {
+            padding: 15px;
+            height: calc(100% - 80px);
+            display: flex;
+            align-items: center;
+            box-sizing: border-box;
+        }
+        .profile-icon {
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            background-color: #007bff !important;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            flex-shrink: 0;
+            margin-right: 15px;
+            font-size: 20px;
+            border: 3px solid white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .blue-section {
+            background-color: #007bff !important;
+            color: white;
+            padding: 10px 15px;
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            font-size: 13px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            box-sizing: border-box;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-weight: 500;
+        }
+        .badge-details {
+            flex-grow: 1;
+            font-size: 15px;
+            line-height: 1.5;
+        }
+        @media print {
+            body {
+                margin: 0 !important;
+                padding: 5mm !important;
+                width: 100% !important;
+            }
+            .print-page {
+                display: grid !important;
+                grid-template-columns: repeat(2, 85.6mm);
+                grid-template-rows: repeat(3, 53.98mm);
+                gap: 5mm;
+                page-break-after: always;
+                width: 187mm !important;
+                height: 260mm !important;
+            }
+            .badge-card {
+                margin: 0 !important;
+                page-break-inside: avoid;
+                break-inside: avoid;
+            }
+            .modal-header, .modal-footer, .no-print {
+                display: none !important;
+            }
+            .badge-header, .blue-section, .profile-icon {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+        }
+        .visitor-table img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body class="bg-light">
+    <div class="container-fluid py-4 no-print">
+        <h1 class="mb-4">Visitor Management 
+            <button class="btn btn-primary" id="addVisitor">Add Visitor</button>
+            <div class="btn-group">
+                <button class="btn btn-info" id="printAll">Print All</button>
+                <button class="btn btn-danger" id="deleteAll">Delete All</button>
+                <button class="btn btn-warning" id="verifyId">Verify ID</button>
+            </div>
+        </h1>
+
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body">
+                        <h5>Total Visitors: <span id="totalVisitors">0</span></h5>
+                        <canvas id="genderChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-9">
+                <div class="card">
+                    <div class="card-body">
+                        <canvas id="roleChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <select class="form-select w-25 d-inline" id="roleFilter">
+                <option value="">All Roles</option>
+            </select>
+            <input type="text" class="form-control w-25 d-inline ms-2" id="searchName" placeholder="Search by name...">
+        </div>
+
+        <table class="table table-striped visitor-table">
+            <thead>
+                <tr>
+                    <th>Profile</th>
+                    <th>Name</th>
+                    <th>Gender</th>
+                    <th>Role</th>
+                    <th>ID Code</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="visitorTable"></tbody>
+        </table>
+    </div>
+
+    <!-- Modals -->
+    <div class="modal fade" id="addModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add New Visitor</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="visitorForm">
+                        <div class="mb-3">
+                            <label>Event Title</label>
+                            <input type="text" class="form-control" id="eventTitle" required>
+                        </div>
+                        <div class="mb-3">
+                            <label>Full Name</label>
+                            <input type="text" class="form-control" id="fullName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label>Gender</label>
+                            <select class="form-select" id="gender" required>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label>Role</label>
+                            <select class="form-select" id="role" required>
+                                <option value="Singer">Singer</option>
+                                <option value="Preacher">Preacher</option>
+                                <option value="Guest Preacher">Guest Preacher</option>
+                                <option value="Instrumentalist">Instrumentalist</option>
+                                <option value="Usher">Usher</option>
+                                <option value="Attendee">Attendee</option>
+                                <option value="Leader">Leader</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="saveVisitor">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="verifyModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Verify ID Code</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="text" class="form-control" id="inputIdCode" placeholder="Enter ID Code">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="verifyCode">Verify</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="printPreviewModal">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header no-print">
+                    <h5 class="modal-title">Print Preview</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-0" id="printPreviewBody"></div>
+                <div class="modal-footer no-print">
+                    <button type="button" class="btn btn-primary" onclick="window.print()">Print Now</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="verificationResultModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Verification Result</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="verificationResultBody"></div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, doc, deleteDoc, query, where, orderBy } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAyiRtkvdxnGWaiG-Xn-50Vm_Pb1J0ya6E",
+            authDomain: "church-cms-96407.firebaseapp.com",
+            projectId: "church-cms-96407",
+            storageBucket: "church-cms-96407.appspot.com",
+            messagingSenderId: "19370427001",
+            appId: "1:19370427001:web:b1d20215c437fc324e4aa8",
+            measurementId: "G-NKDZSFGR4X"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const visitorsCol = collection(db, "visitors");
+        const idCodesCol = collection(db, "visitorsidcode");
+
+        let visitors = [];
+        let genderChart, roleChart;
+
+        const modals = {
+            add: new bootstrap.Modal('#addModal'),
+            verify: new bootstrap.Modal('#verifyModal'),
+            printPreview: new bootstrap.Modal('#printPreviewModal'),
+            verificationResult: new bootstrap.Modal('#verificationResultModal')
+        };
+
+        async function generateUniqueId() {
+            const year = new Date().getFullYear().toString().slice(-2);
+            let isUnique = false;
+            let newCode = '';
+            
+            while (!isUnique) {
+                const randomNum = Math.floor(1000 + Math.random() * 9000);
+                newCode = `GSM/${randomNum}/${year}`;
+                
+                const q = query(idCodesCol, where("idCode", "==", newCode));
+                const querySnapshot = await getDocs(q);
+                
+                if (querySnapshot.empty) {
+                    isUnique = true;
+                    await addDoc(idCodesCol, { idCode: newCode });
+                }
+            }
+            return newCode;
+        }
+
+        async function saveVisitor(visitorData) {
+            const idCode = await generateUniqueId();
+            const visitorWithCode = { 
+                ...visitorData,
+                idCode,
+                timestamp: new Date().toISOString()
+            };
+            
+            await addDoc(visitorsCol, visitorWithCode);
+            return visitorWithCode;
+        }
+
+        async function fetchVisitors() {
+            try {
+                const q = query(visitorsCol, orderBy("name"));
+                const snapshot = await getDocs(q);
+                visitors = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                updateUI();
+            } catch (error) {
+                console.error("Error fetching visitors:", error);
+                alert("Error fetching data. Check console for details.");
+            }
+        }
+
+        async function deleteVisitor(id, idCode) {
+            if (!confirm("Are you sure you want to delete this visitor?")) return;
+            
+            try {
+                await deleteDoc(doc(visitorsCol, id));
+                const idQuery = query(idCodesCol, where("idCode", "==", idCode));
+                const idSnapshot = await getDocs(idQuery);
+                idSnapshot.forEach(async (doc) => await deleteDoc(doc.ref));
+                await fetchVisitors();
+            } catch (error) {
+                console.error("Error deleting visitor:", error);
+                alert("Error deleting visitor. Check console for details.");
+            }
+        }
+
+        function updateUI() {
+            renderTable();
+            updateCharts();
+            populateRoleFilter();
+            document.getElementById('totalVisitors').textContent = visitors.length;
+        }
+
+        function renderTable(filteredVisitors = visitors) {
+            const tbody = document.getElementById('visitorTable');
+            tbody.innerHTML = filteredVisitors.map(visitor => `
+                <tr>
+                    <td><div class="profile-icon">${getInitials(visitor.name)}</div></td>
+                    <td>${visitor.name}</td>
+                    <td>${visitor.gender}</td>
+                    <td>${visitor.role}</td>
+                    <td><strong>${visitor.idCode}</strong></td>
+                    <td>
+                        <button class="btn btn-danger btn-sm" onclick="window.deleteVisitor('${visitor.id}', '${visitor.idCode}')">Delete</button>
+                        <button class="btn btn-info btn-sm" onclick="window.printBadge('${visitor.id}')">Print</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function populateRoleFilter() {
+            const roles = [...new Set(visitors.map(v => v.role))];
+            const filter = document.getElementById('roleFilter');
+            filter.innerHTML = `<option value="">All Roles</option>${
+                roles.map(role => `<option value="${role}">${role}</option>`).join('')
+            }`;
+        }
+
+        document.getElementById('addVisitor').addEventListener('click', () => modals.add.show());
+        
+        document.getElementById('saveVisitor').addEventListener('click', async () => {
+            const visitorData = {
+                eventTitle: document.getElementById('eventTitle').value,
+                name: document.getElementById('fullName').value,
+                gender: document.getElementById('gender').value,
+                role: document.getElementById('role').value
+            };
+            
+            try {
+                await saveVisitor(visitorData);
+                modals.add.hide();
+                document.getElementById('visitorForm').reset();
+                await fetchVisitors();
+            } catch (error) {
+                console.error("Error saving visitor:", error);
+                alert("Error saving visitor. Check console for details.");
+            }
+        });
+
+        document.getElementById('deleteAll').addEventListener('click', async () => {
+            if (confirm('Are you sure you want to delete ALL visitors?')) {
+                try {
+                    const visitorsSnapshot = await getDocs(visitorsCol);
+                    const deleteVisitors = visitorsSnapshot.docs.map(doc => deleteDoc(doc.ref));
+                    const idCodesSnapshot = await getDocs(idCodesCol);
+                    const deleteIdCodes = idCodesSnapshot.docs.map(doc => deleteDoc(doc.ref));
+                    
+                    await Promise.all([...deleteVisitors, ...deleteIdCodes]);
+                    await fetchVisitors();
+                } catch (error) {
+                    console.error("Error deleting all data:", error);
+                    alert("Error deleting all data. Check console for details.");
+                }
+            }
+        });
+
+        document.getElementById('verifyId').addEventListener('click', () => modals.verify.show());
+        
+        document.getElementById('verifyCode').addEventListener('click', async () => {
+            const idCode = document.getElementById('inputIdCode').value;
+            try {
+                const q = query(visitorsCol, where("idCode", "==", idCode));
+                const snapshot = await getDocs(q);
+                
+                if (!snapshot.empty) {
+                    const visitor = snapshot.docs[0].data();
+                    showVerificationResult(true, visitor);
+                } else {
+                    showVerificationResult(false);
+                }
+            } catch (error) {
+                console.error("Verification error:", error);
+                alert("Error during verification. Check console for details.");
+            }
+        });
+
+        document.getElementById('printAll').addEventListener('click', () => showPrintPreview(visitors));
+
+        window.printBadge = (id) => {
+            const visitor = visitors.find(v => v.id === id);
+            showPrintPreview([visitor]);
+        };
+
+        function showPrintPreview(visitors) {
+            const printBody = document.getElementById('printPreviewBody');
+            printBody.innerHTML = '';
+            
+            const itemsPerPage = 6;
+            const pages = Math.ceil(visitors.length / itemsPerPage);
+            
+            for(let page = 0; page < pages; page++) {
+                const pageContainer = document.createElement('div');
+                pageContainer.className = 'print-page';
+                
+                const start = page * itemsPerPage;
+                const end = start + itemsPerPage;
+                
+                visitors.slice(start, end).forEach(visitor => {
+                    pageContainer.innerHTML += generateBadgeHTML(visitor);
+                });
+                
+                printBody.appendChild(pageContainer);
+            }
+            
+            modals.printPreview.show();
+        }
+
+        function generateBadgeHTML(visitor) {
+            return `
+                <div class="badge-card">
+                    <div class="badge-header">Gospel Springs Mission</div>
+                    <div class="badge-content">
+                        <div class="profile-icon">${getInitials(visitor.name)}</div>
+                        <div class="badge-details">
+                            <div><strong>${visitor.name}</strong></div>
+                            <div>${visitor.gender}</div>
+                            <div>${visitor.role}</div>
+                            <div><strong>${visitor.idCode}</strong></div>
+                        </div>
+                    </div>
+                    <div class="blue-section">${visitor.eventTitle}</div>
+                </div>
+            `;
+        }
+
+        document.getElementById('roleFilter').addEventListener('change', applyFilters);
+        document.getElementById('searchName').addEventListener('input', applyFilters);
+
+        function applyFilters() {
+            const role = document.getElementById('roleFilter').value;
+            const search = document.getElementById('searchName').value.toLowerCase();
+            
+            let filtered = visitors;
+            
+            if (role) filtered = filtered.filter(v => v.role === role);
+            if (search) filtered = filtered.filter(v => v.name.toLowerCase().includes(search));
+            
+            renderTable(filtered);
+        }
+
+        function updateCharts() {
+            updateGenderChart();
+            updateRoleChart();
+        }
+
+        function updateGenderChart() {
+            const ctx = document.getElementById('genderChart');
+            const data = visitors.reduce((acc, v) => {
+                acc[v.gender] = (acc[v.gender] || 0) + 1;
+                return acc;
+            }, {});
+
+            if (genderChart) genderChart.destroy();
+            genderChart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: Object.keys(data),
+                    datasets: [{
+                        data: Object.values(data),
+                        backgroundColor: ['#007bff', '#ff6384']
+                    }]
+                }
+            });
+        }
+
+        function updateRoleChart() {
+            const ctx = document.getElementById('roleChart');
+            const data = visitors.reduce((acc, v) => {
+                acc[v.role] = (acc[v.role] || 0) + 1;
+                return acc;
+            }, {});
+
+            if (roleChart) roleChart.destroy();
+            roleChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(data),
+                    datasets: [{
+                        label: 'Visitors per Role',
+                        data: Object.values(data),
+                        backgroundColor: '#007bff'
+                    }]
+                }
+            });
+        }
+
+        function getInitials(name) {
+            return name.split(' ').map(n => n[0]).join('').toUpperCase();
+        }
+
+        function showVerificationResult(success, visitor = null) {
+            const body = document.getElementById('verificationResultBody');
+            body.innerHTML = success ? `
+                <div class="alert alert-success">Verified successfully!</div>
+                ${generateBadgeHTML(visitor)}
+            ` : `<div class="alert alert-danger">Invalid ID Code!</div>`;
+            modals.verificationResult.show();
+        }
+
+        window.deleteVisitor = deleteVisitor;
+        window.printBadge = printBadge;
+
+        fetchVisitors();
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

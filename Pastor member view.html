@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Members Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+}
+
+header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #300089;
+    color: white;
+    padding: 10px 20px;
+}
+
+header img {
+    margin-right: 20px;
+}
+
+.dashboard {
+    padding: 20px;
+}
+
+.filters {
+    margin-bottom: 20px;
+}
+
+.filters input, .filters select {
+    padding: 10px;
+    margin-right: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.stats {
+    margin-bottom: 20px;
+    font-size: 18px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: white;
+}
+
+table th, table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+table th {
+    background-color: #cc0000;
+    color: white;
+}
+
+table tr:hover {
+    background-color: #f1f1f1;
+}
+
+.fa-phone {
+    color: green;
+    cursor: pointer;
+}
+    </style>
+</head>
+<body>
+    <header>
+        <img src="Gospel springs logo.jpg" alt="Logo" width="60px" style="border-radius: 10px;">
+        <h1>Welcome Pastor!</h1>
+    </header>
+
+    <div class="dashboard">
+        <div class="filters">
+            <input type="text" id="searchBar" placeholder="Search by name...">
+            <select id="genderFilter">
+                <option value="">All Genders</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+            </select>
+            <select id="churchFilter">
+                <option value="">All Churches</option>
+                <!-- Churches will be populated dynamically -->
+            </select>
+        </div>
+
+        <div class="stats">
+            <p>Total Members: <span id="totalMembers">0</span></p>
+        </div>
+
+        <table id="membersTable">
+            <thead>
+                <tr>
+                    <th>Profile</th>
+                    <th>Full Name</th>
+                    <th>Gender</th>
+                    <th>Phone Number</th>
+                    <th>Email</th>
+                    <th>YOB</th>
+                    <th>Home Church</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Rows will be populated here -->
+            </tbody>
+        </table>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
+import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyCXvzCTN3JMT6avOxItSgN4LFmkJ3iNg-Q",
+    authDomain: "members-2b3a0.firebaseapp.com",
+    databaseURL: "https://members-2b3a0-default-rtdb.firebaseio.com",
+    projectId: "members-2b3a0",
+    storageBucket: "members-2b3a0.firebasestorage.app",
+    messagingSenderId: "777982268345",
+    appId: "1:777982268345:web:49cf485520fb8efc5edc68"
+};
+
+const app = initializeApp(firebaseConfig);
+const database = getDatabase(app);
+const membersRef = ref(database, 'members');
+
+const searchBar = document.getElementById('searchBar');
+const genderFilter = document.getElementById('genderFilter');
+const churchFilter = document.getElementById('churchFilter');
+const membersTableBody = document.querySelector('#membersTable tbody');
+const totalMembers = document.getElementById('totalMembers');
+
+let membersData = [];
+
+onValue(membersRef, (snapshot) => {
+    membersData = [];
+    const churches = new Set(); // To store unique home churches
+    snapshot.forEach((childSnapshot) => {
+        const member = childSnapshot.val();
+        membersData.push(member);
+        churches.add(member.homeChurch); // Add home church to the Set
+    });
+
+    // Update total members
+    totalMembers.textContent = membersData.length;
+
+    // Populate church filter dropdown
+    churchFilter.innerHTML = '<option value="">All Churches</option>';
+    churches.forEach(church => {
+        churchFilter.innerHTML += `<option value="${church}">${church}</option>`;
+    });
+
+    // Render the table
+    renderTable(membersData);
+});
+
+searchBar.addEventListener('input', () => {
+    filterMembers();
+});
+
+genderFilter.addEventListener('change', () => {
+    filterMembers();
+});
+
+churchFilter.addEventListener('change', () => {
+    filterMembers();
+});
+
+function filterMembers() {
+    const searchTerm = searchBar.value.toLowerCase();
+    const gender = genderFilter.value;
+    const church = churchFilter.value;
+
+    const filteredMembers = membersData.filter(member => {
+        return (member.fullName.toLowerCase().includes(searchTerm)) &&
+               (gender === '' || member.gender === gender) &&
+               (church === '' || member.homeChurch === church);
+    });
+
+    renderTable(filteredMembers);
+}
+
+function renderTable(members) {
+    membersTableBody.innerHTML = '';
+    members.forEach(member => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td><img src="${member.profilePic || 'default-profile.png'}" alt="Profile" width="50"></td>
+            <td>${member.fullName}</td>
+            <td>${member.gender}</td>
+            <td><i class="fas fa-phone"></i> ${member.phone}</td>
+            <td>${member.email}</td>
+            <td>${member.yob}</td>
+            <td>${member.homeChurch}</td>
+        `;
+        membersTableBody.appendChild(row);
+    });
+}
+    </script>
+</body>
+</html>

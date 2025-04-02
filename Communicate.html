@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Church Members Dashboard</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    :root {
+      --primary-color: #4a54e6;
+      --secondary-color: #6c5ce7;
+      --accent-color: #a8a5e6;
+      --text-dark: #2d3436;
+      --text-light: #ffffff;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: #ffffff;
+      color: var(--text-dark);
+      min-height: 100vh;
+      padding: 2rem;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: #ffffff;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      padding: 2rem;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 2rem;
+      font-size: 2.5rem;
+      background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .table-wrapper {
+      overflow-x: auto;
+      border-radius: 15px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      border-radius: 15px;
+      overflow: hidden;
+    }
+
+    thead {
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    }
+
+    th {
+      padding: 1.2rem 1.5rem;
+      text-align: left;
+      color: var(--text-light);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    td {
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr:hover {
+      background-color: #f8f9ff;
+      transform: scale(1.002);
+      transition: all 0.2s ease;
+    }
+
+    .actions {
+      display: flex;
+      gap: 0.8rem;
+    }
+
+    .action-btn {
+      width: 35px;
+      height: 35px;
+      border: none;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .action-btn i {
+      font-size: 1rem;
+    }
+
+    .call {
+      background: #4CAF50;
+      color: white;
+    }
+
+    .whatsapp {
+      background: #25D366;
+      color: white;
+    }
+
+    .email {
+      background: #e74c3c;
+      color: white;
+    }
+
+    .pdf {
+      background: #3498db;
+      color: white;
+    }
+
+    .action-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 1rem;
+      }
+      
+      .container {
+        padding: 1rem;
+      }
+      
+      th, td {
+        padding: 0.8rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Message Community Members</h1>
+    <div class="table-wrapper">
+      <table id="membersTable">
+        <thead>
+          <tr>
+            <th>Full Name</th>
+            <th>Church</th>
+            <th>Gender</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Data will be populated by JavaScript -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
+    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCXvzCTN3JMT6avOxItSgN4LFmkJ3iNg-Q",
+      authDomain: "members-2b3a0.firebaseapp.com",
+      databaseURL: "https://members-2b3a0-default-rtdb.firebaseio.com",
+      projectId: "members-2b3a0",
+      storageBucket: "members-2b3a0.firebasestorage.app",
+      messagingSenderId: "777982268345",
+      appId: "1:777982268345:web:49cf485520fb8efc5edc68"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const database = getDatabase(app);
+    const membersRef = ref(database, 'members');
+
+    onValue(membersRef, (snapshot) => {
+      const members = snapshot.val();
+      const tbody = document.querySelector('#membersTable tbody');
+      tbody.innerHTML = '';
+      
+      for (const key in members) {
+        const member = members[key];
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${member.fullName}</td>
+          <td>${member.homeChurch}</td>
+          <td>${member.gender}</td>
+          <td>
+            <div class="actions">
+              <button class="action-btn call" onclick="call('${member.phone}')">
+                <i class="fas fa-phone"></i>
+              </button>
+              <button class="action-btn whatsapp" onclick="whatsapp('${member.phone}')">
+                <i class="fab fa-whatsapp"></i>
+              </button>
+              <button class="action-btn email" onclick="email('${member.email}')">
+                <i class="fas fa-envelope"></i>
+              </button>
+              <button class="action-btn pdf" onclick="sendPdf('${member.email}')">
+                <i class="fas fa-file-pdf"></i>
+              </button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(row);
+      }
+    });
+
+    window.call = (phone) => window.location.href = `tel:${phone}`;
+    window.whatsapp = (phone) => window.open(`https://wa.me/${phone}`, '_blank');
+    window.email = (email) => window.location.href = `mailto:${email}`;
+    window.sendPdf = (email) => {
+      const subject = encodeURIComponent('Your Church Document');
+      const body = encodeURIComponent('Please find the attached document.');
+      window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
+    };
+  </script>
+</body>
+</html>

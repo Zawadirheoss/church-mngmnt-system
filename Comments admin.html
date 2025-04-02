@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Suggestion Management</title>
+    <!-- Materialize CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <!-- Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f5f5f5;
+        }
+        .header {
+            padding: 20px 0;
+            background: linear-gradient(45deg, #2962ff, #6200ea);
+            color: white;
+            margin-bottom: 30px;
+        }
+        .search-container {
+            margin: 20px 0;
+        }
+        .comment-table {
+            margin-top: 20px;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .badge {
+            background-color: #6200ea !important;
+        }
+        .timestamp {
+            color: #666;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="container">
+            <h4>Suggestions
+                <span class="badge new" id="commentCount">0</span>
+            </h4>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="search-container">
+            <div class="input-field">
+                <input type="text" id="searchInput" placeholder="Search suggestion...">
+                <i class="material-icons prefix">search</i>
+            </div>
+        </div>
+
+        <div class="card comment-table">
+            <table class="striped highlight">
+                <thead>
+                    <tr>
+                        <th>Suggestion</th>
+                        <th>Date/Time</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="commentsBody">
+                    <!-- Comments will be loaded here -->
+                </tbody>
+            </table>
+        </div>
+
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.5.0/firebase-app.js";
+        import { getDatabase, ref, push, onValue, remove } from "https://www.gstatic.com/firebasejs/11.5.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDUwSw_KL0icgHVVQDtL9MjesYuvK-CLlU",
+            authDomain: "comments-d7f6e.firebaseapp.com",
+            databaseURL: "https://comments-d7f6e-default-rtdb.firebaseio.com",
+            projectId: "comments-d7f6e",
+            storageBucket: "comments-d7f6e.firebasestorage.app",
+            messagingSenderId: "634627152708",
+            appId: "1:634627152708:web:59e905dd030fb40636d511"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const commentsRef = ref(db, 'comments');
+
+        // Initialize Materialize components
+        document.addEventListener('DOMContentLoaded', function() {
+            const modals = document.querySelectorAll('.modal');
+            M.Modal.init(modals);
+            M.FloatingActionButton.init(document.querySelectorAll('.fixed-action-btn'));
+        });
+
+        // Real-time listener for comments
+        onValue(commentsRef, (snapshot) => {
+            const comments = snapshot.val() || {};
+            const commentsArray = Object.entries(comments).map(([key, value]) => ({
+                id: key,
+                ...value
+            }));
+            
+            updateCommentCount(commentsArray.length);
+            displayComments(commentsArray.sort((a, b) => b.timestamp - a.timestamp));
+        });
+
+        // Display comments in table
+        function displayComments(comments) {
+            const tbody = document.getElementById('commentsBody');
+            tbody.innerHTML = '';
+
+            comments.forEach(comment => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${comment.text}</td>
+                    <td class="timestamp">${new Date(comment.timestamp).toLocaleString()}</td>
+                    <td>
+                        <button class="btn red waves-effect waves-light delete-btn" data-id="${comment.id}">
+                            <i class="material-icons">delete</i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+
+            // Add delete event listeners
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', deleteComment);
+            });
+        }
+
+        // Update comment count
+        function updateCommentCount(count) {
+            document.getElementById('commentCount').textContent = count;
+        }
+
+        // Delete comment
+        function deleteComment(e) {
+            const commentId = e.target.closest('button').dataset.id;
+            const commentRef = ref(db, `comments/${commentId}`);
+            remove(commentRef);
+        }
+
+        // Search functionality
+        document.getElementById('searchInput').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const rows = document.querySelectorAll('#commentsBody tr');
+            
+            rows.forEach(row => {
+                const text = row.children[0].textContent.toLowerCase();
+                row.style.display = text.includes(searchTerm) ? '' : 'none';
+            });
+        });
+
+        // Add new comment
+        document.getElementById('addCommentBtn').addEventListener('click', () => {
+            const modal = M.Modal.getInstance(document.getElementById('addModal'));
+            modal.open();
+        });
+
+        document.getElementById('submitComment').addEventListener('click', () => {
+            const commentText = document.getElementById('newComment').value.trim();
+            if (commentText) {
+                push(commentsRef, {
+                    text: commentText,
+                    timestamp: Date.now()
+                });
+                document.getElementById('newComment').value = '';
+                M.Modal.getInstance(document.getElementById('addModal')).close();
+            }
+        });
+    </script>
+</body>
+</html>

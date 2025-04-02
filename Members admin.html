@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Gospel Springs Mission</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: #f5f7fa;
+        }
+
+        .header {
+            background: #0d048c;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            color: white;
+        }
+
+        .nav-actions {
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        .nav-actions a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 0.5rem;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+
+        .nav-actions a:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        .container {
+            padding: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-box {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            text-align: center;
+        }
+
+        .stat-box h4 {
+            color: #4a5568;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .stat-box p {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #1a365d;
+        }
+
+        .filters-section {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            background: white;
+            padding: 1rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .filter-group {
+            position: relative;
+            min-width: 200px;
+        }
+
+        .filter-group select, 
+        .filter-group input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            background: white;
+            font-size: 0.9rem;
+        }
+
+        .members-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .members-table th {
+            background: #0f0488;
+            color: white;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .members-table td {
+            padding: 1rem;
+            border-bottom: 1px solid #f1f5f9;
+            color: #4a5568;
+        }
+
+        .members-table tr:hover {
+            background: #f8fafc;
+        }
+
+        .action-btn {
+            padding: 0.5rem 0.8rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 0 0.2rem;
+            transition: transform 0.2s;
+            font-size: 0.85rem;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .edit-btn { background: #ecc94b; color: #1a365d; }
+        .delete-btn { background: #f56565; color: white; }
+        .print-btn { background: #48bb78; color: white; }
+        .delete-all-btn { background: #c53030; color: white; }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 500px;
+            position: relative;
+        }
+
+        .form-group {
+            margin-bottom: 1.2rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #4a5568;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .members-table th,
+            .members-table td {
+                padding: 0.75rem;
+                font-size: 0.85rem;
+            }
+            
+            .action-btn {
+                padding: 0.4rem 0.6rem;
+                margin: 0.1rem;
+            }
+        }
+
+        @media print {
+            body * {
+                visibility: hidden;
+                margin: 0;
+                padding: 0;
+            }
+            
+            .printable, .printable * {
+                visibility: visible;
+            }
+            
+            .printable {
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                padding: 20px;
+            }
+            
+            .print-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 20px;
+                border-bottom: 2px solid #000;
+                padding-bottom: 10px;
+            }
+            
+            .print-logo {
+                width: 100px;
+                height: auto;
+            }
+            
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-top: 15px;
+            }
+            
+            th, td {
+                border: 1px solid #ddd;
+                padding: 8px;
+                text-align: left;
+            }
+            
+            th {
+                background-color: #f2f2f2;
+            }
+            
+            .print-footer {
+                position: fixed;
+                bottom: 0;
+                width: 100%;
+                text-align: center;
+                font-size: 0.8rem;
+                padding: 10px;
+                border-top: 1px solid #ddd;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="branding">
+            <h3>Members Dashboard</h3>
+        </div>
+        <nav class="nav-actions">
+            <a href="Members register.html"><i class="fas fa-user-plus"></i> Add Member</a>
+            <a href="Member statistics.html"><i class="fas fa-chart-pie"></i> Statistics</a>
+        </nav>
+    </header>
+
+    <div class="container">
+        <div class="stats-container">
+            <div class="stat-box">
+                <h4>Total Members</h4>
+                <p id="totalMembers">0</p>
+            </div>
+            <div class="stat-box">
+                <h4>Male Members</h4>
+                <p id="totalMales">0</p>
+            </div>
+            <div class="stat-box">
+                <h4>Female Members</h4>
+                <p id="totalFemales">0</p>
+            </div>
+        </div>
+
+        <div class="filters-section">
+            <div class="filter-group">
+                <input type="text" class="search-box" placeholder="Search by name..." id="searchInput">
+            </div>
+            <div class="filter-group">
+                <select id="genderFilter" class="filter-select">
+                    <option value="">All Genders</option>
+                    <option>Male</option>
+                    <option>Female</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <select id="churchFilter" class="filter-select">
+                    <option value="">All Churches</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <select id="ministryFilter" class="filter-select">
+                    <option value="">All Ministries</option>
+                </select>
+            </div>
+            <button class="print-btn action-btn" onclick="showPrintModal()"><i class="fas fa-print"></i> Print</button>
+            <button class="delete-all-btn action-btn" onclick="confirmDeleteAll()"><i class="fas fa-trash"></i> Delete All</button>
+        </div>
+
+        <table class="members-table">
+            <thead>
+                <tr>
+                    <th>Full Name</th>
+                    <th>Gender</th>
+                    <th>Phone</th>
+                    <th>Email</th>
+                    <th>YOB</th>
+                    <th>Church</th>
+                    <th>Ministry</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="membersBody"></tbody>
+        </table>
+    </div>
+
+    <!-- Add/Edit Member Modal -->
+    <div id="memberModal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeModal()">&times;</span>
+            <h2 id="modalTitle">Add New Member</h2>
+            <form id="memberForm" onsubmit="handleFormSubmit(event)">
+                <div class="form-group">
+                    <label>Full Name *</label>
+                    <input type="text" id="fullName" required>
+                </div>
+                <div class="form-group">
+                    <label>Email *</label>
+                    <input type="email" id="email" required>
+                </div>
+                <div class="form-group">
+                    <label>Phone Number *</label>
+                    <input type="tel" id="phone" pattern="[0-9]{12}" placeholder="254XXXXXXXXX" required>
+                </div>
+                <div class="form-group">
+                    <label>Gender *</label>
+                    <select id="gender" required>
+                        <option value="">Select Gender</option>
+                        <option>Male</option>
+                        <option>Female</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Year of Birth *</label>
+                    <input type="number" id="yob" min="1900" max="2023" required>
+                </div>
+                <div class="form-group">
+                    <label>Church *</label>
+                    <input type="text" id="church" required>
+                </div>
+                <div class="form-group">
+                    <label>Ministry *</label>
+                    <input type="text" id="ministry" required>
+                </div>
+                <button type="submit" class="action-btn" style="background: #4299e1; color: white; width: 100%; padding: 1rem;">
+                    Save Member
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Print Modal -->
+    <div id="printModal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeModal()">&times;</span>
+            <h2>Print Options</h2>
+            <div class="form-group">
+                <label>Filter By:</label>
+                <select id="printFilter" class="filter-select" onchange="togglePrintSubFilters()">
+                    <option value="all">All Members</option>
+                    <option value="male">Male Only</option>
+                    <option value="female">Female Only</option>
+                </select>
+            </div>
+            <div class="form-group" id="printChurchGroup" style="display: none;">
+                <label>Select Church:</label>
+                <select id="printChurch" class="filter-select"></select>
+            </div>
+            <div class="form-group" id="printMinistryGroup" style="display: none;">
+                <label>Select Ministry:</label>
+                <select id="printMinistry" class="filter-select"></select>
+            </div>
+            <button onclick="preparePrint()" class="action-btn print-btn">Generate Report</button>
+        </div>
+    </div>
+
+    <!-- Printable Content -->
+    <div class="printable">
+        <div class="print-header">
+            <img src="Gospel springs logo.jpg" class="print-logo" alt="Church Logo">
+            <div>
+                <h2>Gospel Springs Mission</h2>
+                <p>Email: zawadirheoss@gmail.com<br>
+                Address: P.O Box 129 Shianda<br>
+                Phone: 0768398208</p>
+            </div>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Gender</th>
+                    <th>Phone</th>
+                    <th>Email</th>
+                    <th>Church</th>
+                </tr>
+            </thead>
+            <tbody id="printBody"></tbody>
+        </table>
+        <div class="print-footer">
+            Printed on: <span id="printDate"></span>
+        </div>
+    </div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.0/firebase-app.js";
+    import { getDatabase, ref, onValue, remove, update, push } from "https://www.gstatic.com/firebasejs/11.3.0/firebase-database.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyCXvzCTN3JMT6avOxItSgN4LFmkJ3iNg-Q",
+        authDomain: "members-2b3a0.firebaseapp.com",
+        databaseURL: "https://members-2b3a0-default-rtdb.firebaseio.com",
+        projectId: "members-2b3a0",
+        storageBucket: "members-2b3a0.firebasestorage.app",
+        messagingSenderId: "777982268345",
+        appId: "1:777982268345:web:49cf485520fb8efc5edc68"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const membersRef = ref(db, 'members');
+    let currentMemberKey = null;
+    let allMembersData = {};
+
+    onValue(membersRef, (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+            allMembersData = data;
+            populateTable(data);
+            updateFilters(data);
+            updateStats(data);
+        }
+    });
+
+    function updateStats(data) {
+        const members = Object.values(data);
+        document.getElementById('totalMembers').textContent = members.length;
+        document.getElementById('totalMales').textContent = members.filter(m => m.gender === 'Male').length;
+        document.getElementById('totalFemales').textContent = members.filter(m => m.gender === 'Female').length;
+    }
+
+    function populateTable(data) {
+        const tbody = document.getElementById('membersBody');
+        tbody.innerHTML = '';
+        
+        Object.entries(data).forEach(([key, member]) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${member.fullName}</td>
+                <td>${member.gender}</td>
+                <td>${member.phone}</td>
+                <td>${member.email}</td>
+                <td>${member.yob}</td>
+                <td>${member.homeChurch}</td>
+                <td>${member.ministry}</td>
+                <td>
+                    <button class="action-btn edit-btn" onclick="editMember('${key}')"><i class="fas fa-edit"></i></button>
+                    <button class="action-btn delete-btn" onclick="confirmDelete('${key}')"><i class="fas fa-trash"></i></button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function updateFilters(data) {
+        const churches = new Set();
+        const ministries = new Set();
+        
+        Object.values(data).forEach(member => {
+            if (member.homeChurch) churches.add(member.homeChurch);
+            if (member.ministry) ministries.add(member.ministry);
+        });
+
+        updateFilterOptions('churchFilter', churches);
+        updateFilterOptions('ministryFilter', ministries);
+        updateFilterOptions('printChurch', churches);
+        updateFilterOptions('printMinistry', ministries);
+    }
+
+    function updateFilterOptions(filterId, values) {
+        const select = document.getElementById(filterId);
+        select.innerHTML = '<option value="">All</option>';
+        Array.from(values).sort().forEach(value => {
+            select.innerHTML += `<option>${value}</option>`;
+        });
+    }
+
+    window.showAddModal = () => {
+        currentMemberKey = null;
+        document.getElementById('modalTitle').textContent = 'Add New Member';
+        document.getElementById('memberForm').reset();
+        document.getElementById('memberModal').style.display = 'flex';
+    }
+
+    window.editMember = (key) => {
+        currentMemberKey = key;
+        const memberRef = ref(db, `members/${key}`);
+        onValue(memberRef, (snapshot) => {
+            const member = snapshot.val();
+            if (member) {
+                document.getElementById('modalTitle').textContent = 'Edit Member';
+                document.getElementById('fullName').value = member.fullName;
+                document.getElementById('email').value = member.email;
+                document.getElementById('phone').value = member.phone;
+                document.getElementById('gender').value = member.gender;
+                document.getElementById('yob').value = member.yob;
+                document.getElementById('church').value = member.homeChurch;
+                document.getElementById('ministry').value = member.ministry;
+                document.getElementById('memberModal').style.display = 'flex';
+            }
+        });
+    }
+
+    async function handleFormSubmit(e) {
+        e.preventDefault();
+        const memberData = {
+            fullName: document.getElementById('fullName').value.trim(),
+            email: document.getElementById('email').value.trim(),
+            phone: document.getElementById('phone').value.trim(),
+            gender: document.getElementById('gender').value,
+            yob: document.getElementById('yob').value,
+            homeChurch: document.getElementById('church').value.trim(),
+            ministry: document.getElementById('ministry').value.trim(),
+            datetime: new Date().toLocaleString()
+        };
+
+        try {
+            if (currentMemberKey) {
+                await update(ref(db, `members/${currentMemberKey}`), memberData);
+                alert('Member updated successfully');
+            } else {
+                await push(membersRef, memberData);
+                alert('Member added successfully');
+            }
+            closeModal();
+        } catch (error) {
+            alert('Error saving member: ' + error.message);
+        }
+    }
+
+    window.confirmDelete = async (key) => {
+        if (confirm('Are you sure you want to delete this member?')) {
+            try {
+                await remove(ref(db, `members/${key}`));
+                alert('Member deleted successfully');
+            } catch (error) {
+                alert('Error deleting member: ' + error.message);
+            }
+        }
+    }
+
+    window.confirmDeleteAll = async () => {
+        if (confirm('WARNING: This will delete ALL members permanently. Are you sure?')) {
+            try {
+                await remove(membersRef);
+                alert('All members deleted successfully');
+            } catch (error) {
+                alert('Error deleting members: ' + error.message);
+            }
+        }
+    }
+
+    window.showPrintModal = () => {
+        document.getElementById('printModal').style.display = 'flex';
+        document.getElementById('printFilter').value = 'all';
+        togglePrintSubFilters();
+    }
+
+    function togglePrintSubFilters() {
+        const filterType = document.getElementById('printFilter').value;
+        document.getElementById('printChurchGroup').style.display = 
+            filterType === 'church' ? 'block' : 'none';
+        document.getElementById('printMinistryGroup').style.display = 
+            filterType === 'ministry' ? 'block' : 'none';
+    }
+
+    window.preparePrint = () => {
+        const filterType = document.getElementById('printFilter').value;
+        const church = document.getElementById('printChurch').value;
+        const ministry = document.getElementById('printMinistry').value;
+        
+        let filteredMembers = Object.values(allMembersData);
+        
+        switch(filterType) {
+            case 'male':
+                filteredMembers = filteredMembers.filter(m => m.gender === 'Male');
+                break;
+            case 'female':
+                filteredMembers = filteredMembers.filter(m => m.gender === 'Female');
+                break;
+            case 'church':
+                filteredMembers = filteredMembers.filter(m => m.homeChurch === church);
+                break;
+            case 'ministry':
+                filteredMembers = filteredMembers.filter(m => m.ministry === ministry);
+                break;
+        }
+        
+        populatePrintableContent(filteredMembers);
+        window.print();
+    }
+
+    function populatePrintableContent(members) {
+        const printBody = document.getElementById('printBody');
+        const printDate = document.getElementById('printDate');
+        
+        printDate.textContent = new Date().toLocaleString();
+        printBody.innerHTML = '';
+        
+        members.forEach(member => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${member.fullName}</td>
+                <td>${member.gender}</td>
+                <td>${member.phone}</td>
+                <td>${member.email}</td>
+                <td>${member.homeChurch}</td>
+            `;
+            printBody.appendChild(tr);
+        });
+        
+        document.querySelector('.printable').style.display = 'block';
+    }
+
+    function closeModal() {
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.style.display = 'none';
+        });
+        document.querySelector('.printable').style.display = 'none';
+    }
+
+    document.getElementById('searchInput').addEventListener('input', filterTable);
+    document.getElementById('genderFilter').addEventListener('change', filterTable);
+    document.getElementById('churchFilter').addEventListener('change', filterTable);
+    document.getElementById('ministryFilter').addEventListener('change', filterTable);
+
+    function filterTable() {
+        const search = document.getElementById('searchInput').value.toLowerCase();
+        const gender = document.getElementById('genderFilter').value;
+        const church = document.getElementById('churchFilter').value;
+        const ministry = document.getElementById('ministryFilter').value;
+
+        document.querySelectorAll('#membersBody tr').forEach(row => {
+            const name = row.children[0].textContent.toLowerCase();
+            const rowGender = row.children[1].textContent;
+            const rowChurch = row.children[5].textContent;
+            const rowMinistry = row.children[6].textContent;
+
+            const matches = name.includes(search) &&
+                (gender === '' || rowGender === gender) &&
+                (church === '' || rowChurch === church) &&
+                (ministry === '' || rowMinistry === ministry);
+
+            row.style.display = matches ? '' : 'none';
+        });
+    }
+
+    // Initialize printable content as hidden
+    document.querySelector('.printable').style.display = 'none';
+</script>
+</body>
+</html>

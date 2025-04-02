@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Dashboard</title>
+    <style>
+        /* All previous CSS styles remain the same */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: #f0f2f5;
+            padding: 2rem;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .add-job-btn {
+            background: #2563eb;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        .add-job-btn:hover {
+            background: #1d4ed8;
+        }
+
+        .search-sort-container {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .search-input, .sort-select {
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            width: 200px;
+        }
+
+        .jobs-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .jobs-table th, .jobs-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        .jobs-table th {
+            background: #2563eb;
+            color: white;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            width: 500px;
+            max-height: 90vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-content {
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            margin-top: 0.25rem;
+        }
+
+        .success-modal {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            background: #059669;
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .delete-btn {
+            background: #dc2626;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+    </style>
+</head>
+<body>
+    <!-- HTML structure remains the same -->
+    <div class="header">
+        <h1>Job Dashboard</h1>
+        <button class="add-job-btn" onclick="openModal()">+ Add Job</button>
+    </div>
+
+    <div class="search-sort-container">
+        <input type="text" class="search-input" placeholder="Search by title..." id="searchInput">
+        <select class="sort-select" id="sortSelect">
+            <option value="">Sort by Salary</option>
+            <option value="asc">Low to High</option>
+            <option value="desc">High to Low</option>
+        </select>
+    </div>
+
+    <table class="jobs-table">
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Description</th>
+                <th>Slots</th>
+                <th>Salary (Ksh)</th>
+                <th>Qualifications</th>
+                <th>Valid Till</th>
+                <th>Link</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="jobsBody">
+        </tbody>
+    </table>
+
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Add New Job</h2>
+                <button onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-content">
+                <form id="jobForm">
+                    <div class="form-group">
+                        <label>Title</label>
+                        <input type="text" class="form-input" required id="title">
+                    </div>
+                    <div class="form-group">
+                        <label>Description</label>
+                        <textarea class="form-input" required id="description"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Available Slots</label>
+                        <input type="number" class="form-input" required id="slots">
+                    </div>
+                    <div class="form-group">
+                        <label>Salary Range (Ksh)</label>
+                        <input type="text" class="form-input" required id="salary">
+                    </div>
+                    <div class="form-group">
+                        <label>Qualifications</label>
+                        <input type="text" class="form-input" required id="qualifications">
+                    </div>
+                    <div class="form-group">
+                        <label>Valid Till</label>
+                        <input type="date" class="form-input" required id="validTill">
+                    </div>
+                    <div class="form-group">
+                        <label>Link</label>
+                        <input type="url" class="form-input" required id="link">
+                    </div>
+                    <button type="submit" class="add-job-btn">Save Job</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="success-modal" id="successModal">
+        Job Added Successfully!
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+        import { 
+            getDatabase, 
+            ref, 
+            push, 
+            onValue, 
+            remove 
+        } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyB44W-TWiwC_OffwBXbSrKLPMaLAN9Z1nc",
+            authDomain: "jobs-6478e.firebaseapp.com",
+            projectId: "jobs-6478e",
+            storageBucket: "jobs-6478e.firebasestorage.app",
+            messagingSenderId: "706892423456",
+            appId: "1:706892423456:web:a432813bb1acb8e06f7745"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const jobsRef = ref(db, 'jobs');
+
+        let jobs = [];
+
+        // Window functions
+        window.openModal = () => {
+            document.getElementById('modalOverlay').style.display = 'flex';
+        };
+
+        window.closeModal = () => {
+            document.getElementById('modalOverlay').style.display = 'none';
+        };
+
+        window.deleteJob = (id) => {
+            if(confirm('Are you sure you want to delete this job?')) {
+                remove(ref(db, `jobs/${id}`))
+                    .catch((error) => {
+                        console.error('Error deleting job:', error);
+                        alert('Error deleting job. Please check console for details.');
+                    });
+            }
+        };
+
+        // Form submission handler
+        document.getElementById('jobForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const job = {
+                title: document.getElementById('title').value,
+                description: document.getElementById('description').value,
+                slots: document.getElementById('slots').value,
+                salary: document.getElementById('salary').value,
+                qualifications: document.getElementById('qualifications').value,
+                validTill: document.getElementById('validTill').value,
+                link: document.getElementById('link').value,
+                createdAt: Date.now()
+            };
+            
+            push(jobsRef, job)
+                .then(() => {
+                    closeModal();
+                    showSuccess();
+                    e.target.reset();
+                })
+                .catch((error) => {
+                    console.error('Error saving job:', error);
+                    alert('Error saving job. Please check console for details.');
+                });
+        });
+
+        // Success modal
+        const showSuccess = () => {
+            const modal = document.getElementById('successModal');
+            modal.style.display = 'block';
+            setTimeout(() => modal.style.display = 'none', 2000);
+        };
+
+        // Render jobs
+        const renderJobs = () => {
+            const tbody = document.getElementById('jobsBody');
+            tbody.innerHTML = '';
+            
+            jobs.forEach(job => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${job.title}</td>
+                    <td>${job.description}</td>
+                    <td>${job.slots}</td>
+                    <td>${job.salary}</td>
+                    <td>${job.qualifications}</td>
+                    <td>${new Date(job.validTill).toLocaleDateString()}</td>
+                    <td><a href="${job.link}" target="_blank">Apply</a></td>
+                    <td><button class="delete-btn" onclick="deleteJob('${job.id}')">Delete</button></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        };
+
+        // Firebase listener
+        onValue(jobsRef, (snapshot) => {
+            jobs = [];
+            snapshot.forEach(childSnapshot => {
+                jobs.push({
+                    id: childSnapshot.key,
+                    ...childSnapshot.val()
+                });
+            });
+            renderJobs();
+        });
+
+        // Search functionality
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            const filteredJobs = jobs.filter(job => 
+                job.title.toLowerCase().includes(searchTerm)
+            );
+            jobs = [...filteredJobs];
+            renderJobs();
+        });
+
+        // Sort functionality
+        document.getElementById('sortSelect').addEventListener('change', (e) => {
+            const order = e.target.value;
+            const sorted = [...jobs].sort((a, b) => 
+                order === 'asc' ? 
+                parseInt(a.salary) - parseInt(b.salary) : 
+                parseInt(b.salary) - parseInt(a.salary)
+            );
+            jobs = sorted;
+            renderJobs();
+        });
+    </script>
+</body>
+</html>

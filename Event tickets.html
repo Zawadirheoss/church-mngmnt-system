@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Event Ticket Management</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, getDocs, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAyHL75BaeMoGysBl0VvOoePpLIpyiVXyw",
+      authDomain: "event-tickets-and-badges.firebaseapp.com",
+      projectId: "event-tickets-and-badges",
+      storageBucket: "event-tickets-and-badges.appspot.com",
+      messagingSenderId: "810988714205",
+      appId: "1:810988714205:web:b46c7a0a5b042297e60334"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    window.db = db;
+    window.addDoc = addDoc;
+    window.collection = collection;
+    window.getDocs = getDocs;
+    window.doc = doc;
+    window.deleteDoc = deleteDoc;
+  </script>
+  <style>
+    .ticket {
+      background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+      border-radius: 15px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      width: 310px;
+      height: 200px;
+      padding: 20px;
+      position: relative;
+      margin: 10px;
+      color: #000;
+    }
+    .ticket-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      position: relative;
+      z-index: 2;
+    }
+    .printable-tickets {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-start;
+      padding: 20px;
+    }
+    .modal-content {
+      max-height: 70vh;
+      overflow-y: auto;
+    }
+    @media print {
+      body * {
+        visibility: hidden;
+      }
+      .printable-tickets, .printable-tickets * {
+        visibility: visible;
+      }
+      .printable-tickets {
+        position: absolute;
+        left: 0;
+        top: 0;
+      }
+      .ticket {
+        -webkit-print-color-adjust: exact;
+        color-adjust: exact;
+      }
+    }
+    .ticket-number {
+      font-weight: bold;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body class="bg-gray-100 p-8" oncontextmenu="return false">
+  <div class="max-w-7xl mx-auto">
+    <div class="flex justify-between mb-4">
+      <button id="addEventButton" onclick="openAddEventModal()" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-all duration-300 transform hover:scale-105">
+        Add Event
+      </button>
+      <div>
+        <button id="getTicketNumbersButton" onclick="getTicketNumbers()" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition-all duration-300 transform hover:scale-105 mr-2">
+          Get Ticket Numbers
+        </button>
+        <button id="getVerifiedTicketsButton" onclick="getVerifiedTickets()" class="bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg transition-all duration-300 transform hover:scale-105">
+          Get Verified Tickets
+        </button>
+      </div>
+    </div>
+
+    <div class="mt-8">
+      <table class="min-w-full bg-white shadow-md rounded-lg overflow-hidden">
+        <thead class="bg-gray-800 text-white">
+          <tr>
+            <th class="py-3 px-4">Event Name</th>
+            <th class="py-3 px-4">Venue</th>
+            <th class="py-3 px-4">Type</th>
+            <th class="py-3 px-4">Contact</th>
+            <th class="py-3 px-4">Description</th>
+            <th class="py-3 px-4">Social Account</th>
+            <th class="py-3 px-4">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="eventsTable" class="text-gray-700">
+        </tbody>
+      </table>
+    </div>
+
+    <div id="addEventModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center p-4">
+      <div class="bg-white rounded-lg p-6 w-full max-w-md">
+        <h2 class="text-xl font-bold mb-4">Add Event</h2>
+        <input type="text" id="eventName" placeholder="Event Name" class="mb-4 w-full p-2 border rounded">
+        <input type="text" id="eventVenue" placeholder="Venue" class="mb-4 w-full p-2 border rounded">
+        <select id="eventType" class="mb-4 w-full p-2 border rounded">
+          <option value="VVIP">VVIP</option>
+          <option value="VIP">VIP</option>
+          <option value="Regular">Regular</option>
+        </select>
+        <input type="text" id="eventContact" placeholder="Contact" class="mb-4 w-full p-2 border rounded">
+        <textarea id="eventDescription" placeholder="Description" class="mb-4 w-full p-2 border rounded"></textarea>
+        <input type="text" id="eventSocialAccount" placeholder="Social Account" class="mb-4 w-full p-2 border rounded">
+        <div class="flex justify-end">
+          <button onclick="closeAddEventModal()" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg mr-2">Cancel</button>
+          <button onclick="saveEvent()" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="printTicketsModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center p-4">
+      <div class="bg-white rounded-lg p-6 w-full max-w-md">
+        <h2 class="text-xl font-bold mb-4">Print Tickets</h2>
+        <input type="number" id="ticketCount" placeholder="Number of Tickets" class="mb-4 w-full p-2 border rounded">
+        <div class="flex justify-end">
+          <button onclick="closePrintTicketsModal()" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg mr-2">Cancel</button>
+          <button onclick="generateTickets()" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg">Generate</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="verifyTicketModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center p-4">
+      <div class="bg-white rounded-lg p-6 w-full max-w-md">
+        <h2 class="text-xl font-bold mb-4" id="verifyEventName"></h2>
+        <input type="text" id="verifyTicketNumber" placeholder="Ticket Number" class="mb-4 w-full p-2 border rounded">
+        <div class="flex justify-end">
+          <button onclick="closeVerifyTicketModal()" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg mr-2">Cancel</button>
+          <button onclick="verifyTicket()" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">Verify</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="ticketsModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center p-4">
+      <div class="bg-white rounded-lg p-6 w-full max-w-md">
+        <h2 id="modalTitle" class="text-xl font-bold mb-4"></h2>
+        <div id="modalContent" class="modal-content"></div>
+        <button onclick="closeTicketsModal()" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg mt-4">Close</button>
+      </div>
+    </div>
+
+    <div id="alertModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center p-4">
+      <div class="bg-white rounded-lg p-6 w-full max-w-md">
+        <h2 id="alertTitle" class="text-xl font-bold mb-4"></h2>
+        <div id="alertMessage" class="mb-4"></div>
+        <button onclick="closeAlertModal()" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">OK</button>
+      </div>
+    </div>
+
+    <div id="printableTickets" class="printable-tickets hidden">
+    </div>
+  </div>
+
+  <script>
+    let events = [];
+    let currentEventId = '';
+    let currentEventName = '';
+
+    document.addEventListener('keydown', (e) => {
+      if (e.ctrlKey && (e.key === 'p' || e.key === 's')) {
+        e.preventDefault();
+      }
+    });
+
+    function openAddEventModal() {
+      document.getElementById('addEventModal').classList.remove('hidden');
+    }
+
+    function closeAddEventModal() {
+      document.getElementById('addEventModal').classList.add('hidden');
+    }
+
+    function openPrintTicketsModal(eventId) {
+      const event = events.find(e => e.id === eventId);
+      currentEventId = eventId;
+      currentEventName = event.name;
+      document.getElementById('printTicketsModal').classList.remove('hidden');
+    }
+
+    function closePrintTicketsModal() {
+      document.getElementById('printTicketsModal').classList.add('hidden');
+    }
+
+    function openVerifyTicketModal(eventName) {
+      currentEventName = eventName;
+      document.getElementById('verifyEventName').textContent = `Verify Ticket - ${eventName}`;
+      document.getElementById('verifyTicketModal').classList.remove('hidden');
+    }
+
+    function closeVerifyTicketModal() {
+      document.getElementById('verifyTicketModal').classList.add('hidden');
+    }
+
+    function openTicketsModal(title, tickets, count) {
+      document.getElementById('modalTitle').innerHTML = `
+        ${title} 
+        <span class="float-right bg-blue-500 text-white px-3 py-1 rounded-full">Total: ${count}</span>
+      `;
+      document.getElementById('modalContent').innerHTML = tickets.map(t => `
+        <div class="p-2 border-b">${t}</div>
+      `).join('');
+      document.getElementById('ticketsModal').classList.remove('hidden');
+    }
+
+    function closeTicketsModal() {
+      document.getElementById('ticketsModal').classList.add('hidden');
+    }
+
+    function openAlertModal(title, message) {
+      document.getElementById('alertTitle').textContent = title;
+      document.getElementById('alertMessage').textContent = message;
+      document.getElementById('alertModal').classList.remove('hidden');
+    }
+
+    function closeAlertModal() {
+      document.getElementById('alertModal').classList.add('hidden');
+    }
+
+    async function saveEvent() {
+      const event = {
+        name: document.getElementById('eventName').value,
+        venue: document.getElementById('eventVenue').value,
+        type: document.getElementById('eventType').value,
+        contact: document.getElementById('eventContact').value,
+        description: document.getElementById('eventDescription').value,
+        socialAccount: document.getElementById('eventSocialAccount').value
+      };
+
+      try {
+        const docRef = await addDoc(collection(db, 'events'), event);
+        events.push({ id: docRef.id, ...event });
+        renderEventsTable();
+        closeAddEventModal();
+        toggleAddEventButton();
+      } catch (error) {
+        console.error("Error adding event:", error);
+      }
+    }
+
+    async function deleteEvent(eventId) {
+      const event = events.find(e => e.id === eventId);
+      if (!event) return;
+
+      try {
+        await deleteDoc(doc(db, 'events', eventId));
+        const collections = [
+          `${event.name}-ticketnumbers`,
+          `${event.name}-verified-ticketnumbers`
+        ];
+
+        for (const colName of collections) {
+          const querySnapshot = await getDocs(collection(db, colName));
+          querySnapshot.forEach(async (doc) => {
+            await deleteDoc(doc.ref);
+          });
+        }
+
+        events = events.filter(e => e.id !== eventId);
+        renderEventsTable();
+        toggleAddEventButton();
+        openAlertModal('Success', 'Event and all related data deleted successfully');
+      } catch (error) {
+        console.error("Error deleting event:", error);
+        openAlertModal('Error', 'Failed to delete event');
+      }
+    }
+
+    async function generateTickets() {
+      const event = events.find(e => e.id === currentEventId);
+      const ticketCount = parseInt(document.getElementById('ticketCount').value);
+      const printableTickets = document.getElementById('printableTickets');
+      printableTickets.innerHTML = '';
+
+      for (let i = 0; i < ticketCount; i++) {
+        const rand1 = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+        const rand2 = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+        const ticketNumber = `GSM/${rand1}/${rand2}/${new Date().getFullYear().toString().slice(-2)}`;
+        
+        const ticketHTML = `
+          <div class="ticket">
+            <div class="ticket-header">
+              <div class="text-sm font-bold">Gospel Springs Mission</div>
+              <div class="text-right">
+                <div class="ticket-number">${ticketNumber}</div>
+                <div class="text-sm font-bold">${event.name}</div>
+              </div>
+            </div>
+            <div class="font-bold text-lg">${event.venue}</div>
+            <div class="text-sm">${event.type}</div>
+            <div class="text-sm">${event.contact}</div>
+            <hr class="my-2">
+            <div class="text-sm">${event.socialAccount}</div>
+          </div>
+        `;
+        printableTickets.innerHTML += ticketHTML;
+        await addDoc(collection(db, `${event.name}-ticketnumbers`), { ticketNumber });
+      }
+
+      printableTickets.classList.remove('hidden');
+      window.print();
+      printableTickets.classList.add('hidden');
+      closePrintTicketsModal();
+    }
+
+    async function verifyTicket() {
+      const ticketNumber = document.getElementById('verifyTicketNumber').value;
+      try {
+        const verifiedSnapshot = await getDocs(collection(db, `${currentEventName}-verified-ticketnumbers`));
+        const isVerified = verifiedSnapshot.docs.some(doc => doc.data().ticketNumber === ticketNumber);
+
+        if (isVerified) {
+          openAlertModal('Already Verified', 'Ticket already verified!');
+          return;
+        }
+
+        const ticketsSnapshot = await getDocs(collection(db, `${currentEventName}-ticketnumbers`));
+        const isValid = ticketsSnapshot.docs.some(doc => doc.data().ticketNumber === ticketNumber);
+
+        if (isValid) {
+          await addDoc(collection(db, `${currentEventName}-verified-ticketnumbers`), { ticketNumber });
+          openAlertModal('Success', 'Ticket verified successfully!');
+        } else {
+          openAlertModal('Invalid Ticket', 'Invalid ticket number!');
+        }
+      } catch (error) {
+        console.error("Verification error:", error);
+        openAlertModal('Error', 'Verification failed');
+      }
+      closeVerifyTicketModal();
+    }
+
+    async function getTicketNumbers() {
+      if (!events.length) return;
+      const eventName = events[0].name;
+      const snapshot = await getDocs(collection(db, `${eventName}-ticketnumbers`));
+      const tickets = snapshot.docs.map(doc => doc.data().ticketNumber);
+      openTicketsModal('Ticket Numbers', tickets, tickets.length);
+    }
+
+    async function getVerifiedTickets() {
+      if (!events.length) return;
+      const eventName = events[0].name;
+      const snapshot = await getDocs(collection(db, `${eventName}-verified-ticketnumbers`));
+      const tickets = snapshot.docs.map(doc => doc.data().ticketNumber);
+      openTicketsModal('Verified Tickets', tickets, tickets.length);
+    }
+
+    function toggleAddEventButton() {
+      const addEventButton = document.getElementById('addEventButton');
+      if (events.length > 0) {
+        addEventButton.classList.add('hidden');
+        document.querySelectorAll('#getTicketNumbersButton, #getVerifiedTicketsButton').forEach(btn => {
+          btn.classList.remove('hidden');
+        });
+      } else {
+        addEventButton.classList.remove('hidden');
+        document.querySelectorAll('#getTicketNumbersButton, #getVerifiedTicketsButton').forEach(btn => {
+          btn.classList.add('hidden');
+        });
+      }
+    }
+
+    function renderEventsTable() {
+      const tableBody = document.getElementById('eventsTable');
+      tableBody.innerHTML = events.map(event => `
+        <tr>
+          <td class="py-3 px-4">${event.name}</td>
+          <td class="py-3 px-4">${event.venue}</td>
+          <td class="py-3 px-4">${event.type}</td>
+          <td class="py-3 px-4">${event.contact}</td>
+          <td class="py-3 px-4">${event.description}</td>
+          <td class="py-3 px-4">${event.socialAccount}</td>
+          <td class="py-3 px-4">
+            <button onclick="openVerifyTicketModal('${event.name}')" class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-1 px-2 rounded-lg">Verify</button>
+            <button onclick="openPrintTicketsModal('${event.id}')" class="bg-green-500 hover:bg-green-700 text-white font-bold py-1 px-2 rounded-lg">Print</button>
+            <button onclick="deleteEvent('${event.id}')" class="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded-lg">Delete</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    async function loadEvents() {
+      const eventsSnapshot = await getDocs(collection(db, 'events'));
+      events = eventsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      renderEventsTable();
+      toggleAddEventButton();
+    }
+
+    window.onload = loadEvents;
+  </script>
+</body>
+</html>

@@ -1,0 +1,1332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Church Management Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-blue: #2563eb;
+            --accent-blue: #3b82f6;
+            --gradient-start: #4f46e5;
+            --gradient-end: #6366f1;
+        }
+
+        body {
+            background: #f8fafc;
+            font-family: 'Arial', sans-serif;
+        }
+
+        .dashboard-container {
+            padding: 2rem;
+            min-height: 100vh;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .stats-card {
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+            color: white;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        .data-table th {
+            background: var(--primary-blue);
+            color: white;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .data-table td {
+            padding: 1rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .data-table tr:hover {
+            background-color: #f8fafc;
+        }
+
+        .chart-container {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 2rem;
+            margin-top: 2rem;
+        }
+
+        .modal-header {
+            background: var(--primary-blue);
+            color: white;
+        }
+
+        .reports-section {
+  padding: 2rem 0;
+}
+
+.reports-section .container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.cards-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 2rem;
+}
+
+.report-card {
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.report-card h3 {
+  color: #2c3e50;
+  margin-bottom: 1rem;
+  font-size: 1.2rem;
+}
+
+.report-card .count {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #3498db;
+  margin: 0;
+}
+
+.report-card .count[data-error] {
+  color: #e74c3c;
+  font-size: 1rem;
+}
+
+:root {
+    --primary-color: #4a90e2;
+    --secondary-color: #6c5ce7;
+    --success-color: #00b894;
+    --warning-color: #fdcb6e;
+    --text-dark: #2d3436;
+    --text-light: #ffffff;
+    --card-bg: rgba(255, 255, 255, 0.95);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    min-height: 100vh;
+    padding: 2rem;
+}
+
+.dashboard {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.dashboard-title {
+    text-align: center;
+    color: var(--text-dark);
+    margin-bottom: 3rem;
+    font-size: 2.5rem;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.cards-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+}
+
+.card {
+    background: var(--card-bg);
+    border-radius: 15px;
+    padding: 1.5rem;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+}
+
+.card-content {
+    text-align: center;
+}
+
+.card-title {
+    color: var(--text-dark);
+    margin-bottom: 1rem;
+    font-size: 1.4rem;
+}
+
+.data-count {
+    font-size: 2.5rem;
+    font-weight: 600;
+    color: var(--text-dark);
+    padding: 1rem;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.8);
+    box-shadow: inset 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+
+/* SECTION-MORE SPECIFIC STYLES */
+.section-more {
+  padding: 4rem 2rem;
+  background: #f8f9fa;
+}
+
+.section-more .section-title {
+  text-align: center;
+  font-size: 2.5rem;
+  margin-bottom: 3rem;
+  color: #2c3e50;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  position: relative;
+}
+
+.section-more .section-title::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100px;
+  height: 3px;
+  background: #3498db;
+}
+
+.cards-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.section-more .card {
+  background: white;
+  border-radius: 15px;
+  padding: 2rem;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.section-more .card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+}
+
+.section-more .card::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, transparent, rgba(52, 152, 219, 0.1), transparent);
+  transform: rotate(45deg);
+}
+
+.section-more .stat-number {
+  font-size: 3.5rem;
+  font-weight: 700;
+  color: #3498db;
+  margin: 1.5rem 0;
+  transition: all 0.3s ease;
+}
+
+.section-more .event-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 0.5rem;
+}
+
+.section-more .event-venue {
+  color: #7f8c8d;
+  font-style: italic;
+}
+
+.section-more .recent-minister {
+  font-size: 1.3rem;
+  color: #2c3e50;
+  font-weight: 600;
+  margin-top: 1rem;
+}
+/* Section Other Styles */
+.section-other {
+    padding: 4rem 2rem;
+    background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
+    min-height: 100vh;
+}
+
+.section-title {
+    text-align: center;
+    color: #fff;
+    font-size: 2.5rem;
+    margin-bottom: 3rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+
+.cards-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.data-card {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    padding: 2rem;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer;
+    min-height: 200px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.data-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+}
+
+.data-card h3 {
+    color: #fff;
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+.count {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #fff;
+    transition: color 0.3s ease;
+}
+
+/* Individual Card Colors */
+.card-1 { background: rgba(106, 17, 203, 0.15); }
+.card-2 { background: rgba(234, 67, 53, 0.15); }
+.card-3 { background: rgba(251, 188, 5, 0.15); }
+.card-4 { background: rgba(52, 168, 83, 0.15); }
+
+.card-1 .count { color: #6a11cb; }
+.card-2 .count { color: #ea4335; }
+.card-3 .count { color: #fbbc05; }
+.card-4 .count { color: #34a853; }
+
+/* Branch Churches Section */
+.branch-churches {
+    --primary-color: #6c5ce7;
+    --secondary-color: #a8a5e6;
+    --glass-bg: rgba(255, 255, 255, 0.1);
+    --text-primary: #2d3436;
+    --text-secondary: #636e72;
+}
+
+.branch-churches__container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.branch-churches__card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 2rem;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.branch-churches__card:hover {
+    transform: translateY(-5px);
+}
+
+.branch-churches__card-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.branch-churches__icon {
+    font-size: 2rem;
+    color: var(--primary-color);
+    background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.branch-churches__title {
+    font-size: 1.5rem;
+    color: var(--text-primary);
+    margin: 0;
+    font-weight: 600;
+}
+
+.branch-churches__count {
+    font-size: 3rem;
+    font-weight: 700;
+    background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    display: block;
+    text-align: center;
+}
+
+.branch-churches__card-content {
+    position: relative;
+    padding: 1rem 0;
+}
+
+.branch-churches__recent-entry {
+    display: grid;
+    gap: 0.5rem;
+    padding: 1rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.branch-churches__recent-entry:last-child {
+    border-bottom: none;
+}
+
+.branch-churches__entry-title {
+    font-size: 1.1rem;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.branch-churches__entry-detail {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.branch-churches__placeholder {
+    text-align: center;
+    color: var(--text-secondary);
+    font-style: italic;
+    padding: 2rem 0;
+}
+.community-members {
+  padding: 2rem 0;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+h2 {
+  text-align: center;
+  margin-bottom: 2rem;
+  font-size: 2rem;
+  color: #333;
+}
+
+.cards-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+}
+
+.card {
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+}
+
+.card h3 {
+  margin-bottom: 1rem;
+  color: #444;
+}
+
+.card-content {
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+#totalMembers {
+  font-size: 3rem;
+  text-align: center;
+  color: #2c3e50;
+}
+
+.ratio-container {
+  display: flex;
+  height: 20px;
+  border-radius: 10px;
+  overflow: hidden;
+  margin: 1rem 0;
+}
+
+.male-bar {
+  background-color: #3498db;
+}
+
+.female-bar {
+  background-color: #e84393;
+}
+
+.ratio-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+#birthYearChart {
+  width: 100% !important;
+  height: auto !important;
+}
+
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Top Navigation -->
+        <div class="d-flex justify-content-between align-items-center mb-5">
+            <h1 class="display-6"><i class="fas fa-church me-2"></i>Dashboard</h1>
+            <div class="d-flex gap-3">
+              
+                <div class="dropdown">
+                    <button class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown">
+                        <i class="fas fa-user-shield"></i> Admin
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#updatePasswordModal">Update Password</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Password Update Modal -->
+        <div class="modal fade" id="updatePasswordModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Update Password</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <input type="email" class="form-control" id="updateEmail" placeholder="Registered email" required>
+                        </div>
+                        <div class="mb-3">
+                            <input type="password" class="form-control" id="currentPassword" placeholder="Current Password" required>
+                        </div>
+                        <div class="mb-3">
+                            <input type="password" class="form-control" id="newPassword" placeholder="New Password" required>
+                        </div>
+                        <div class="mb-3">
+                            <input type="password" class="form-control" id="confirmPassword" placeholder="Confirm Password" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary" id="updatePasswordBtn">Update</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Success Modal -->
+        <div class="modal fade" id="successModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header bg-success text-white">
+                        <h5 class="modal-title">Success</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body" id="successMessage"></div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Error Modal -->
+        <div class="modal fade" id="errorModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header bg-danger text-white">
+                        <h5 class="modal-title">Error</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body" id="errorMessage"></div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="row g-4 mb-4">
+            <div class="col-md-4">
+                <div class="glass-card stats-card">
+                    <h4>Total Members</h4>
+                    <p class="display-6 mb-0" id="total-members">0</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="glass-card stats-card">
+                  
+                    <h4>Gender Ratio</h4>
+                    <p class="display-6 mb-0" id="gender-ratio">0:0</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="glass-card stats-card">
+                    <h4>Top Home Church</h4>
+                    <p class="display-6 mb-0" id="top-church">-</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Members Table -->
+        <div class="glass-card">
+            <h4 class="mb-4"><i class="fas fa-users me-2"></i>Recent Members</h4>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Home Church</th>
+                        <th>Ministry</th>
+                        <th>Date Joined</th>
+                        <th>Position</th>
+                    </tr>
+                </thead>
+                <tbody id="recent-members-body">
+                    <!-- Data populated by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Marital Status Chart -->
+        <div class="chart-container">
+            <h4 class="mb-4"><i class="fas fa-chart-line me-2"></i>Marital Status Distribution</h4>
+            <canvas id="maritalChart"></canvas>
+        </div>
+    </div>
+
+  
+
+
+    <section class="reports-section">
+        <div class="container">
+          <div class="cards-container">
+            <!-- Reports Card -->
+            <div class="report-card">
+              <h3>Conference Reports Uploaded</h3>
+              <p class="count" id="reportsCount">Loading...</p>
+            </div>
+      
+            <!-- Fellowship Groups Card -->
+            <div class="report-card">
+              <h3>Fellowship Groups members</h3>
+              <p class="count" id="groupsCount">Loading...</p>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="section-more">
+       
+        <div class="cards-container">
+          <div class="card card-events">
+            <div class="card-content">
+              <h3>Past Events</h3>
+              <div class="stat-number" id="events-total">0</div>
+              <div class="event-details">
+                <p class="event-title" id="recent-event-title">Loading...</p>
+                <p class="event-venue" id="recent-event-venue"></p>
+              </div>
+            </div>
+          </div>
+      
+          <div class="card card-ministers">
+            <div class="card-content">
+              <h3>Gospel Ministers</h3>
+              <div class="stat-number" id="ministers-total">0</div>
+              <div class="minister-details">
+                <p class="recent-minister" id="recent-minister-name">Loading...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="branch-churches">
+        <div class="branch-churches__container">
+            <!-- Total Branches Card -->
+            <div class="branch-churches__card">
+                <div class="branch-churches__card-header">
+                    <i class="fas fa-church branch-churches__icon"></i>
+                    <h2 class="branch-churches__title">Total Branches</h2>
+                </div>
+                <div class="branch-churches__card-content">
+                    <span class="branch-churches__count" id="totalBranches">0</span>
+                </div>
+            </div>
+
+            <!-- Recent Branches Card -->
+            <div class="branch-churches__card">
+                <div class="branch-churches__card-header">
+                    <i class="fas fa-clock branch-churches__icon"></i>
+                    <h2 class="branch-churches__title">Recent Additions</h2>
+                </div>
+                <div class="branch-churches__card-content" id="recentBranches">
+                    <div class="branch-churches__placeholder">No recent branches added</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+     
+<section class="community-members">
+  <div class="container">
+    <h2>Community Members</h2>
+    <div class="cards-container">
+      <!-- Total Members Card -->
+      <div class="card">
+        <h3>Total Members</h3>
+        <div class="card-content">
+          <p id="totalMembers">0</p>
+        </div>
+      </div>
+
+      <!-- Gender Ratio Card -->
+      <div class="card">
+        <h3>Gender Ratio</h3>
+        <div class="card-content">
+          <div id="genderRatio" class="ratio-container">
+            <div class="male-bar"></div>
+            <div class="female-bar"></div>
+          </div>
+          <div class="ratio-labels">
+            <span>Male: 0%</span>
+            <span>Female: 0%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Birth Year Chart Card -->
+      <div class="card">
+        <h3>Birth Year Distribution</h3>
+        <div class="card-content">
+          <canvas id="birthYearChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+ 
+  <!-- Include Firebase and Chart.js -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+  
+  <!-- Embedded JavaScript -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Firebase configuration
+      const firebaseConfig = {
+        apiKey: "AIzaSyCXvzCTN3JMT6avOxItSgN4LFmkJ3iNg-Q",
+        authDomain: "members-2b3a0.firebaseapp.com",
+        databaseURL: "https://members-2b3a0-default-rtdb.firebaseio.com",
+        projectId: "members-2b3a0",
+        storageBucket: "members-2b3a0.firebasestorage.app",
+        messagingSenderId: "777982268345",
+        appId: "1:777982268345:web:49cf485520fb8efc5edc68"
+      };
+
+      // Initialize Firebase
+      if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+      }
+      
+      const database = firebase.database();
+      const membersRef = database.ref('members');
+
+      let birthYearChart = null;
+
+      membersRef.on('value', (snapshot) => {
+        const membersData = snapshot.val();
+        const members = Object.values(membersData || {});
+        
+        updateTotalMembers(members);
+        updateGenderRatio(members);
+        updateBirthYearChart(members);
+      });
+
+      function updateTotalMembers(members) {
+        document.getElementById('totalMembers').textContent = members.length;
+      }
+
+      function updateGenderRatio(members) {
+        const maleCount = members.filter(m => m.gender === 'Male').length;
+        const femaleCount = members.length - maleCount;
+        const total = members.length || 1;
+        
+        const malePercent = (maleCount / total * 100).toFixed(1);
+        const femalePercent = (femaleCount / total * 100).toFixed(1);
+        
+        document.querySelector('.male-bar').style.width = `${malePercent}%`;
+        document.querySelector('.female-bar').style.width = `${femalePercent}%`;
+        document.querySelector('.ratio-labels').innerHTML = `
+          <span>Male: ${malePercent}%</span>
+          <span>Female: ${femalePercent}%</span>
+        `;
+      }
+
+      function updateBirthYearChart(members) {
+        const ctx = document.getElementById('birthYearChart').getContext('2d');
+        const years = members.map(m => m.yob).filter(y => y);
+        const yearCounts = years.reduce((acc, year) => {
+          acc[year] = (acc[year] || 0) + 1;
+          return acc;
+        }, {});
+        
+        const labels = Object.keys(yearCounts).sort();
+        const data = labels.map(label => yearCounts[label]);
+        
+        if (birthYearChart) {
+          birthYearChart.destroy();
+        }
+        
+        birthYearChart = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: labels,
+            datasets: [{
+              label: 'Members by Birth Year',
+              data: data,
+              borderColor: '#27ae60',
+              tension: 0.4,
+              fill: false
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              y: {
+                beginAtZero: true,
+                ticks: {
+                  stepSize: 1
+                }
+              }
+            }
+          }
+        });
+      }
+    });
+  </script>
+</section>      
+
+    
+      <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
+        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
+      
+        const firebaseConfig = {
+          apiKey: "AIzaSyAyiRtkvdxnGWaiG-Xn-50Vm_Pb1J0ya6E",
+          authDomain: "church-cms-96407.firebaseapp.com",
+          projectId: "church-cms-96407",
+          storageBucket: "church-cms-96407.firebasestorage.app",
+          messagingSenderId: "19370427001",
+          appId: "1:19370427001:web:b1d20215c437fc324e4aa8",
+          measurementId: "G-NKDZSFGR4X"
+        };
+      
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+      
+        // Fetch Reports Count
+        async function fetchReportsCount() {
+          try {
+            const querySnapshot = await getDocs(collection(db, "reports"));
+            const count = querySnapshot.size;
+            document.getElementById('reportsCount').textContent = count || 'No data found';
+          } catch (error) {
+            console.error("Error fetching reports:", error);
+            document.getElementById('reportsCount').textContent = 'Error loading data';
+          }
+        }
+      
+        // Fetch Fellowship Groups Count
+        async function fetchFellowshipGroups() {
+          try {
+            const querySnapshot = await getDocs(collection(db, "FellowshipGroups"));
+            const count = querySnapshot.size;
+            document.getElementById('groupsCount').textContent = count || 'No data found';
+          } catch (error) {
+            console.error("Error fetching groups:", error);
+            document.getElementById('groupsCount').textContent = 'Error loading data';
+          }
+        }
+      
+        // Initial fetch
+        fetchReportsCount();
+        fetchFellowshipGroups();
+      </script> 
+
+
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, updatePassword } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
+        import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
+
+        // Replace with your Firebase config
+        const firebaseConfig = {
+            apiKey: "AIzaSyAyiRtkvdxnGWaiG-Xn-50Vm_Pb1J0ya6E",
+            authDomain: "church-cms-96407.firebaseapp.com",
+            projectId: "church-cms-96407",
+            storageBucket: "church-cms-96407.appspot.com",
+            messagingSenderId: "19370427001",
+            appId: "1:19370427001:web:b1d20215c437fc324e4aa8"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // Password Update Logic
+        document.getElementById('updatePasswordBtn').addEventListener('click', async () => {
+            const email = document.getElementById('updateEmail').value;
+            const currentPassword = document.getElementById('currentPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            try {
+                if (!email || !currentPassword || !newPassword || !confirmPassword) {
+                    showError('All fields are required');
+                    return;
+                }
+
+                if (newPassword !== confirmPassword) {
+                    showError('New passwords do not match!');
+                    return;
+                }
+
+                const userCredential = await signInWithEmailAndPassword(auth, email, currentPassword);
+                await updatePassword(userCredential.user, newPassword);
+                
+                document.getElementById('updatePasswordModal').querySelectorAll('input').forEach(input => input.value = '');
+                showSuccess('Password updated successfully!');
+                $('#updatePasswordModal').modal('hide');
+                setTimeout(() => location.reload(), 1500);
+                
+            } catch (error) {
+                handleAuthError(error);
+            }
+        });
+
+        function showSuccess(message) {
+            const successModal = new bootstrap.Modal(document.getElementById('successModal'));
+            document.getElementById('successMessage').textContent = message;
+            successModal.show();
+        }
+
+        function showError(message) {
+            const errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
+            document.getElementById('errorMessage').textContent = message;
+            errorModal.show();
+        }
+
+        function handleAuthError(error) {
+            switch (error.code) {
+                case 'auth/wrong-password':
+                case 'auth/user-not-found':
+                    showError('Invalid email or password');
+                    break;
+                case 'auth/requires-recent-login':
+                    showError('Session expired. Please login again.');
+                    break;
+                case 'auth/network-request-failed':
+                    showError('Network error. Please check your internet connection.');
+                    break;
+                default:
+                    showError(error.message);
+            }
+        }
+
+        // Fetch Data with error handling
+        async function fetchData() {
+            try {
+                const membersQuery = query(collection(db, "Members"), orderBy("timestamp", "desc"));
+                const querySnapshot = await getDocs(membersQuery);
+                
+                if (querySnapshot.empty) {
+                    showError('No members found');
+                    return;
+                }
+
+                const members = querySnapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data(),
+                    timestamp: doc.data().timestamp?.toDate()
+                }));
+
+                updateDashboard(members);
+                setupChart(members);
+
+            } catch (error) {
+                console.error('Firestore error:', error);
+                showError('Error loading data. Please check your connection.');
+            }
+        }
+
+        function updateDashboard(members) {
+            document.getElementById('total-members').textContent = members.length;
+            
+            const males = members.filter(m => m.gender === 'Male').length;
+            document.getElementById('gender-ratio').textContent = `${males}/${members.length - males}`;
+
+            const churchCounts = members.reduce((acc, { homeChurch }) => {
+                acc[homeChurch] = (acc[homeChurch] || 0) + 1;
+                return acc;
+            }, {});
+            
+            const topChurch = Object.entries(churchCounts).sort((a, b) => b[1] - a[1])[0]?.[0];
+            document.getElementById('top-church').textContent = topChurch || '-';
+
+            const tbody = document.getElementById('recent-members-body');
+            tbody.innerHTML = members.slice(0, 2).map(member => `
+                <tr>
+                    <td>${member.firstName} ${member.secondName}</td>
+                    <td>${member.homeChurch}</td>
+                    <td>${member.ministry}</td>
+                    <td>${member.timestamp?.toLocaleDateString() || 'N/A'}</td>
+                    <td>${member.position}</td>
+                </tr>
+            `).join('');
+        }
+
+        function setupChart(members) {
+            const statusData = members.reduce((acc, { maritalStatus }) => {
+                acc[maritalStatus] = (acc[maritalStatus] || 0) + 1;
+                return acc;
+            }, {});
+
+            new Chart(document.getElementById('maritalChart'), {
+                type: 'line',
+                data: {
+                    labels: Object.keys(statusData),
+                    datasets: [{
+                        label: 'Members',
+                        data: Object.values(statusData),
+                        borderColor: '#3b82f6',
+                        tension: 0.4,
+                        fill: false,
+                        borderWidth: 2,
+                        pointRadius: 5,
+                        pointBackgroundColor: '#3b82f6'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'top' }
+                    },
+                    scales: {
+                        y: { 
+                            beginAtZero: true, 
+                            grid: { color: '#e2e8f0' },
+                            ticks: { precision: 0 }
+                        },
+                        x: { 
+                            grid: { color: '#e2e8f0' } 
+                        }
+                    }
+                }
+            });
+        }
+
+        // Initialize
+        fetchData();
+    </script>
+
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
+import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-database.js";
+
+// Past Events Configuration
+const pastEventsConfig = {
+  apiKey: "AIzaSyCoB2N_TM2CN1DxRSIMgFkEwkH5oS_khj0",
+  authDomain: "past-events-bf199.firebaseapp.com",
+  databaseURL: "https://past-events-bf199-default-rtdb.firebaseio.com",
+  projectId: "past-events-bf199",
+  storageBucket: "past-events-bf199.firebasestorage.app",
+  messagingSenderId: "355048508537",
+  appId: "1:355048508537:web:b3841388b30480771858a8"
+};
+
+// Gospel Ministers Configuration
+const gospelMinistersConfig = {
+  apiKey: "AIzaSyDl612wDzyx7GjCmppUhttHP_bUTAzoDZA",
+  authDomain: "gospel-ministers.firebaseapp.com",
+  databaseURL: "https://gospel-ministers-default-rtdb.firebaseio.com",
+  projectId: "gospel-ministers",
+  storageBucket: "gospel-ministers.firebasestorage.app",
+  messagingSenderId: "758802296692",
+  appId: "1:758802296692:web:719659c89a43500e190621"
+};
+
+// Initialize both apps
+const pastEventsApp = initializeApp(pastEventsConfig, "pastEvents");
+const gospelMinistersApp = initializeApp(gospelMinistersConfig, "gospelMinisters");
+
+// Get database instances
+const pastEventsDB = getDatabase(pastEventsApp);
+const ministersDB = getDatabase(gospelMinistersApp);
+
+// Past Events Data
+const eventsRef = ref(pastEventsDB, 'events/');
+onValue(eventsRef, (snapshot) => {
+  const eventsData = snapshot.val();
+  const eventsArray = eventsData ? Object.values(eventsData) : [];
+  
+  document.getElementById('events-total').textContent = eventsArray.length.toLocaleString();
+  
+  if(eventsArray.length > 0) {
+    const recentEvent = eventsArray.reduce((a, b) => a.date > b.date ? a : b);
+    document.getElementById('recent-event-title').textContent = recentEvent.title;
+    document.getElementById('recent-event-venue').textContent = recentEvent.venue;
+  } else {
+    document.getElementById('recent-event-title').textContent = "No events found";
+  }
+});
+
+// Ministers Data
+const ministersRef = ref(ministersDB, 'ministers/');
+onValue(ministersRef, (snapshot) => {
+  const ministersData = snapshot.val();
+  const ministersArray = ministersData ? Object.values(ministersData) : [];
+  
+  document.getElementById('ministers-total').textContent = ministersArray.length.toLocaleString();
+  
+  if(ministersArray.length > 0) {
+    const recentMinister = ministersArray.reduce((a, b) => a.timestamp > b.timestamp ? a : b);
+    document.getElementById('recent-minister-name').textContent = recentMinister.fullName;
+  } else {
+    document.getElementById('recent-minister-name').textContent = "No ministers found";
+  }
+});
+
+// Number animation effect
+const animateNumbers = () => {
+  const observers = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const target = entry.target;
+        const finalValue = parseInt(target.textContent);
+        let current = 0;
+        
+        const updateNumber = () => {
+          if (current < finalValue) {
+            current += Math.ceil(finalValue / 50);
+            target.textContent = current.toLocaleString();
+            requestAnimationFrame(updateNumber);
+          } else {
+            target.textContent = finalValue.toLocaleString();
+          }
+        };
+        
+        requestAnimationFrame(updateNumber);
+        observers.unobserve(target);
+      }
+    });
+  });
+
+  document.querySelectorAll('.stat-number').forEach(el => observers.observe(el));
+};
+
+// Initialize animation when page loads
+window.addEventListener('load', animateNumbers);
+</script>
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
+import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-database.js";
+
+// Firebase Configurations
+const configs = {
+    1: {
+        apiKey: "AIzaSyDXhdx8XZd1-LgCgGaACJL6kQdzE6uBKJg",
+        authDomain: "church-store-6a5fb.firebaseapp.com",
+        databaseURL: "https://church-store-6a5fb-default-rtdb.firebaseio.com",
+        projectId: "church-store-6a5fb",
+        storageBucket: "church-store-6a5fb.firebasestorage.app",
+        messagingSenderId: "169328717152",
+        appId: "1:169328717152:web:32aeaaed475ec0793ec205"
+    },
+};
+
+// Initialize Apps and Databases
+const apps = {};
+const databases = {};
+
+Object.entries(configs).forEach(([id, config]) => {
+    apps[id] = initializeApp(config, `app${id}`);
+    databases[id] = getDatabase(apps[id]);
+});
+
+// Fetch Data Function
+function fetchData(cardId) {
+    const dbRef = ref(databases[cardId]);
+    onValue(dbRef, (snapshot) => {
+        const countElement = document.querySelector(`.count[data-card="${cardId}"]`);
+        if (snapshot.exists()) {
+            const data = snapshot.val();
+            const itemCount = Object.keys(data).length;
+            countElement.textContent = itemCount;
+        } else {
+            countElement.textContent = "No data";
+        }
+    }, (error) => {
+        console.error(`Error fetching data for card ${cardId}:`, error);
+        document.querySelector(`.count[data-card="${cardId}"]`).textContent = "Error";
+    });
+}
+
+// Initialize all cards
+[1, 2, 3, 4].forEach(cardId => fetchData(cardId));
+</script>
+
+<script type="module">
+  // Import Firebase modules
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+  import { getDatabase, ref, onValue, push, set } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
+
+  // Firebase configuration
+  const firebaseConfig = {
+      apiKey: "AIzaSyCKgXCFoj_x0R8p5675uwVVdhm4uzQLXsI",
+      authDomain: "branch-churces.firebaseapp.com",
+      databaseURL: "https://branch-churces-default-rtdb.firebaseio.com",
+      projectId: "branch-churces",
+      storageBucket: "branch-churces.appspot.com",
+      messagingSenderId: "275485033815",
+      appId: "1:275485033815:web:dd05d203e672e51873aa12"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+
+  // DOM Elements
+  const totalBranchesEl = document.getElementById('totalBranches');
+  const recentBranchesEl = document.getElementById('recentBranches');
+
+  // Real-time updates for branches
+  onValue(ref(db, 'branches'), (snapshot) => {
+      const branches = [];
+      snapshot.forEach((childSnapshot) => {
+          branches.push({
+              id: childSnapshot.key,
+              ...childSnapshot.val()
+          });
+      });
+
+      // Update total branches count
+      updateTotalBranches(branches.length);
+
+      // Sort branches by timestamp in ascending order (oldest first)
+      const sortedBranches = branches.sort((a, b) => a.timestamp - b.timestamp);
+
+      // Get the most recent branch (last in the sorted list)
+      const mostRecentBranch = sortedBranches[sortedBranches.length - 1];
+
+      // Update the UI with the most recent branch
+      updateRecentBranches(mostRecentBranch);
+  });
+
+  // Function to update total branches count
+  function updateTotalBranches(count) {
+      totalBranchesEl.textContent = count;
+      totalBranchesEl.style.setProperty('--primary', count > 0 ? '#4f46e5' : '#94a3b8');
+  }
+
+  // Function to update the most recent branch in the UI
+  function updateRecentBranches(branch) {
+      if (branch) {
+          recentBranchesEl.innerHTML = `
+              <div class="recent-branch">
+                  <h3>${branch.name}</h3>
+                  <p><strong>Pastor:</strong> ${branch.pastor}</p>
+                  <p><strong>Location:</strong> ${branch.location}</p>
+              </div>
+          `;
+      } else {
+          recentBranchesEl.innerHTML = '<div class="recent-placeholder">No recent branches added</div>';
+      }
+  }
+
+  // Function to add a new branch (example)
+  function addNewBranch(branchData) {
+      const newBranchRef = push(ref(db, 'branches'));
+      set(newBranchRef, {
+          ...branchData,
+          timestamp: Date.now()
+      });
+  }
+</script>
+</body>
+</html>

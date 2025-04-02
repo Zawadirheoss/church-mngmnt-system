@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Church CMS Communication Dashboard</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Font Awesome for Icons -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+  <style>
+    body {
+      background-color: #f8f9fa;
+    }
+    .dashboard-header {
+      background-color: #007bff;
+      color: white;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+    .table-responsive {
+      margin-top: 20px;
+    }
+    .action-btn {
+      margin: 2px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container mt-5">
+    <div class="dashboard-header">
+      <h1>Church CMS Communication Dashboard</h1>
+      <p>Manage and communicate with church members efficiently.</p>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table table-hover table-striped">
+        <thead>
+          <tr>
+            <th>First Name</th>
+            <th>Last Name</th>
+            <th>Phone Number</th>
+            <th>Email</th>
+            <th>Home Church</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="membersTableBody">
+          <!-- Members will be populated here -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Firebase and Firestore SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
+    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAyiRtkvdxnGWaiG-Xn-50Vm_Pb1J0ya6E",
+      authDomain: "church-cms-96407.firebaseapp.com",
+      projectId: "church-cms-96407",
+      storageBucket: "church-cms-96407.firebasestorage.app",
+      messagingSenderId: "19370427001",
+      appId: "1:19370427001:web:b1d20215c437fc324e4aa8",
+      measurementId: "G-NKDZSFGR4X"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    async function fetchMembers() {
+      const querySnapshot = await getDocs(collection(db, "Members"));
+      const tableBody = document.getElementById('membersTableBody');
+      tableBody.innerHTML = ''; // Clear existing rows
+
+      querySnapshot.forEach((doc) => {
+        const member = doc.data();
+        const row = `
+          <tr>
+            <td>${member.firstName}</td>
+            <td>${member.secondName}</td>
+            <td>${member.phone}</td>
+            <td>${member.email}</td>
+            <td>${member.homeChurch}</td>
+            <td>
+              <button class="btn btn-primary btn-sm action-btn" onclick="sendWhatsApp('${member.phone}')"><i class="fab fa-whatsapp"></i> WhatsApp</button>
+              <button class="btn btn-success btn-sm action-btn" onclick="sendEmail('${member.email}')"><i class="fas fa-envelope"></i> Email</button>
+              <button class="btn btn-info btn-sm action-btn" onclick="makeCall('${member.phone}')"><i class="fas fa-phone"></i> Call</button>
+              <button class="btn btn-warning btn-sm action-btn" onclick="sendSMS('${member.phone}')"><i class="fas fa-sms"></i> SMS</button>
+              <button class="btn btn-secondary btn-sm action-btn" onclick="sendDocument('${member.email}')"><i class="fas fa-paperclip"></i> Send Document</button>
+            </td>
+          </tr>
+        `;
+        tableBody.innerHTML += row;
+      });
+    }
+
+    window.sendWhatsApp = (phoneNumber) => {
+      window.open(`https://wa.me/${phoneNumber}`, '_blank');
+    };
+
+    window.sendEmail = (email) => {
+      window.open(`mailto:${email}`, '_blank');
+    };
+
+    window.makeCall = (phoneNumber) => {
+      window.open(`tel:${phoneNumber}`, '_blank');
+    };
+
+    window.sendSMS = (phoneNumber) => {
+      window.open(`sms:${phoneNumber}`, '_blank');
+    };
+
+    window.sendDocument = (email) => {
+      window.open(`mailto:${email}?subject=Document&body=Please find the attached document.`, '_blank');
+    };
+
+    fetchMembers();
+  </script>
+
+  <!-- Bootstrap JS and dependencies -->
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
+</body>
+</html>

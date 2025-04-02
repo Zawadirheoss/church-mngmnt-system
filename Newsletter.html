@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subscriber Dashboard | Gospel Springs Mission</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #1a237e;
+            --secondary: #4fc3f7;
+            --accent: #ff6f00;
+            --light: #f5f5f5;
+            --dark: #212121;
+            --success: #4caf50;
+            --danger: #f44336;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            color: var(--dark);
+            line-height: 1.6;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            background: linear-gradient(180deg, var(--primary), #283593);
+            color: white;
+            padding: 2rem 1rem;
+            box-shadow: 4px 0 15px rgba(0, 0, 0, 0.1);
+            position: relative;
+            z-index: 10;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .logo img {
+            width: 60px;
+            height: 60px;
+            border-radius: 60px;
+            object-fit: cover;
+            margin-right: 15px;
+            border: 2px solid white;
+        }
+
+        .logo h2 {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .nav-menu {
+            list-style: none;
+        }
+
+        .nav-item {
+            margin-bottom: 0.5rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 0.8rem 1rem;
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .nav-link i {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+        }
+
+        .main-content {
+            padding: 2rem;
+            overflow-x: auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .header h1 {
+            color: var(--primary);
+            font-size: 1.8rem;
+        }
+
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-card.total {
+            border-left: 5px solid var(--primary);
+        }
+
+        .stat-card.gender {
+            border-left: 5px solid var(--accent);
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin: 0.5rem 0;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .chart-container {
+            width: 100%;
+            height: 200px;
+            margin-top: 1rem;
+        }
+
+        .data-table {
+            width: 100%;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        th {
+            background: #f9f9f9;
+            color: var(--primary);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 0.5px;
+        }
+
+        tr:hover {
+            background: #f5f7fa;
+        }
+
+        .actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn-email {
+            background: var(--secondary);
+            color: white;
+        }
+
+        .btn-email:hover {
+            background: #3ab7e6;
+        }
+
+        .btn-delete {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-delete:hover {
+            background: #e53935;
+        }
+
+        .timestamp {
+            font-size: 0.8rem;
+            color: #666;
+        }
+
+        .gender-badge {
+            padding: 0.3rem 0.6rem;
+            border-radius: 50px;
+            font-size: 0.7rem;
+            font-weight: 500;
+        }
+
+        .male {
+            background: rgba(33, 150, 243, 0.1);
+            color: #2196f3;
+        }
+
+        .female {
+            background: rgba(233, 30, 99, 0.1);
+            color: #e91e63;
+        }
+
+        .other {
+            background: rgba(76, 175, 80, 0.1);
+            color: #4caf50;
+        }
+
+        .not-specified {
+            background: rgba(158, 158, 158, 0.1);
+            color: #9e9e9e;
+        }
+
+        @media (max-width: 992px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+            
+            .sidebar {
+                display: none;
+            }
+            
+            .stats-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Loading animation */
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <aside class="sidebar">
+            <div class="logo">
+                <img src="Gospel springs logo.jpg" alt="Gospel Springs Mission Logo">
+                <h2>Gospel Springs</h2>
+            </div>
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="#" class="nav-link active">
+                        <i class="fas fa-users"></i>
+                        Subscribers
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="fas fa-envelope"></i>
+                        Campaigns
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="fas fa-chart-line"></i>
+                        Analytics
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="fas fa-cog"></i>
+                        Settings
+                    </a>
+                </li>
+            </ul>
+        </aside>
+
+        <main class="main-content">
+            <div class="header">
+                <h1>Subscriber Management</h1>
+                <div class="header-actions">
+                    <button class="btn btn-email">
+                        <i class="fas fa-file-export"></i> Export
+                    </button>
+                </div>
+            </div>
+
+            <div class="stats-container">
+                <div class="stat-card total">
+                    <h3 class="stat-label">Total Subscribers</h3>
+                    <div class="stat-value" id="totalSubscribers">0</div>
+                    <p>All newsletter subscribers</p>
+                </div>
+
+                <div class="stat-card gender">
+                    <h3 class="stat-label">Gender Distribution</h3>
+                    <div class="chart-container">
+                        <canvas id="genderChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="data-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Gender</th>
+                            <th>Date Subscribed</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="subscribersTable">
+                        <tr>
+                            <td colspan="5" style="text-align: center; padding: 2rem;">
+                                <i class="fas fa-spinner fa-spin"></i> Loading subscribers...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <script type="module">
+        // Import the functions you need from the Firebase SDK
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.5.0/firebase-app.js";
+        import { getDatabase, ref, onValue, remove } from "https://www.gstatic.com/firebasejs/11.5.0/firebase-database.js";
+
+        // Your Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAvDQOUlBmHGGGMX0eb1tWxKi7ZWvTapsQ",
+            authDomain: "newsletter-subscribers-73019.firebaseapp.com",
+            projectId: "newsletter-subscribers-73019",
+            storageBucket: "newsletter-subscribers-73019.firebasestorage.app",
+            messagingSenderId: "1028414271443",
+            appId: "1:1028414271443:web:5e5f86570a3e1b5ca1c926",
+            measurementId: "G-0ZMH7HVB2G",
+            databaseURL: "https://newsletter-subscribers-73019-default-rtdb.firebaseio.com/"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        // Gender colors for chart
+        const genderColors = {
+            Male: '#2196F3',
+            Female: '#E91E63',
+            Other: '#4CAF50',
+            'Prefer not to say': '#9E9E9E'
+        };
+
+        // Initialize gender distribution chart
+        const genderCtx = document.getElementById('genderChart').getContext('2d');
+        const genderChart = new Chart(genderCtx, {
+            type: 'doughnut',
+            data: {
+                labels: [],
+                datasets: [{
+                    data: [],
+                    backgroundColor: [],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '70%',
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            boxWidth: 12,
+                            padding: 20
+                        }
+                    }
+                },
+                animation: {
+                    animateScale: true,
+                    animateRotate: true
+                }
+            }
+        });
+
+        // Fetch subscribers from Firebase
+        const subscribersRef = ref(database, 'subscribers');
+        onValue(subscribersRef, (snapshot) => {
+            const subscribersData = snapshot.val();
+            const subscribersTable = document.getElementById('subscribersTable');
+            const totalSubscribers = document.getElementById('totalSubscribers');
+            
+            if (subscribersData) {
+                // Calculate totals
+                const subscribers = Object.values(subscribersData);
+                totalSubscribers.textContent = subscribers.length;
+                
+                // Update gender distribution
+                updateGenderChart(subscribers);
+                
+                // Populate table
+                subscribersTable.innerHTML = '';
+                
+                // Convert object to array and sort by timestamp (newest first)
+                const subscribersArray = Object.entries(subscribersData).map(([id, subscriber]) => ({
+                    id,
+                    ...subscriber
+                })).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                
+                subscribersArray.forEach(subscriber => {
+                    const row = document.createElement('tr');
+                    
+                    // Format date
+                    const date = new Date(subscriber.timestamp);
+                    const formattedDate = date.toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+                    
+                    // Determine gender badge class
+                    let genderClass = 'other';
+                    if (subscriber.gender === 'Male') genderClass = 'male';
+                    if (subscriber.gender === 'Female') genderClass = 'female';
+                    if (subscriber.gender === 'Prefer not to say') genderClass = 'not-specified';
+                    
+                    row.innerHTML = `
+                        <td>${subscriber.name}</td>
+                        <td>${subscriber.email}</td>
+                        <td><span class="gender-badge ${genderClass}">${subscriber.gender}</span></td>
+                        <td class="timestamp">${formattedDate}</td>
+                        <td class="actions">
+                            <button class="btn btn-email" onclick="emailSubscriber('${subscriber.email}')">
+                                <i class="fas fa-envelope"></i> Email
+                            </button>
+                            <button class="btn btn-delete" onclick="deleteSubscriber('${subscriber.id}')">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </td>
+                    `;
+                    
+                    subscribersTable.appendChild(row);
+                });
+            } else {
+                subscribersTable.innerHTML = `
+                    <tr>
+                        <td colspan="5" style="text-align: center; padding: 2rem;">
+                            No subscribers found
+                        </td>
+                    </tr>
+                `;
+                totalSubscribers.textContent = '0';
+                updateGenderChart([]);
+            }
+        });
+
+        // Update gender chart data
+        function updateGenderChart(subscribers) {
+            const genderCounts = {
+                'Male': 0,
+                'Female': 0,
+                'Other': 0,
+                'Prefer not to say': 0
+            };
+            
+            subscribers.forEach(subscriber => {
+                genderCounts[subscriber.gender]++;
+            });
+            
+            const genders = [];
+            const counts = [];
+            const colors = [];
+            
+            for (const [gender, count] of Object.entries(genderCounts)) {
+                if (count > 0) {
+                    genders.push(gender);
+                    counts.push(count);
+                    colors.push(genderColors[gender]);
+                }
+            }
+            
+            genderChart.data.labels = genders;
+            genderChart.data.datasets[0].data = counts;
+            genderChart.data.datasets[0].backgroundColor = colors;
+            genderChart.update();
+        }
+
+        // Delete subscriber
+        window.deleteSubscriber = function(id) {
+            if (confirm('Are you sure you want to delete this subscriber?')) {
+                const subscriberRef = ref(database, `subscribers/${id}`);
+                remove(subscriberRef)
+                    .then(() => {
+                        console.log('Subscriber deleted successfully');
+                    })
+                    .catch(error => {
+                        console.error('Error deleting subscriber:', error);
+                        alert('Error deleting subscriber. Please try again.');
+                    });
+            }
+        };
+
+        // Email subscriber
+        window.emailSubscriber = function(email) {
+            window.location.href = `mailto:${email}`;
+        };
+    </script>
+</body>
+</html>

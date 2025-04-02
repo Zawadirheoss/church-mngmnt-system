@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Events Manager - Past Events</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* Modern Clean Style */
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #ffffff;
+            margin: 0;
+            min-height: 100vh;
+            color: #2d3748;
+            padding: 2rem;
+        }
+
+        .dashboard {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 2rem;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin: 1rem 0;
+            color: #1a365d;
+            font-weight: 700;
+            letter-spacing: -0.05em;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 12px 28px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: #2563eb;
+            color: white;
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.2);
+        }
+
+        .btn-primary:hover {
+            background: #1d4ed8;
+            transform: translateY(-1px);
+        }
+
+        /* Table */
+        .events-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin: 2rem 0;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+        }
+
+        .events-table th {
+            background: #f8fafc;
+            padding: 1.2rem;
+            font-weight: 600;
+            text-align: left;
+            color: #475569;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .events-table td {
+            padding: 1rem;
+            border-bottom: 1px solid #e2e8f0;
+            color: #475569;
+        }
+
+        .events-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .events-table tr:hover {
+            background: #f8fafc;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            max-width: 500px;
+            margin: 5% auto;
+            padding: 2rem;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Inputs */
+        .input-group {
+            margin: 1.5rem 0;
+            position: relative;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            color: #1e293b;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        /* Actions */
+        .action-btn {
+            background: none;
+            border: none;
+            color: #64748b;
+            cursor: pointer;
+            margin: 0 5px;
+            padding: 8px;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .action-btn:hover {
+            background: #f1f5f9;
+            color: #2563eb;
+        }
+
+        /* Filters */
+        .filters {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .filter-input {
+            background: white;
+            border: 1px solid #e2e8f0;
+            padding: 10px 15px;
+            border-radius: 8px;
+            color: #1e293b;
+            transition: all 0.3s ease;
+        }
+
+        .filter-input:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        @media (max-width: 768px) {
+            .dashboard {
+                margin: 1rem;
+                padding: 1rem;
+            }
+            
+            .events-table {
+                display: block;
+                overflow-x: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <h1>📅 Past Events Manager</h1>
+        <button class="btn btn-primary" id="addEventBtn">
+            <i class="fas fa-plus"></i> Add past Event
+        </button>
+
+        <div class="filters">
+            <input type="text" class="filter-input" id="filterHost" placeholder="🔍 Search Host...">
+            <input type="text" class="filter-input" id="filterVenue" placeholder="🔍 Search Venue...">
+        </div>
+
+        <table class="events-table">
+            <thead> 
+                <tr>
+                    <th>Event Title</th>
+                    <th>Venue</th>
+                    <th>Date</th>
+                    <th>Host Pastor</th>
+                    <th>Guest Pastor</th>
+                    <th>Link</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="eventsTableBody">
+                <!-- Dynamic content -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Event Modal -->
+    <div id="eventModal" class="modal">
+        <div class="modal-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h2 style="margin: 0; color: #1e293b;">🎫 Manage past Event</h2>
+                <button class="action-btn" id="closeModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div class="input-group">
+                <input type="text" id="eventTitle" placeholder="Event Title">
+            </div>
+            <div class="input-group">
+                <input type="text" id="eventVenue" placeholder="Venue">
+            </div>
+            <div class="input-group">
+                <input type="date" id="eventDate">
+            </div>
+            <div class="input-group">
+                <input type="text" id="eventHost" placeholder="Host Pastor">
+            </div>
+            <div class="input-group">
+                <input type="text" id="eventGuest" placeholder="Guest Pastor">
+            </div>
+            <div class="input-group">
+                <input type="url" id="eventLink" placeholder="Event Link">
+            </div>
+
+            <button class="btn btn-primary" id="saveEventBtn" style="width: 100%; margin-top: 1rem;">
+                <i class="fas fa-save"></i> Save Event
+            </button>
+        </div>
+    </div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.2/firebase-app.js";
+import { getDatabase, ref, push, onValue, remove, update } from "https://www.gstatic.com/firebasejs/9.0.2/firebase-database.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyCoB2N_TM2CN1DxRSIMgFkEwkH5oS_khj0",
+    authDomain: "past-events-bf199.firebaseapp.com",
+    projectId: "past-events-bf199",
+    storageBucket: "past-events-bf199.appspot.com",
+    messagingSenderId: "355048508537",
+    appId: "1:355048508537:web:b3841388b30480771858a8"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+const eventsRef = ref(db, 'events');
+
+// DOM Elements
+const modal = document.getElementById('eventModal');
+const addEventBtn = document.getElementById('addEventBtn');
+const closeModalBtn = document.getElementById('closeModal');
+const saveEventBtn = document.getElementById('saveEventBtn');
+const tbody = document.getElementById('eventsTableBody');
+
+let editingEventId = null;
+
+// Modal Handling
+const toggleModal = () => modal.style.display = modal.style.display === 'block' ? 'none' : 'block';
+
+addEventBtn.addEventListener('click', () => {
+    editingEventId = null;
+    clearModal();
+    toggleModal();
+});
+
+closeModalBtn.addEventListener('click', toggleModal);
+window.onclick = (e) => e.target === modal && toggleModal();
+
+// Firebase Operations
+onValue(eventsRef, (snapshot) => {
+    tbody.innerHTML = '';
+    snapshot.forEach(child => {
+        const event = child.val();
+        tbody.innerHTML += `
+            <tr>
+                <td>${event.title}</td>
+                <td>${event.venue}</td>
+                <td>${new Date(event.date).toLocaleDateString()}</td>
+                <td>${event.host}</td>
+                <td>${event.guest}</td>
+                <td>
+                    ${event.link ? `<a href="${event.link}" target="_blank" style="color: #2563eb;">
+                        <i class="fas fa-link"></i> Link
+                    </a>` : 'N/A'}
+                </td>
+                <td>
+                    <button class="action-btn" onclick="editEvent('${child.key}')">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="action-btn" onclick="deleteEvent('${child.key}')">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        `;
+    });
+});
+
+saveEventBtn.addEventListener('click', async () => {
+    const eventData = getFormData();
+    
+    if (!validateEvent(eventData)) {
+        alert('Please fill all required fields');
+        return;
+    }
+
+    try {
+        if (editingEventId) {
+            await update(ref(db, `events/${editingEventId}`), eventData);
+        } else {
+            await push(eventsRef, eventData);
+        }
+        toggleModal();
+    } catch (error) {
+        console.error('Firebase Error:', error);
+        alert('Error saving event');
+    }
+});
+
+// Helper Functions
+function getFormData() {
+    return {
+        title: document.getElementById('eventTitle').value,
+        venue: document.getElementById('eventVenue').value,
+        date: document.getElementById('eventDate').value,
+        host: document.getElementById('eventHost').value,
+        guest: document.getElementById('eventGuest').value,
+        link: document.getElementById('eventLink').value
+    };
+}
+
+function validateEvent(event) {
+    return event.title && event.venue && event.date && event.host && event.guest;
+}
+
+function clearModal() {
+    ['eventTitle', 'eventVenue', 'eventDate', 'eventHost', 'eventGuest', 'eventLink']
+        .forEach(id => document.getElementById(id).value = '');
+}
+
+// Global Functions
+window.editEvent = async (id) => {
+    editingEventId = id;
+    const eventRef = ref(db, `events/${id}`);
+    
+    onValue(eventRef, (snapshot) => {
+        const event = snapshot.val();
+        document.getElementById('eventTitle').value = event.title;
+        document.getElementById('eventVenue').value = event.venue;
+        document.getElementById('eventDate').value = event.date;
+        document.getElementById('eventHost').value = event.host;
+        document.getElementById('eventGuest').value = event.guest;
+        document.getElementById('eventLink').value = event.link || '';
+        toggleModal();
+    });
+}
+
+window.deleteEvent = (id) => {
+    if (confirm('Permanently delete this event?')) {
+        remove(ref(db, `events/${id}`));
+    }
+}
+
+// Filtering
+document.getElementById('filterHost').addEventListener('input', filterEvents);
+document.getElementById('filterVenue').addEventListener('input', filterEvents);
+
+function filterEvents() {
+    const hostFilter = document.getElementById('filterHost').value.toLowerCase();
+    const venueFilter = document.getElementById('filterVenue').value.toLowerCase();
+    
+    Array.from(tbody.children).forEach(row => {
+        const host = row.cells[3].textContent.toLowerCase();
+        const venue = row.cells[1].textContent.toLowerCase();
+        row.style.display = host.includes(hostFilter) && venue.includes(venueFilter)
+            ? '' : 'none';
+    });
+}
+</script>
+</body>
+</html>

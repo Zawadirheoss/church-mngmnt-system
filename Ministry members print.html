@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Church Members</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 80%;
+            max-width: 1000px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 1.5rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 0 auto;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #007bff;
+            color: white;
+        }
+
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        .loading {
+            text-align: center;
+            font-size: 1.2rem;
+            color: #666;
+        }
+
+        .print-button {
+            text-align: center;
+            margin-top: 1rem;
+        }
+
+        .print-button button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .print-button button:hover {
+            background-color: #0056b3;
+        }
+
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            .printable, .printable * {
+                visibility: visible;
+            }
+            .printable {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+            }
+            .print-button {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Church Members</h1>
+        <div class="loading">Loading...</div>
+        <table id="membersTable" style="display: none;">
+            <thead>
+                <tr>
+                    <th>First Name</th>
+                    <th>Second Name</th>
+                    <th>Phone</th>
+                    <th>Gender</th>
+                    <th>Position</th>
+                    <th>Home Church</th>
+                    <th>Date Joined</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Rows will be populated here -->
+            </tbody>
+        </table>
+        <div class="print-button">
+            <button onclick="printMembers()">Print Members</button>
+        </div>
+    </div>
+
+    <!-- Printable content -->
+    <div id="printableContent" class="printable" style="display: none;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <img src="Gospel springs logo.jpg" alt="Church Logo" style="width: 100px;">
+            <div style="text-align: right;">
+                <h2>Gospel Springs Mission</h2>
+                <p>P.O Box 12345</p>
+                <p>Email: info@gospelsprings.org</p>
+                <p>Contact: +123 456 7890</p>
+            </div>
+        </div>
+        <hr>
+        <table id="printableTable" style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr>
+                    <th>First Name</th>
+                    <th>Second Name</th>
+                    <th>Phone</th>
+                    <th>Gender</th>
+                    <th>Position</th>
+                    <th>Home Church</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Rows will be populated here -->
+            </tbody>
+        </table>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.5.0/firebase-app.js";
+        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.5.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAyiRtkvdxnGWaiG-Xn-50Vm_Pb1J0ya6E",
+            authDomain: "church-cms-96407.firebaseapp.com",
+            projectId: "church-cms-96407",
+            storageBucket: "church-cms-96407.appspot.com",
+            messagingSenderId: "19370427001",
+            appId: "1:19370427001:web:b1d20215c437fc324e4aa8",
+            measurementId: "G-NKDZSFGR4X"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        async function fetchMembers() {
+            const querySnapshot = await getDocs(collection(db, "Members"));
+            const membersTable = document.getElementById('membersTable');
+            const loading = document.querySelector('.loading');
+
+            if (querySnapshot.empty) {
+                loading.textContent = 'No members found.';
+                return;
+            }
+
+            loading.style.display = 'none';
+            membersTable.style.display = 'table';
+
+            querySnapshot.forEach((doc) => {
+                const member = doc.data();
+                const row = membersTable.insertRow();
+                row.insertCell().textContent = member.firstName || 'N/A';
+                row.insertCell().textContent = member.secondName || 'N/A';
+                row.insertCell().textContent = member.phone || 'N/A';
+                row.insertCell().textContent = member.gender || 'N/A';
+                row.insertCell().textContent = member.position || 'N/A';
+                row.insertCell().textContent = member.homeChurch || 'N/A';
+                row.insertCell().textContent = member.dateJoined || 'N/A';
+
+                // Populate printable table
+                const printableTable = document.getElementById('printableTable').getElementsByTagName('tbody')[0];
+                const printableRow = printableTable.insertRow();
+                printableRow.insertCell().textContent = member.firstName || 'N/A';
+                printableRow.insertCell().textContent = member.secondName || 'N/A';
+                printableRow.insertCell().textContent = member.phone || 'N/A';
+                printableRow.insertCell().textContent = member.gender || 'N/A';
+                printableRow.insertCell().textContent = member.position || 'N/A';
+                printableRow.insertCell().textContent = member.homeChurch || 'N/A';
+            });
+        }
+
+        function printMembers() {
+            const printableContent = document.getElementById('printableContent');
+            printableContent.style.display = 'block';
+            window.print();
+            printableContent.style.display = 'none';
+        }
+
+        // Ensure the print button is defined and works
+        document.querySelector('.print-button button').addEventListener('click', printMembers);
+
+        fetchMembers().catch(error => {
+            console.error("Error fetching members: ", error);
+            document.querySelector('.loading').textContent = 'Error loading members.';
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comments Dashboard</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #f8f9fa;
+            margin: 0;
+            padding: 0;
+        }
+
+        .dashboard-section {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .dashboard-header {
+            background: rgb(3, 3, 133);
+            padding: 1.5rem;
+            border-radius: 16px;
+            color: white;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .dashboard-title {
+            text-align: center;
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        .header-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .search-filter {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .search-bar,
+        .date-filter {
+            padding: 0.8rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            outline: none;
+        }
+
+        .search-bar::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .total-comments {
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+
+        .table-container {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .modern-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .modern-table th,
+        .modern-table td {
+            padding: 1.2rem;
+            text-align: left;
+        }
+
+        .modern-table th {
+            background: #17088a;
+            color: white;
+            font-weight: 600;
+        }
+
+        .modern-table tbody tr {
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .modern-table tbody tr:last-child {
+            border-bottom: none;
+        }
+
+        .modern-table tbody tr:hover {
+            background: #f8f9fa;
+        }
+    </style>
+</head>
+<body>
+    <section class="dashboard-section">
+        <!-- Header -->
+        <header class="dashboard-header">
+            <h1 class="dashboard-title">Comments/Feedback</h1>
+            <div class="header-controls">
+                <div class="search-filter">
+                    <input type="text" id="searchInput" class="search-bar" placeholder="Search comments..." />
+                    <input type="date" id="dateFilter" class="date-filter" />
+                </div>
+                <div class="total-comments">
+                    <span>Total Comments:</span>
+                    <span id="totalComments">0</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Table -->
+        <div class="table-container">
+            <table class="modern-table">
+                <thead>
+                    <tr>
+                        <th>Comment</th>
+                        <th>Date & Time</th>
+                    </tr>
+                </thead>
+                <tbody id="commentsTableBody">
+                    <!-- Rows will be dynamically inserted here -->
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDUwSw_KL0icgHVVQDtL9MjesYuvK-CLlU",
+            authDomain: "comments-d7f6e.firebaseapp.com",
+            databaseURL: "https://comments-d7f6e-default-rtdb.firebaseio.com",
+            projectId: "comments-d7f6e",
+            storageBucket: "comments-d7f6e.firebasestorage.app",
+            messagingSenderId: "634627152708",
+            appId: "1:634627152708:web:59e905dd030fb40636d511"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        const commentsRef = ref(db, 'comments');
+        const commentsTableBody = document.getElementById('commentsTableBody');
+        const searchInput = document.getElementById('searchInput');
+        const dateFilter = document.getElementById('dateFilter');
+        const totalComments = document.getElementById('totalComments');
+
+        // Fetch and display comments
+        onValue(commentsRef, (snapshot) => {
+            const comments = [];
+            commentsTableBody.innerHTML = '';
+            snapshot.forEach((childSnapshot) => {
+                const comment = childSnapshot.val();
+                comment.id = childSnapshot.key;
+                comments.push(comment);
+            });
+
+            totalComments.textContent = comments.length;
+
+            comments.forEach((comment) => {
+                const row = document.createElement('tr');
+                const date = new Date(comment.timestamp).toLocaleString();
+
+                row.innerHTML = `
+                    <td>${comment.text}</td>
+                    <td>${date}</td>
+                `;
+                commentsTableBody.appendChild(row);
+            });
+        });
+
+        // Search functionality
+        searchInput.addEventListener('input', () => {
+            const searchTerm = searchInput.value.toLowerCase();
+            const rows = commentsTableBody.querySelectorAll('tr');
+            rows.forEach((row) => {
+                const commentText = row.querySelector('td').textContent.toLowerCase();
+                row.style.display = commentText.includes(searchTerm) ? '' : 'none';
+            });
+        });
+
+        // Date filter functionality
+        dateFilter.addEventListener('change', () => {
+            const selectedDate = new Date(dateFilter.value).toDateString();
+            const rows = commentsTableBody.querySelectorAll('tr');
+            rows.forEach((row) => {
+                const commentDate = new Date(row.querySelector('td:nth-child(2)').textContent).toDateString();
+                row.style.display = commentDate === selectedDate ? '' : 'none';
+            });
+        });
+    </script>
+</body>
+</html>

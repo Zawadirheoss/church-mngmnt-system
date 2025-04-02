@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Church Members</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 80%;
+            max-width: 1000px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 1.5rem;
+        }
+
+        .church-select {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .church-select select {
+            padding: 10px;
+            font-size: 1rem;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 0 auto;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #007bff;
+            color: white;
+        }
+
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        .loading {
+            text-align: center;
+            font-size: 1.2rem;
+            color: #666;
+        }
+
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            .printable, .printable * {
+                visibility: visible;
+            }
+            .printable {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+            }
+            .church-select {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Church Members</h1>
+        <div class="church-select">
+            <label for="homeChurchSelect">Select Home Church:</label>
+            <select id="homeChurchSelect">
+                <option value="">-- Select a Church --</option>
+            </select>
+        </div>
+        <div class="loading">Loading churches...</div>
+        <table id="membersTable" style="display: none;">
+            <thead>
+                <tr>
+                    <th>First Name</th>
+                    <th>Second Name</th>
+                    <th>Phone</th>
+                    <th>Gender</th>
+                    <th>Position</th>
+                    <th>Home Church</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Rows will be populated here -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Printable content -->
+    <div id="printableContent" class="printable" style="display: none;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <img src="Gospel springs logo.jpg" alt="Church Logo" style="width: 100px;">
+            <div style="text-align: right;">
+                <h2>Gospel Springs Mission</h2>
+                <p>P.O Box 12345</p>
+                <p>Email: info@gospelsprings.org</p>
+                <p>Contact: +123 456 7890</p>
+            </div>
+        </div>
+        <hr>
+        <table id="printableTable" style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr>
+                    <th>First Name</th>
+                    <th>Second Name</th>
+                    <th>Phone</th>
+                    <th>Gender</th>
+                    <th>Position</th>
+                    <th>Home Church</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Rows will be populated here -->
+            </tbody>
+        </table>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.5.0/firebase-app.js";
+        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.5.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAyiRtkvdxnGWaiG-Xn-50Vm_Pb1J0ya6E",
+            authDomain: "church-cms-96407.firebaseapp.com",
+            projectId: "church-cms-96407",
+            storageBucket: "church-cms-96407.appspot.com",
+            messagingSenderId: "19370427001",
+            appId: "1:19370427001:web:b1d20215c437fc324e4aa8",
+            measurementId: "G-NKDZSFGR4X"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const homeChurchSelect = document.getElementById('homeChurchSelect');
+        const membersTable = document.getElementById('membersTable');
+        const loading = document.querySelector('.loading');
+        const printableContent = document.getElementById('printableContent');
+        const printableTable = document.getElementById('printableTable').getElementsByTagName('tbody')[0];
+
+        // Fetch all members and populate the dropdown
+        async function fetchChurches() {
+            const querySnapshot = await getDocs(collection(db, "Members"));
+            const churches = new Set();
+
+            if (querySnapshot.empty) {
+                loading.textContent = 'No churches found.';
+                return;
+            }
+
+            querySnapshot.forEach((doc) => {
+                const member = doc.data();
+                if (member.homeChurch) {
+                    churches.add(member.homeChurch);
+                }
+            });
+
+            if (churches.size === 0) {
+                loading.textContent = 'No churches found in members.';
+                return;
+            }
+
+            churches.forEach((church) => {
+                const option = document.createElement('option');
+                option.value = church;
+                option.textContent = church;
+                homeChurchSelect.appendChild(option);
+            });
+
+            loading.style.display = 'none';
+        }
+
+        // Populate the table based on the selected homeChurch
+        async function populateTable(homeChurch) {
+            const querySnapshot = await getDocs(collection(db, "Members"));
+            const membersTableBody = membersTable.getElementsByTagName('tbody')[0];
+            membersTableBody.innerHTML = ''; // Clear previous rows
+            printableTable.innerHTML = ''; // Clear printable rows
+
+            querySnapshot.forEach((doc) => {
+                const member = doc.data();
+                if (member.homeChurch === homeChurch) {
+                    const row = membersTableBody.insertRow();
+                    row.insertCell().textContent = member.firstName || 'N/A';
+                    row.insertCell().textContent = member.secondName || 'N/A';
+                    row.insertCell().textContent = member.phone || 'N/A';
+                    row.insertCell().textContent = member.gender || 'N/A';
+                    row.insertCell().textContent = member.position || 'N/A';
+                    row.insertCell().textContent = member.homeChurch || 'N/A';
+
+                    // Populate printable table
+                    const printableRow = printableTable.insertRow();
+                    printableRow.insertCell().textContent = member.firstName || 'N/A';
+                    printableRow.insertCell().textContent = member.secondName || 'N/A';
+                    printableRow.insertCell().textContent = member.phone || 'N/A';
+                    printableRow.insertCell().textContent = member.gender || 'N/A';
+                    printableRow.insertCell().textContent = member.position || 'N/A';
+                    printableRow.insertCell().textContent = member.homeChurch || 'N/A';
+                }
+            });
+
+            membersTable.style.display = 'table';
+            printableContent.style.display = 'block';
+            window.print(); // Automatically open print dialog
+            printableContent.style.display = 'none';
+        }
+
+        // Event listener for dropdown change
+        homeChurchSelect.addEventListener('change', (event) => {
+            const selectedChurch = event.target.value;
+            if (selectedChurch) {
+                populateTable(selectedChurch);
+            }
+        });
+
+        // Initialize the page
+        fetchChurches().catch(error => {
+            console.error("Error fetching churches: ", error);
+            loading.textContent = 'Error loading churches.';
+        });
+    </script>
+</body>
+</html>

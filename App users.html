@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-database.js";
+        import { getAuth, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDsu7EhPlfo5AKwRL4di4t2xUmO22w9WIA",
+            authDomain: "app-users-login-and-signup.firebaseapp.com",
+            databaseURL: "https://app-users-login-and-signup-default-rtdb.firebaseio.com",
+            projectId: "app-users-login-and-signup",
+            storageBucket: "app-users-login-and-signup.appspot.com",
+            messagingSenderId: "110624823572",
+            appId: "1:110624823572:web:0122121a6ddd119c464a01"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const auth = getAuth(app);
+
+        let users = [];
+        let currentSort = 'desc';
+        let searchQuery = '';
+
+        const fetchUsers = () => {
+            const usersRef = ref(db, 'users');
+            onValue(usersRef, (snapshot) => {
+                users = [];
+                snapshot.forEach((childSnapshot) => {
+                    users.push({ uid: childSnapshot.key, ...childSnapshot.val() });
+                });
+                updateUI();
+            });
+        };
+
+        const filterAndSortUsers = () => {
+            let filtered = users.filter(user => 
+                `${user.firstName} ${user.lastName}`.toLowerCase().includes(searchQuery.toLowerCase())
+            );
+
+            return filtered.sort((a, b) => {
+                const dateA = new Date(a.dateJoined);
+                const dateB = new Date(b.dateJoined);
+                return currentSort === 'asc' ? dateA - dateB : dateB - dateA;
+            });
+        };
+
+        const updateUI = () => {
+            document.getElementById('totalUsers').textContent = users.length;
+            const tbody = document.querySelector('#usersTable tbody');
+            tbody.innerHTML = '';
+            
+            const processedUsers = filterAndSortUsers();
+
+            processedUsers.forEach(user => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${user.firstName} ${user.lastName}</td>
+                    <td class="email-cell" data-email="${user.email}">${user.email}</td>
+                    <td>${new Date(user.createdAt).toLocaleDateString()}</td>
+                    <td>${user.dateJoined}</td>
+                    <td class="actions">
+                        <button class="btn reset-btn"><i class="fas fa-key"></i></button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+
+            document.getElementById('sortIndicator').textContent = currentSort === 'asc' ? '↑' : '↓';
+        };
+
+        // Event Listeners
+        document.addEventListener('click', async (e) => {
+            const row = e.target.closest('tr');
+            if (!row) return;
+            const email = row.querySelector('.email-cell').dataset.email;
+            const user = users.find(u => u.email === email);
+
+            if (e.target.closest('.reset-btn')) {
+                sendPasswordResetEmail(auth, user.email)
+                    .then(() => alert('Password reset email sent!'))
+                    .catch(error => alert(`Error: ${error.message}`));
+            }
+        });
+
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            searchQuery = e.target.value;
+            updateUI();
+        });
+
+        document.getElementById('sortDate').addEventListener('click', () => {
+            currentSort = currentSort === 'asc' ? 'desc' : 'asc';
+            updateUI();
+        });
+
+        fetchUsers();
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
+        @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css');
+
+        :root {
+            --primary: #4361ee;
+            --secondary: #3f37c9;
+            --background: #f8f9fa;
+            --text: #2b2d42;
+            --success: #4CAF50;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--background);
+            padding: 2rem;
+            color: var(--text);
+        }
+
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .controls-container {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .search-box {
+            padding: 0.8rem 1.2rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            width: 250px;
+            transition: all 0.3s ease;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+        }
+
+        .sort-button {
+            background: white;
+            border: 2px solid #e0e0e0;
+            padding: 0.8rem 1.2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .sort-button:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .stats-card {
+            background: white;
+            padding: 1.5rem 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            min-width: 250px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        th, td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        th {
+            background: var(--primary);
+            color: white;
+            font-weight: 500;
+        }
+
+        tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .btn {
+            padding: 0.6rem 1rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn i {
+            font-size: 0.9rem;
+        }
+
+        .reset-btn { 
+            background: var(--success);
+            color: white;
+        }
+
+        .btn:hover {
+            filter: brightness(0.9);
+            transform: translateY(-1px);
+        }
+
+        .actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+            
+            .dashboard-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .controls-container {
+                width: 100%;
+                flex-direction: column;
+            }
+            
+            .search-box {
+                width: 100%;
+            }
+            
+            table {
+                display: block;
+                overflow-x: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-header">
+        <div class="stats-card">
+            <h2>Total Users: <span id="totalUsers">0</span></h2>
+        </div>
+        <div class="controls-container">
+            <input type="text" id="searchInput" class="search-box" placeholder="Search by name...">
+            <button class="sort-button" id="sortDate">
+                Sort by Date Joined <span id="sortIndicator">↓</span>
+            </button>
+        </div>
+    </div>
+
+    <table id="usersTable">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Account Created</th>
+                <th>Date Joined</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</body>
+</html>

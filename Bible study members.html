@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bible Study Dashboard</title>
+    <style>
+        /* Modern CSS Reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+            padding: 20px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .stats {
+            background: #fff;
+            padding: 15px 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            font-size: 14px;
+        }
+
+        .filters {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        select, input {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            min-width: 180px;
+            background: #fff;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #fff;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #1d06a0;
+            color: #fff;
+            font-weight: 600;
+        }
+
+        tr {
+            border-bottom: 1px solid #eee;
+        }
+
+        tr:hover {
+            background-color: #f1f5f9;
+        }
+
+        .action-btn {
+            padding: 6px 12px;
+            margin: 0 4px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
+
+        .edit-btn {
+            background-color: #27ae60;
+            color: #fff;
+        }
+
+        .delete-btn {
+            background-color: #e74c3c;
+            color: #fff;
+        }
+
+        .email-btn {
+            background-color: #2980b9;
+            color: #fff;
+        }
+
+        .action-btn:hover {
+            opacity: 0.9;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: #fff;
+            padding: 25px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            position: relative;
+        }
+
+        .close-btn {
+            position: absolute;
+            right: 20px;
+            top: 15px;
+            cursor: pointer;
+            font-size: 24px;
+            color: #666;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .form-actions button {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
+
+        .form-actions button[type="submit"] {
+            background-color: #27ae60;
+            color: #fff;
+        }
+
+        .form-actions button[type="button"] {
+            background-color: #e74c3c;
+            color: #fff;
+        }
+        /* Add Member Button Styles */
+.add {
+    margin: 20px 0;
+    text-align: center;
+}
+
+.add a {
+    text-decoration: none;
+    display: inline-block;
+    padding: 12px 24px;
+    background-color: #ffffff;
+    border: 2px solid orangered;
+    border-radius: 8px;
+    color: orangered;
+    font-size: 16px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.add a:hover {
+    background-color: orangered;
+    color: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.add a:active {
+    transform: translateY(0);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Bible Study Registrations</h1>
+        <div class="stats">
+            Total: <span id="total">0</span> |
+            Male: <span id="maleCount">0</span> |
+            Female: <span id="femaleCount">0</span>
+        </div>
+    </div>
+
+    <div class="filters">
+        <select id="levelFilter">
+            <option value="">All Levels</option>
+        </select>
+        <select id="genderFilter">
+            <option value="">All Genders</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+        </select>
+        <select id="churchFilter">
+            <option value="">All Churches</option>
+        </select>
+        <input type="text" id="searchInput" placeholder="Search by name...">
+        <button class="delete-btn" onclick="confirmDeleteAll()">Delete All</button>
+        <div class="add">
+            <a href="Bible study form.html">
+                <p>Add member</p>
+            </a>
+        </div>
+    </div>
+
+    <table id="dataTable">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Gender</th>
+                <th>Phone</th>
+                <th>Email</th>
+                <th>Level</th>
+                <th>Church</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+    </table>
+
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal()">&times;</span>
+            <h3>Edit Entry</h3>
+            <form id="editForm">
+                <div class="form-group">
+                    <label>Full Name:</label>
+                    <input type="text" id="editName" required>
+                </div>
+                <div class="form-group">
+                    <label>Gender:</label>
+                    <select id="editGender" required>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Phone:</label>
+                    <input type="tel" id="editPhone" required>
+                </div>
+                <div class="form-group">
+                    <label>Email:</label>
+                    <input type="email" id="editEmail" required>
+                </div>
+                <div class="form-group">
+                    <label>Level:</label>
+                    <input type="text" id="editLevel" required>
+                </div>
+                <div class="form-group">
+                    <label>Church:</label>
+                    <input type="text" id="editChurch" required>
+                </div>
+                <div class="form-actions">
+                    <button type="submit">Save Changes</button>
+                    <button type="button" onclick="closeModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
+        import { getDatabase, ref, onValue, remove, update } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBSmDwOuNyoMcUT3RpmgohlpWdhZv9Xe44",
+            authDomain: "bible-study-7ffd8.firebaseapp.com",
+            databaseURL: "https://bible-study-7ffd8-default-rtdb.firebaseio.com",
+            projectId: "bible-study-7ffd8",
+            storageBucket: "bible-study-7ffd8.firebasestorage.app",
+            messagingSenderId: "291347700852",
+            appId: "1:291347700852:web:848fe662c05b168da50521"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const dbRef = ref(db, 'registrations');
+
+        let allData = [];
+        let currentFilters = {
+            level: '',
+            gender: '',
+            church: '',
+            search: ''
+        };
+
+        // Fetch data from Firebase
+        onValue(dbRef, (snapshot) => {
+            allData = [];
+            snapshot.forEach((childSnapshot) => {
+                const data = childSnapshot.val();
+                data.id = childSnapshot.key;
+                allData.push(data);
+            });
+            updateUI();
+            updateFilters();
+        });
+
+        // Update the UI with filtered data
+        function updateUI() {
+            const filteredData = filterData();
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+
+            let maleCount = 0;
+            let femaleCount = 0;
+
+            filteredData.forEach(item => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${item.name}</td>
+                    <td>${item.gender}</td>
+                    <td>${item.phone}</td>
+                    <td>${item.email}</td>
+                    <td>${item.level}</td>
+                    <td>${item.church}</td>
+                    <td>
+                        <button class="edit-btn action-btn" data-id="${item.id}">Edit</button>
+                        <button class="delete-btn action-btn" data-id="${item.id}">Delete</button>
+                        <button class="email-btn action-btn" onclick="window.location.href='mailto:${item.email}'">Email</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+
+                if (item.gender === 'Male') maleCount++;
+                if (item.gender === 'Female') femaleCount++;
+            });
+
+            document.getElementById('total').textContent = filteredData.length;
+            document.getElementById('maleCount').textContent = maleCount;
+            document.getElementById('femaleCount').textContent = femaleCount;
+
+            // Add event listeners for action buttons
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => confirmDelete(e.target.dataset.id));
+            });
+
+            document.querySelectorAll('.edit-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => openEditModal(e.target.dataset.id));
+            });
+        }
+
+        // Filter data based on current filters
+        function filterData() {
+            return allData.filter(item => {
+                return (
+                    (currentFilters.level ? item.level === currentFilters.level : true) &&
+                    (currentFilters.gender ? item.gender === currentFilters.gender : true) &&
+                    (currentFilters.church ? item.church === currentFilters.church : true) &&
+                    (currentFilters.search ? item.name.toLowerCase().includes(currentFilters.search.toLowerCase()) : true)
+                );
+            });
+        }
+
+        // Update filter dropdowns dynamically
+        function updateFilters() {
+            const levels = [...new Set(allData.map(item => item.level))];
+            const churches = [...new Set(allData.map(item => item.church))];
+            
+            const levelFilter = document.getElementById('levelFilter');
+            levelFilter.innerHTML = '<option value="">All Levels</option>';
+            levels.forEach(level => {
+                levelFilter.innerHTML += `<option value="${level}">${level}</option>`;
+            });
+
+            const churchFilter = document.getElementById('churchFilter');
+            churchFilter.innerHTML = '<option value="">All Churches</option>';
+            churches.forEach(church => {
+                churchFilter.innerHTML += `<option value="${church}">${church}</option>`;
+            });
+        }
+
+        // Event listeners for filters
+        document.getElementById('levelFilter').addEventListener('change', (e) => {
+            currentFilters.level = e.target.value;
+            updateUI();
+        });
+
+        document.getElementById('genderFilter').addEventListener('change', (e) => {
+            currentFilters.gender = e.target.value;
+            updateUI();
+        });
+
+        document.getElementById('churchFilter').addEventListener('change', (e) => {
+            currentFilters.church = e.target.value;
+            updateUI();
+        });
+
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            currentFilters.search = e.target.value;
+            updateUI();
+        });
+
+        // Edit Modal Functions
+        let currentEditId = null;
+
+        function openEditModal(id) {
+            const modal = document.getElementById('editModal');
+            const item = allData.find(item => item.id === id);
+            currentEditId = id;
+
+            document.getElementById('editName').value = item.name;
+            document.getElementById('editGender').value = item.gender;
+            document.getElementById('editPhone').value = item.phone;
+            document.getElementById('editEmail').value = item.email;
+            document.getElementById('editLevel').value = item.level;
+            document.getElementById('editChurch').value = item.church;
+
+            modal.style.display = 'flex';
+        }
+
+        document.getElementById('editForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            if (!currentEditId) return;
+
+            const updates = {
+                name: document.getElementById('editName').value,
+                gender: document.getElementById('editGender').value,
+                phone: document.getElementById('editPhone').value,
+                email: document.getElementById('editEmail').value,
+                level: document.getElementById('editLevel').value,
+                church: document.getElementById('editChurch').value
+            };
+
+            update(ref(db, `registrations/${currentEditId}`), updates);
+            closeModal();
+        });
+
+        function closeModal() {
+            document.getElementById('editModal').style.display = 'none';
+            currentEditId = null;
+        }
+
+        // Delete Functions
+        function confirmDelete(id) {
+            if (confirm('Are you sure you want to delete this entry?')) {
+                remove(ref(db, `registrations/${id}`));
+            }
+        }
+
+        function confirmDeleteAll() {
+            if (confirm('Are you sure you want to delete ALL entries?')) {
+                allData.forEach(item => {
+                    remove(ref(db, `registrations/${item.id}`));
+                });
+            }
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('editModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        };
+    </script>
+</body>
+</html>

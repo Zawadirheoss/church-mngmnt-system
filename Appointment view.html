@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Appointments Dashboard</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f5f7fa;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #1f0589;
+            color: rgb(255, 255, 255);
+            padding: 15px 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .header img {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            flex-grow: 1;
+            text-align: center;
+        }
+
+        .header .total-appointments {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        /* Main Container */
+        .container {
+            padding: 20px;
+        }
+
+        /* Search and Filter */
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .search-bar {
+            flex: 1;
+            margin-right: 20px;
+        }
+
+        .search-bar input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        .filters {
+            display: flex;
+            gap: 10px;
+        }
+
+        .filters button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            background: #0800ff;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .filters button:hover {
+            background: #6c5ce7;
+        }
+
+        /* Table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+        }
+
+        th {
+            background: #110a92;
+            color: white;
+            font-weight: 600;
+        }
+
+        tr:nth-child(even) {
+            background: #f5f7fa;
+        }
+
+        tr:hover {
+            background: #e0e0e0;
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .actions button {
+            padding: 5px 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .actions .mail-btn {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .actions .delete-btn {
+            background: #f44336;
+            color: white;
+        }
+
+        /* Delete All Button */
+        .delete-all {
+            margin-top: 20px;
+            text-align: right;
+        }
+
+        .delete-all button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            background: #f44336;
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .delete-all button:hover {
+            background: #d32f2f;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <img src="Gospel springs logo.jpg" alt="Logo">
+        <h1>Appointments</h1>
+        <div class="total-appointments">Total Appointments: <span id="totalAppointments">0</span></div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Search and Filter -->
+        <div class="controls">
+            <div class="search-bar">
+                <input type="text" id="searchInput" placeholder="Search by name...">
+            </div>
+            <div class="filters">
+                <button id="sortAZ">A-Z</button>
+                <button id="sortZA">Z-A</button>
+            </div>
+        </div>
+
+        <!-- Table -->
+        <table id="appointmentsTable">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Phone</th>
+                    <th>Email</th>
+                    <th>Request</th>
+                    <th>Date Requested</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Rows will be populated dynamically -->
+            </tbody>
+        </table>
+
+        <!-- Delete All Button -->
+        <div class="delete-all">
+            <button id="deleteAllBtn">Delete All Appointments</button>
+        </div>
+    </div>
+
+    <script type="module">
+        // Import Firebase modules
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
+        import { getDatabase, ref, onValue, remove } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCCmGSWtYPRA9oC5OKfjbwysikLXMxf_74",
+            authDomain: "appointments-6e96a.firebaseapp.com",
+            databaseURL: "https://appointments-6e96a-default-rtdb.firebaseio.com",
+            projectId: "appointments-6e96a",
+            storageBucket: "appointments-6e96a.firebasestorage.app",
+            messagingSenderId: "88506189802",
+            appId: "1:88506189802:web:2732fd64c6b5516be79493"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        // DOM Elements
+        const appointmentsTable = document.getElementById('appointmentsTable').getElementsByTagName('tbody')[0];
+        const totalAppointments = document.getElementById('totalAppointments');
+        const searchInput = document.getElementById('searchInput');
+        const sortAZ = document.getElementById('sortAZ');
+        const sortZA = document.getElementById('sortZA');
+        const deleteAllBtn = document.getElementById('deleteAllBtn');
+
+        // Fetch and display data in real-time
+        const fetchData = () => {
+            const appointmentsRef = ref(database, 'appointments');
+            onValue(appointmentsRef, (snapshot) => {
+                const data = snapshot.val();
+                let appointments = [];
+                if (data) {
+                    appointments = Object.keys(data).map(key => ({ id: key, ...data[key] }));
+                }
+                renderTable(appointments);
+                totalAppointments.textContent = appointments.length;
+            });
+        };
+
+        // Render table rows
+        const renderTable = (appointments) => {
+            appointmentsTable.innerHTML = '';
+            appointments.forEach(appointment => {
+                const row = `
+                    <tr>
+                        <td>${appointment.name}</td>
+                        <td>${appointment.phone}</td>
+                        <td>${appointment.email}</td>
+                        <td>${appointment.request}</td>
+                        <td>${appointment.requestedDate}</td>
+                        <td class="actions">
+                            <button class="mail-btn" onclick="window.location.href='mailto:${appointment.email}'">Mail</button>
+                            <button class="delete-btn" onclick="deleteAppointment('${appointment.id}')">Delete</button>
+                        </td>
+                    </tr>
+                `;
+                appointmentsTable.insertAdjacentHTML('beforeend', row);
+            });
+        };
+
+        // Delete an appointment
+        const deleteAppointment = (id) => {
+            const appointmentRef = ref(database, `appointments/${id}`);
+            remove(appointmentRef);
+        };
+
+        // Delete all appointments
+        deleteAllBtn.addEventListener('click', () => {
+            const appointmentsRef = ref(database, 'appointments');
+            remove(appointmentsRef);
+        });
+
+        // Search functionality
+        searchInput.addEventListener('input', () => {
+            const query = searchInput.value.toLowerCase();
+            const rows = appointmentsTable.getElementsByTagName('tr');
+            for (let row of rows) {
+                const name = row.getElementsByTagName('td')[0].textContent.toLowerCase();
+                row.style.display = name.includes(query) ? '' : 'none';
+            }
+        });
+
+        // Sort A-Z
+        sortAZ.addEventListener('click', () => {
+            const rows = Array.from(appointmentsTable.getElementsByTagName('tr'));
+            rows.sort((a, b) => a.getElementsByTagName('td')[0].textContent.localeCompare(b.getElementsByTagName('td')[0].textContent));
+            appointmentsTable.innerHTML = '';
+            rows.forEach(row => appointmentsTable.appendChild(row));
+        });
+
+        // Sort Z-A
+        sortZA.addEventListener('click', () => {
+            const rows = Array.from(appointmentsTable.getElementsByTagName('tr'));
+            rows.sort((a, b) => b.getElementsByTagName('td')[0].textContent.localeCompare(a.getElementsByTagName('td')[0].textContent));
+            appointmentsTable.innerHTML = '';
+            rows.forEach(row => appointmentsTable.appendChild(row));
+        });
+
+        // Fetch data on page load
+        fetchData();
+    </script>
+</body>
+</html>

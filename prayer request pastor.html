@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Prayer Request Dashboard</title>
+  <style>
+    /* General Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Arial', sans-serif;
+  background-color: #f4f4f9;
+  color: #333;
+}
+
+.dashboard {
+  max-width: 1200px;
+  margin: 20px auto;
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Header Styles */
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.logo img {
+  border-radius: 50%;
+}
+
+.header-content h1 {
+  font-size: 24px;
+  color: #2c3e50;
+}
+
+.header-content h3 {
+  font-size: 18px;
+  color: #34495e;
+}
+
+.total-requests {
+  font-size: 18px;
+  font-weight: bold;
+  color: #e74c3c;
+}
+
+/* Table Styles */
+.table-container {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+table th, table td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+table th {
+  background-color: #2b0796;
+  color: #fff;
+}
+
+table tr:hover {
+  background-color: #f5f5f5;
+}
+  </style>
+ 
+</head>
+<body>
+  <div class="dashboard">
+    <!-- Header Section -->
+    <header>
+      <div class="logo">
+        <img src="Gospel springs logo.jpg" alt="Church Logo" width="60">
+      </div>
+      <div class="header-content">
+        <h1>Welcome Pastor!</h1>
+        <h3></h3>
+      </div>
+      <div class="total-requests">
+        <span id="totalRequests">0</span> Total Requests
+      </div>
+    </header>
+
+    <!-- Table Section -->
+    <div class="table-container">
+      <table id="prayerTable">
+        <thead>
+          <tr>
+            <th>Prayer Request</th>
+            <th>Date</th>
+            <th>Time</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Rows will be populated dynamically -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
+import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
+
+// Initialize Firebase
+const firebaseConfig = {
+  apiKey: "AIzaSyDcZHNy-v2PBX-IbiVFrjo11a4-OFQ_R0k",
+  authDomain: "prayer-requests-33c2f.firebaseapp.com",
+  databaseURL: "https://prayer-requests-33c2f-default-rtdb.firebaseio.com",
+  projectId: "prayer-requests-33c2f",
+  storageBucket: "prayer-requests-33c2f.firebasestorage.app",
+  messagingSenderId: "1028729082135",
+  appId: "1:1028729082135:web:1cef9d52954f0e4be72752"
+};
+
+const app = initializeApp(firebaseConfig);
+const database = getDatabase(app);
+
+// Reference to the database
+const prayerRef = ref(database, 'prayerRequests');
+
+// Fetch data from Firebase
+onValue(prayerRef, (snapshot) => {
+  const data = snapshot.val();
+  const tableBody = document.querySelector("#prayerTable tbody");
+  const totalRequests = document.getElementById("totalRequests");
+
+  // Clear existing table rows
+  tableBody.innerHTML = '';
+
+  // Initialize counter
+  let count = 0;
+
+  // Loop through data and populate the table
+  for (let key in data) {
+    const request = data[key];
+    const row = document.createElement("tr");
+
+    row.innerHTML = `
+      <td>${request.request}</td>
+      <td>${request.date}</td>
+      <td>${request.time}</td>
+    `;
+
+    tableBody.appendChild(row);
+    count++;
+  }
+
+  // Update total requests count
+  totalRequests.textContent = count;
+});
+  </script>
+</body>
+</html>

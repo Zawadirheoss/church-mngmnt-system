@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Community Management Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --secondary: #8b5cf6;
+            --danger: #ef4444;
+            --background: #f8fafc;
+            --card-bg: rgba(255, 255, 255, 0.9);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+            min-height: 100vh;
+            padding: 2rem;
+            color: #1e293b;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .community-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .community-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            position: relative;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .community-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .badge {
+            position: absolute;
+            top: -0.5rem;
+            left: -0.5rem;
+            background: var(--primary);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 999px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(3px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal {
+            background: var(--card-bg);
+            border-radius: 1rem;
+            padding: 2rem;
+            width: 90%;
+            max-width: 500px;
+            position: relative;
+            transform: scale(0.95);
+            animation: modalEnter 0.2s ease-out forwards;
+        }
+
+        @keyframes modalEnter {
+            to { transform: scale(1); }
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #64748b;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #334155;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 0.5rem;
+            background: rgba(255, 255, 255, 0.8);
+            transition: border-color 0.2s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #4f46e5;
+        }
+
+        .table-container {
+            background: var(--card-bg);
+            border-radius: 1rem;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            margin-top: 2rem;
+            display: none;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        th {
+            background: #f1f5f9;
+            font-weight: 600;
+        }
+
+        .actions-cell {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn-icon {
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            border: none;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-edit {
+            background: #e0e7ff;
+            color: var(--primary);
+        }
+
+        .btn-delete {
+            background: #fee2e2;
+            color: var(--danger);
+        }
+
+        .image-preview {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 0.5rem;
+            display: none;
+            margin-top: 1rem;
+        }
+
+        .error-message {
+            color: var(--danger);
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Community Dashboard</h1>
+            <div class="filter-group">
+                <select id="communityFilter" class="form-control" style="width: 200px;">
+                    <option value="">Select Community Type</option>
+                    <option value="whatsapp">WhatsApp Groups</option>
+                    <option value="facebook">Facebook Groups</option>
+                    <option value="tiktok">TikTok</option>
+                    <option value="twitter">Twitter</option>
+                    <option value="youtube">YouTube Channels</option>
+                    <option value="artist">Artists</option>
+                    <option value="other">Other Communities</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="community-grid" id="communityGrid"></div>
+        <div class="table-container" id="tableContainer">
+            <table id="communityTable">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Description</th>
+                        <th>Link</th>
+                        <th>Date Created</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <!-- General Community Modal -->
+        <div class="modal-overlay" id="generalModal">
+            <div class="modal">
+                <button class="modal-close">&times;</button>
+                <h2 style="margin-bottom: 1.5rem;">Add Community</h2>
+                <form id="generalForm">
+                    <div class="form-group">
+                        <label>Title</label>
+                        <input type="text" class="form-control" id="communityTitle" required>
+                        <div class="error-message" id="generalError">Name already exists!</div>
+                    </div>
+                    <div class="form-group">
+                        <label>Description</label>
+                        <textarea class="form-control" id="communityDescription" rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Link</label>
+                        <input type="url" class="form-control" id="communityLink" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Artist Modal -->
+        <div class="modal-overlay" id="artistModal">
+            <div class="modal">
+                <button class="modal-close">&times;</button>
+                <h2 style="margin-bottom: 1.5rem;">Add Artist</h2>
+                <form id="artistForm">
+                    <div class="form-group">
+                        <label>Name</label>
+                        <input type="text" class="form-control" id="artistName" required>
+                        <div class="error-message" id="artistError">Name already exists!</div>
+                    </div>
+                    <div class="form-group">
+                        <label>Image</label>
+                        <input type="file" class="form-control" id="artistImage" accept="image/*" required>
+                        <img src="#" class="image-preview" id="artistImagePreview" alt="Image Preview">
+                    </div>
+                    <div class="form-group">
+                        <label>Profile Link</label>
+                        <input type="url" class="form-control" id="artistProfileLink" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Gender</label>
+                        <select class="form-control" id="artistGender">
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Specifications</label>
+                        <input type="text" class="form-control" id="artistSpecs" 
+                               placeholder="Comma separated values">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
+        import { getDatabase, ref, push, set, remove, onValue } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCT6bSwCgtmpHycabxKFzDHzy7lZX1jtgo",
+            authDomain: "communities-3731d.firebaseapp.com",
+            databaseURL: "https://communities-3731d-default-rtdb.firebaseio.com",
+            projectId: "communities-3731d",
+            storageBucket: "communities-3731d.firebasestorage.app",
+            messagingSenderId: "424139613732",
+            appId: "1:424139613732:web:07146538124ccad0dd1ab1"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        let currentCommunityType = '';
+        let editingKey = null;
+        let currentImageUrl = '';
+
+        const communityTypes = [
+            'whatsapp', 'facebook', 'tiktok', 
+            'twitter', 'youtube', 'artist', 'other'
+        ];
+
+        function renderCommunityCards() {
+            const grid = document.getElementById('communityGrid');
+            grid.innerHTML = communityTypes.map(type => `
+                <div class="community-card" data-type="${type}" onclick="handleCommunityClick('${type}')">
+                    <div class="badge" id="${type}Count">0</div>
+                    <h3>${type.charAt(0).toUpperCase() + type.slice(1)}</h3>
+                </div>
+            `).join('');
+        }
+
+        window.handleCommunityClick = (type) => {
+            currentCommunityType = type;
+            document.getElementById('communityFilter').value = type;
+            if(type === 'artist') {
+                document.getElementById('artistModal').style.display = 'flex';
+            } else {
+                document.getElementById('generalModal').style.display = 'flex';
+            }
+        };
+
+        // Handle image preview
+        document.getElementById('artistImage').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            const preview = document.getElementById('artistImagePreview');
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                preview.src = e.target.result;
+                preview.style.display = 'block';
+                currentImageUrl = e.target.result;
+            };
+
+            if(file) {
+                reader.readAsDataURL(file);
+            }
+        });
+
+        async function checkNameExists(type, name, currentKey = null) {
+            const snapshot = await new Promise(resolve => 
+                onValue(ref(db, type), resolve, { onlyOnce: true })
+            );
+            
+            if(!snapshot.exists()) return false;
+
+            const entries = Object.entries(snapshot.val());
+            return entries.some(([key, item]) => {
+                const itemName = type === 'artist' ? item.name : item.title;
+                return key !== currentKey && itemName === name;
+            });
+        }
+
+        document.getElementById('generalForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const title = document.getElementById('communityTitle').value;
+            const errorElement = document.getElementById('generalError');
+            
+            const exists = await checkNameExists(currentCommunityType, title, editingKey);
+            if(exists) {
+                errorElement.style.display = 'block';
+                return;
+            }
+            errorElement.style.display = 'none';
+
+            const data = {
+                title: title,
+                description: document.getElementById('communityDescription').value,
+                link: document.getElementById('communityLink').value,
+                date: new Date().toISOString()
+            };
+
+            const path = editingKey ? 
+                `${currentCommunityType}/${editingKey}` : 
+                currentCommunityType;
+            
+            if(editingKey) {
+                await set(ref(db, path), data);
+            } else {
+                await push(ref(db, path), data);
+            }
+            closeModal();
+        });
+
+        document.getElementById('artistForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('artistName').value;
+            const errorElement = document.getElementById('artistError');
+            
+            const exists = await checkNameExists('artist', name, editingKey);
+            if(exists) {
+                errorElement.style.display = 'block';
+                return;
+            }
+            errorElement.style.display = 'none';
+
+            const data = {
+                name: name,
+                image: currentImageUrl,
+                profileLink: document.getElementById('artistProfileLink').value,
+                gender: document.getElementById('artistGender').value,
+                specs: document.getElementById('artistSpecs').value.split(','),
+                date: new Date().toISOString()
+            };
+
+            const path = editingKey ? `artist/${editingKey}` : 'artist';
+            
+            if(editingKey) {
+                await set(ref(db, path), data);
+            } else {
+                await push(ref(db, path), data);
+            }
+            closeModal();
+        });
+
+        communityTypes.forEach(type => {
+            onValue(ref(db, type), (snapshot) => {
+                document.getElementById(`${type}Count`).textContent = snapshot.size;
+                if(document.getElementById('communityFilter').value === type) {
+                    updateTable(type, snapshot.val());
+                }
+            });
+        });
+
+        function updateTable(type, data) {
+            const tbody = document.querySelector('#communityTable tbody');
+            tbody.innerHTML = '';
+            
+            if(data) {
+                Object.entries(data).forEach(([key, item]) => {
+                    const row = `
+                        <tr>
+                            <td>${item.title || item.name}</td>
+                            <td>${item.description || item.gender}</td>
+                            <td><a href="${type === 'artist' ? item.profileLink : (item.link || item.image)}" target="_blank">View</a></td>
+                            <td>${new Date(item.date).toLocaleDateString()}</td>
+                            <td class="actions-cell">
+                                <button class="btn-icon btn-edit" onclick="handleEdit('${type}', '${key}')">✏️</button>
+                                <button class="btn-icon btn-delete" onclick="handleDelete('${type}', '${key}')">🗑️</button>
+                            </td>
+                        </tr>
+                    `;
+                    tbody.innerHTML += row;
+                });
+                document.getElementById('tableContainer').style.display = 'block';
+            }
+        }
+
+        window.handleEdit = (type, key) => {
+            editingKey = key;
+            currentCommunityType = type;
+            const refPath = ref(db, `${type}/${key}`);
+            
+            onValue(refPath, (snapshot) => {
+                const data = snapshot.val();
+                if(type === 'artist') {
+                    document.getElementById('artistName').value = data.name;
+                    document.getElementById('artistProfileLink').value = data.profileLink;
+                    document.getElementById('artistGender').value = data.gender;
+                    document.getElementById('artistSpecs').value = data.specs.join(',');
+                    
+                    const preview = document.getElementById('artistImagePreview');
+                    if(data.image) {
+                        preview.src = data.image;
+                        preview.style.display = 'block';
+                        currentImageUrl = data.image;
+                    }
+                    document.getElementById('artistModal').style.display = 'flex';
+                } else {
+                    document.getElementById('communityTitle').value = data.title;
+                    document.getElementById('communityDescription').value = data.description;
+                    document.getElementById('communityLink').value = data.link;
+                    document.getElementById('generalModal').style.display = 'flex';
+                }
+            }, { onlyOnce: true });
+        };
+
+        window.handleDelete = (type, key) => {
+            if(confirm('Are you sure you want to delete this entry?')) {
+                remove(ref(db, `${type}/${key}`));
+            }
+        };
+
+        document.querySelectorAll('.modal-close').forEach(closeBtn => {
+            closeBtn.addEventListener('click', closeModal);
+        });
+
+        document.querySelectorAll('.modal-overlay').forEach(overlay => {
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) {
+                    closeModal();
+                }
+            });
+        });
+
+        function closeModal() {
+            document.querySelectorAll('.modal-overlay').forEach(el => {
+                el.style.display = 'none';
+            });
+            editingKey = null;
+            currentImageUrl = '';
+            document.getElementById('artistImagePreview').style.display = 'none';
+            document.querySelectorAll('form').forEach(form => form.reset());
+            document.querySelectorAll('.error-message').forEach(el => {
+                el.style.display = 'none';
+            });
+        }
+
+        document.getElementById('communityFilter').addEventListener('change', (e) => {
+            currentCommunityType = e.target.value;
+            if(currentCommunityType) {
+                onValue(ref(db, currentCommunityType), (snapshot) => {
+                    updateTable(currentCommunityType, snapshot.val());
+                });
+            } else {
+                document.getElementById('tableContainer').style.display = 'none';
+            }
+        });
+
+        renderCommunityCards();
+    </script>
+</body>
+</html>

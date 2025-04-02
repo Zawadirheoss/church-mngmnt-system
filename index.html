@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gospel Springs Church-CMS Login</title>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAyiRtkvdxnGWaiG-Xn-50Vm_Pb1J0ya6E",
+            authDomain: "church-cms-96407.firebaseapp.com",
+            projectId: "church-cms-96407",
+            storageBucket: "church-cms-96407.firebasestorage.app",
+            messagingSenderId: "19370427001",
+            appId: "1:19370427001:web:b1d20215c437fc324e4aa8",
+            measurementId: "G-NKDZSFGR4X"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        window.loginUser = async (email, password) => {
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+                return true;
+            } catch (error) {
+                return false;
+            }
+        };
+
+        window.sendResetEmail = async (email) => {
+            try {
+                await sendPasswordResetEmail(auth, email);
+                return true;
+            } catch (error) {
+                return false;
+            }
+        };
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('church.jpg');
+            background-size: cover;
+            background-position: center;
+            
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .logo {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 0 0 15px rgba(255,255,255,0.3);
+            transition: transform 0.3s;
+            position: absolute;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .logo:hover {
+            transform: translateX(-50%) rotate(15deg);
+        }
+
+        .login-container {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 2.5rem 2.5rem 1.5rem;
+            border-radius: 25px;
+            box-shadow: 0 0 40px rgba(0,0,0,0.4);
+            width: 420px;
+            transform: translateY(0);
+            transition: all 0.3s;
+            backdrop-filter: blur(10px);
+            position: relative;
+            margin-top: 60px;
+        }
+
+        .login-container:hover {
+            transform: translateY(-5px);
+        }
+
+        h2 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 2rem;
+            font-size: 1.8rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .form-group {
+            margin-bottom: 1.8rem;
+            position: relative;
+        }
+
+        input {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid #3498db;
+            border-radius: 30px;
+            font-size: 16px;
+            transition: all 0.3s;
+            background: rgba(255,255,255,0.9);
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #2980b9;
+            box-shadow: 0 0 15px #3498db;
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s;
+            letter-spacing: 0.5px;
+        }
+
+        .login-btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 0 20px rgba(52,152,219,0.5);
+        }
+
+        .login-btn:disabled {
+            background: #95a5a6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .forgot-password {
+            text-align: center;
+            margin-top: 1.5rem;
+            color: #3498db;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+
+        .forgot-password:hover {
+            color: #2980b9;
+            transform: translateX(5px);
+        }
+
+        .signup-link {
+            text-align: center;
+            margin-top: 1rem;
+            color: #27ae60;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .signup-link:hover {
+            color: #219a52;
+            transform: translateX(5px);
+        }
+
+        .quit-btn {
+            width: 100%;
+            margin-top: 1.5rem;
+            padding: 12px 30px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .quit-btn:hover {
+            transform: scale(1.05);
+            background: #c0392b;
+            box-shadow: 0 0 20px rgba(231,76,60,0.5);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 20px;
+            position: relative;
+            animation: modalSlide 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+            max-width: 400px;
+            text-align: center;
+        }
+
+        @keyframes modalSlide {
+            from { transform: translateY(-100px) scale(0.8); opacity: 0; }
+            to { transform: translateY(0) scale(1); opacity: 1; }
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 28px;
+            cursor: pointer;
+            color: #333;
+            transition: transform 0.3s;
+        }
+
+        .close-btn:hover {
+            transform: rotate(90deg);
+        }
+
+        .success-check {
+            width: 70px;
+            height: 70px;
+            background: #2ecc71;
+            border-radius: 50%;
+            margin: 0 auto 1.5rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 32px;
+            color: white;
+            animation: checkScale 0.5s ease-in-out;
+        }
+
+        @keyframes checkScale {
+            0% { transform: scale(0); }
+            70% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .reset-input {
+            width: 100%;
+            padding: 12px;
+            margin: 1rem 0;
+            border: 2px solid #3498db;
+            border-radius: 25px;
+        }
+
+        .reset-btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .reset-btn:hover {
+            background: #2980b9;
+            transform: scale(1.05);
+        }
+
+        /* New styles for added features */
+        .password-toggle {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #7f8c8d;
+            transition: color 0.3s;
+        }
+
+        .password-toggle:hover {
+            color: #3498db;
+        }
+
+        .time-greeting {
+            text-align: center;
+            margin-bottom: 0.5rem;
+            color: #3498db;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .attempts-warning {
+            color: #e74c3c;
+            font-size: 0.9rem;
+            text-align: center;
+            margin-top: 0.5rem;
+            display: none;
+        }
+
+        .countdown-message {
+            color: #e74c3c;
+            font-size: 0.9rem;
+            text-align: center;
+            margin-top: 0.5rem;
+            display: none;
+        }
+
+        .lockout-message {
+            color: #e74c3c;
+            font-size: 0.9rem;
+            text-align: center;
+            margin-top: 0.5rem;
+            display: none;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <img src="Gospel springs logo.jpg" class="logo" alt="Church Logo">
+        <div class="time-greeting" id="timeGreeting"></div>
+        <h2>Welcome to Gospel Springs Church Management System</h2>
+        <div class="form-group">
+            <input type="email" id="email" placeholder="Enter your email">
+        </div>
+        <div class="form-group">
+            <input type="password" id="password" placeholder="Enter your password">
+            <span class="password-toggle" id="togglePassword">👁️</span>
+        </div>
+        <div class="attempts-warning" id="attemptsWarning"></div>
+        <div class="countdown-message" id="countdownMessage"></div>
+        <div class="lockout-message" id="lockoutMessage"></div>
+        <button class="login-btn" id="loginBtn" onclick="handleLogin()">Login</button>
+        <div class="forgot-password" onclick="showModal('resetModal')">Forgot Password?</div>
+        <div class="signup-link" onclick="showSignupMessage()">Sign Up</div>
+        <button class="quit-btn" onclick="showModal('quitModal')">Quit</button>
+    </div>
+
+    <!-- Modals -->
+    <div id="loadingModal" class="modal" onclick="closeModalOnOutsideClick(event, 'loadingModal')">
+        <div class="modal-content">
+            <div class="success-check">⌛</div>
+            <h3>Verifying credentials...</h3>
+        </div>
+    </div>
+
+    <div id="successModal" class="modal" onclick="closeModalOnOutsideClick(event, 'successModal')">
+        <div class="modal-content">
+            <div class="success-check">✓</div>
+            <h3>Credentials Verified!</h3>
+            <p>Redirecting to dashboard...</p>
+        </div>
+    </div>
+
+    <div id="errorModal" class="modal" onclick="closeModalOnOutsideClick(event, 'errorModal')">
+        <div class="modal-content">
+            <div class="success-check" style="background: #e74c3c">!</div>
+            <h3>Invalid Credentials</h3>
+            <p>Please check your email/password</p>
+        </div>
+    </div>
+
+    <div id="resetModal" class="modal" onclick="closeModalOnOutsideClick(event, 'resetModal')">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('resetModal')">×</span>
+            <h3>Reset Password</h3>
+            <input type="email" id="resetEmail" class="reset-input" placeholder="Enter registered email">
+            <button class="reset-btn" onclick="handlePasswordReset()">Send Reset Link</button>
+        </div>
+    </div>
+
+    <div id="resetSuccessModal" class="modal" onclick="closeModalOnOutsideClick(event, 'resetSuccessModal')">
+        <div class="modal-content">
+            <div class="success-check">✓</div>
+            <h3>Reset Link Sent!</h3>
+            <p>Check your email inbox</p>
+        </div>
+    </div>
+
+    <div id="resetErrorModal" class="modal" onclick="closeModalOnOutsideClick(event, 'resetErrorModal')">
+        <div class="modal-content">
+            <div class="success-check" style="background: #e74c3c">!</div>
+            <h3>Email Not Found</h3>
+            <p>This email is not registered</p>
+        </div>
+    </div>
+
+    <div id="quitModal" class="modal" onclick="closeModalOnOutsideClick(event, 'quitModal')">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('quitModal')">×</span>
+            <div class="success-check" style="background: #f39c12">?</div>
+            <h3>Confirm Exit</h3>
+            <p>Are you sure you want to quit?</p>
+            <button class="reset-btn" style="background: #e74c3c" onclick="quitApplication()">Yes, Quit</button>
+            <button class="reset-btn" style="margin-left: 10px" onclick="closeModal('quitModal')">Cancel</button>
+        </div>
+    </div>
+
+    <div id="signupModal" class="modal">
+        <div class="modal-content">
+            <div class="success-check" style="background: #f1c40f">!</div>
+            <h3>Signup Not Supported</h3>
+            <p>Please contact system administrator</p>
+        </div>
+    </div>
+
+    <script>
+        // Time-based greeting
+        function updateGreeting() {
+            const hour = new Date().getHours();
+            let greeting;
+            
+            if (hour < 12) {
+                greeting = "Good Morning!";
+            } else if (hour < 18) {
+                greeting = "Good Afternoon!";
+            } else {
+                greeting = "Good Evening!";
+            }
+            
+            document.getElementById('timeGreeting').textContent = greeting;
+        }
+        
+        updateGreeting();
+        setInterval(updateGreeting, 60000); // Update every minute
+        
+        // Password visibility toggle
+        const togglePassword = document.getElementById('togglePassword');
+        const passwordInput = document.getElementById('password');
+        
+        togglePassword.addEventListener('click', function() {
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            this.textContent = type === 'password' ? '👁️' : '👁️‍🗨️';
+        });
+        
+        // Login analytics and attempt limiting
+        let failedAttempts = 0;
+        const maxAttempts = 5;
+        let lockoutCount = 0;
+        let isLoginDisabled = false;
+        const loginBtn = document.getElementById('loginBtn');
+        const attemptsWarning = document.getElementById('attemptsWarning');
+        const countdownMessage = document.getElementById('countdownMessage');
+        const lockoutMessage = document.getElementById('lockoutMessage');
+        
+        function disableLogin(timeInSeconds) {
+            isLoginDisabled = true;
+            loginBtn.disabled = true;
+            
+            let secondsLeft = timeInSeconds;
+            countdownMessage.style.display = 'block';
+            countdownMessage.textContent = `Too many attempts. Please wait ${secondsLeft} seconds before trying again.`;
+            
+            const countdownInterval = setInterval(() => {
+                secondsLeft--;
+                countdownMessage.textContent = `Too many attempts. Please wait ${secondsLeft} seconds before trying again.`;
+                
+                if (secondsLeft <= 0) {
+                    clearInterval(countdownInterval);
+                    isLoginDisabled = false;
+                    loginBtn.disabled = false;
+                    countdownMessage.style.display = 'none';
+                    failedAttempts = 0;
+                    
+                    // Show lockout message if this was the second lockout
+                    if (lockoutCount >= 2) {
+                        lockoutMessage.style.display = 'block';
+                        lockoutMessage.textContent = "Account temporarily locked. Please contact administrator.";
+                        loginBtn.disabled = true;
+                    }
+                }
+            }, 1000);
+        }
+        
+        // Modal handling
+        function showModal(modalId) {
+            document.getElementById(modalId).style.display = 'flex';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        function closeModalOnOutsideClick(event, modalId) {
+            if (event.target === document.getElementById(modalId)) {
+                closeModal(modalId);
+            }
+        }
+
+        // Login handler
+        async function handleLogin() {
+            if (isLoginDisabled || lockoutCount >= 2) return;
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            if (!email || !password) return;
+            
+            showModal('loadingModal');
+            
+            const loginSuccess = await window.loginUser(email, password);
+            
+            if (loginSuccess) {
+                closeModal('loadingModal');
+                showModal('successModal');
+                setTimeout(() => {
+                    window.location.href = 'Admin dasboard.html';
+                }, 2000);
+                // Reset counters on successful login
+                failedAttempts = 0;
+                lockoutCount = 0;
+            } else {
+                failedAttempts++;
+                closeModal('loadingModal');
+                showModal('errorModal');
+                
+                if (failedAttempts >= maxAttempts) {
+                    lockoutCount++;
+                    const lockoutTime = lockoutCount === 1 ? 60 : 300; // 1 min for first lockout, 5 min for second
+                    disableLogin(lockoutTime);
+                    attemptsWarning.style.display = 'none';
+                } else {
+                    attemptsWarning.style.display = 'block';
+                    attemptsWarning.textContent = `Remaining attempts: ${maxAttempts - failedAttempts}`;
+                }
+            }
+        }
+
+        // Password reset handler
+        async function handlePasswordReset() {
+            const email = document.getElementById('resetEmail').value;
+            if (!email) return;
+
+            const resetSuccess = await window.sendResetEmail(email);
+            
+            if (resetSuccess) {
+                closeModal('resetModal');
+                showModal('resetSuccessModal');
+                setTimeout(() => closeModal('resetSuccessModal'), 3000);
+            } else {
+                closeModal('resetModal');
+                showModal('resetErrorModal');
+                setTimeout(() => closeModal('resetErrorModal'), 3000);
+            }
+        }
+
+        // Quit application handler
+        function quitApplication() {
+            window.open('', '_self').close();
+        }
+
+        // Signup message handler
+        function showSignupMessage() {
+            showModal('signupModal');
+            setTimeout(() => closeModal('signupModal'), 3000);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gospel Springs Mission website dashboard</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    /* General Reset */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+    }
+
+    /* Dashboard Layout */
+    .dashboard {
+      display: flex;
+      height: 100%;
+    }
+
+    /* Sidebar Navigation */
+    .sidebar {
+      width: 250px;
+      background-color: #0c1daf;
+      color: #fff;
+      
+      padding: 20px;
+      transition: width 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between; /* Space between top and bottom content */
+    }
+
+    .sidebar.collapsed {
+      width: 0;
+      overflow: hidden;
+      padding: 0;
+    }
+
+    .sidebar ul {
+      list-style: none;
+    }
+
+    .sidebar ul li {
+      margin-bottom: 15px;
+    }
+
+    .sidebar ul li a {
+      color: #fff;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+    }
+
+    .sidebar ul li a i {
+      margin-right: 10px;
+    }
+
+    .sidebar ul li a:hover {
+      color: #1abc9c;
+    }
+
+    .sidebar .sidebar-footer {
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    .sidebar .sidebar-footer img {
+      width: 50px;
+      margin-bottom: 10px;
+    }
+
+    .sidebar .sidebar-footer p {
+      font-size: 14px;
+      color: #ccc;
+    }
+
+    /* Main Content */
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      align-items: center;
+      background-color: #fff;
+      padding: 15px 20px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .toggle-sidebar {
+      background: none;
+      border: none;
+      font-size: 20px;
+      cursor: pointer;
+      margin-right: 15px;
+    }
+
+    .logo img {
+      width: 50px;
+      border-radius: 16px;
+    }
+
+    .church-name {
+      font-size: 24px;
+      font-weight: bold;
+      color: #2c3e50;
+      flex: 1;
+      text-align: center;
+    }
+
+    /* Content Area */
+    .content {
+      flex: 1;
+      position: relative;
+    }
+
+    /* Homepage with Image and Text Overlay */
+    .homepage {
+      position: relative;
+      width: 100%;
+      height: 100%;
+    }
+
+    .church-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .text-overlay {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      color: #fff;
+      background-color: rgba(0, 0, 0, 0.5);
+      padding: 20px;
+      border-radius: 10px;
+    }
+
+    .text-overlay h1 {
+      font-size: 36px;
+      margin-bottom: 10px;
+    }
+
+    .text-overlay p {
+      font-size: 18px;
+    }
+
+    /* Iframe */
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      background-color: #fff;
+      display: none; /* Hidden by default */
+    }
+  </style>
+</head>
+<body>
+  <div class="dashboard">
+    <!-- Sidebar Navigation -->
+    <div class="sidebar" id="sidebar">
+      <ul>
+       
+        <li><a href="Members admin.html" target="iframe-content"><i class="fas fa-users"></i>Members</a></li>
+        <li><a href="Email dashboard.html" target="iframe-content"><i class="fas fa-envelope"></i> Email</a></li>
+        <li><a href="Prayer request admin.html" target="iframe-content"><i class="fas fa-pray"></i> Prayer Requests</a></li>
+        <li><a href="Testimonies admin.html" target="iframe-content"><i class="fas fa-praying-hands"></i> Testimonies</a></li>
+        <li><a href="Appointment view.html" target="iframe-content"><i class="fas fa-calendar-check"></i> Appointments</a></li>
+        <li><a href="Bible study members.html" target="iframe-content"><i class="fas fa-bible"></i> Bible Study Members</a></li>
+        <li><a href="Issues view admin.html" target="iframe-content"><i class="fas fa-exclamation-circle"></i> Issues</a></li>
+        <li><a href="Pastoral support dashboard.html" target="iframe-content"><i class="fas fa-hands-praying"></i> Pastoral Support</a></li>
+        <li><a href="Comments admin.html" target="iframe-content"><i class="fas fa-box-open"></i>Suggestion box</a></li>
+        <li><a href="Communicate.html" target="iframe-content"><i class="fas fa-envelope"></i> Communicate </a></li>
+        <li><a href="Pastor-dashboard.html"><i class="fas fa-church"></i>Pastor dashboard</a></li>
+        <li><a href="Mentorship admin.html"><i class="fas fa-users"></i>Mentorship </a></li>
+        <li><a href="Volunteer admin.html"><i class="fas fa-heart"></i>Volunteer opportunities</a></li>
+        <li><a href="Manage communities.html" target="iframe-content"><i class="fa fa-address-book"></i>Manage Communities</a></li>
+        <li><a href="Live manage admin.html"><i class="fas fa-camera"></i>Manage Livestream</a></li>
+        <li><a href="Live support admin.html"><i class="fas fa-camera"></i>Livestream support</a></li>
+        <li><a href="Manage events.html"><i class="fas fa-calendar-alt"></i>Manage Events</a></li>
+        <li><a href="Library admin.html"><i class="fa fa-book"></i>Manage library</a></li>
+        <li><a href="Gospel ministers admin.html"><i class="fa fa-person"></i>Gospel ministers</a></li>
+        <li><a href="ICT messages.html"><i class="fas fa-sms"></i>ICT messages</a></li>
+        <li><a href="Online meeting.html"><i class="fas fa-clock"></i>Online meeting</a></li>
+        <li><a href="Downloads.html"><i class="fas fa-download"></i>Downloads</a></li>
+        <li><a href="Resources.html"><i class="fas fa-desktop"></i>Resources</a></li>
+        <li><a href="Blogs.html"><i class="fas fa-blog"></i>Blogs</a></li>
+        <li><a href="News.html"><i class="fas fa-newspaper"></i>News</a></li>
+        <li><a href="Sermons.html"><i class="fas fa-book"></i>Sermons</a></li>
+        <li><a href="announcements.html"><i class="fas fa-bullhorn"></i>Announcements</a></li>
+        <li><a href="Notification.html"><i class="fas fa-bell"></i>Notification</a></li>
+        <li><a href="App users.html" target="iframe-content"><i class="fas fa-users"></i>App users</a></li>
+        <li><a href="Church store admin.html" target="iframe-content"><i class="fa fa-shopping-cart"></i>Church store</a></li>
+      </ul>
+      <!-- Sidebar Footer with Logo and Copyright -->
+      <div class="sidebar-footer">
+        <img src="Gospel springs logo.jpg" alt="Local Logo" style="border-radius: 12px;">
+        <p>&copy; 2025 Gospel Springs Mission</p>
+      </div>
+     
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+      <!-- Header -->
+      <div class="header">
+        <button class="toggle-sidebar" id="toggle-sidebar">
+          <i class="fas fa-bars"></i>
+        </button>
+        <div class="logo">
+          <img src="Gospel springs logo.jpg" alt="Church Logo" width="70">
+        </div>
+        <div class="church-name">
+          Gospel Springs Mission website dashboard
+        </div>
+      </div>
+
+      <!-- Dashboard Content -->
+      <div class="content">
+        <!-- Homepage with Image and Text Overlay -->
+        <div class="homepage" id="homepage">
+          <img src="church.jpg" alt="Church Image" class="church-image">
+          <div class="text-overlay">
+            <h1>Welcome to Gospel Springs Mission International</h1>
+            <p>We are a community of faith, love, and hope.</p>
+          </div>
+        </div>
+
+        <!-- Iframe for Loading Pages -->
+        <iframe src="Members register.html" name="iframe-content" id="iframe-content" frameborder="0"></iframe>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Toggle Sidebar
+    const toggleSidebar = document.getElementById('toggle-sidebar');
+    const sidebar = document.getElementById('sidebar');
+
+    toggleSidebar.addEventListener('click', () => {
+      sidebar.classList.toggle('collapsed');
+    });
+
+    // Hide Homepage and Show Iframe When a Link is Clicked
+    const links = document.querySelectorAll('.sidebar a');
+    const homepage = document.getElementById('homepage');
+    const iframe = document.getElementById('iframe-content');
+
+    links.forEach(link => {
+      link.addEventListener('click', (e) => {
+        if (!link.classList.contains('logout-link') && link.getAttribute('href') !== 'Pastor-dashboard.html') {
+          e.preventDefault();
+          homepage.style.display = 'none';
+          iframe.style.display = 'block';
+          iframe.src = link.getAttribute('href'); // Load the linked page in the iframe
+        }
+      });
+    });
+
+    // Handle Logout Link
+    const logoutLink = document.getElementById('logout-link');
+    logoutLink.addEventListener('click', (e) => {
+      e.preventDefault(); // Prevent default link behavior
+
+      // Redirect to the login page
+      window.location.href = logoutLink.getAttribute('href');
+
+      // Clear session history to prevent back/forward navigation
+      setTimeout(() => {
+        window.history.pushState(null, "", window.location.href); // Replace current history entry
+        window.onpopstate = function () {
+          window.history.pushState(null, "", window.location.href); // Block back navigation
+        };
+      }, 100); // Delay to ensure the redirect happens first
+    });
+  </script>
+</body>
+</html>

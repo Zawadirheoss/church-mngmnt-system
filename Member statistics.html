@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Member Statistics</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script type="module">
+        // Import Firebase modules
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
+        import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCXvzCTN3JMT6avOxItSgN4LFmkJ3iNg-Q",
+            authDomain: "members-2b3a0.firebaseapp.com",
+            databaseURL: "https://members-2b3a0-default-rtdb.firebaseio.com",
+            projectId: "members-2b3a0",
+            storageBucket: "members-2b3a0.firebasestorage.app",
+            messagingSenderId: "777982268345",
+            appId: "1:777982268345:web:49cf485520fb8efc5edc68"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        // Fetch data from Firebase
+        const fetchData = async () => {
+            const dbRef = ref(database, 'members'); // Adjust the path as needed
+            try {
+                const snapshot = await get(dbRef);
+                if (snapshot.exists()) {
+                    const data = snapshot.val();
+                    processData(data);
+                } else {
+                    console.log("No data available");
+                }
+            } catch (error) {
+                console.error("Error fetching data:", error);
+            }
+        };
+
+        // Process data and render charts
+        const processData = (data) => {
+            const genders = {};
+            const churches = {};
+            const ministries = {};
+            const yobs = {};
+
+            Object.values(data).forEach(member => {
+                // Gender distribution
+                genders[member.gender] = (genders[member.gender] || 0) + 1;
+
+                // Church distribution
+                churches[member.homeChurch] = (churches[member.homeChurch] || 0) + 1;
+
+                // Ministry distribution
+                ministries[member.ministry] = (ministries[member.ministry] || 0) + 1;
+
+                // Year of Birth distribution
+                yobs[member.yob] = (yobs[member.yob] || 0) + 1;
+            });
+
+            renderChart('genderChart', 'Gender Distribution', genders);
+            renderChart('churchChart', 'Church Distribution', churches);
+            renderChart('ministryChart', 'Ministry Distribution', ministries);
+            renderChart('yobChart', 'Year of Birth Distribution', yobs);
+        };
+
+        // Render a bar chart
+        const renderChart = (canvasId, label, data) => {
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(data),
+                    datasets: [{
+                        label: label,
+                        data: Object.values(data),
+                        backgroundColor: [
+                            'rgba(255, 99, 132, 0.6)',
+                            'rgba(54, 162, 235, 0.6)',
+                            'rgba(255, 206, 86, 0.6)',
+                            'rgba(75, 192, 192, 0.6)',
+                            'rgba(153, 102, 255, 0.6)',
+                            'rgba(255, 159, 64, 0.6)'
+                        ],
+                        borderColor: [
+                            'rgba(255, 99, 132, 1)',
+                            'rgba(54, 162, 235, 1)',
+                            'rgba(255, 206, 86, 1)',
+                            'rgba(75, 192, 192, 1)',
+                            'rgba(153, 102, 255, 1)',
+                            'rgba(255, 159, 64, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        title: {
+                            display: true,
+                            text: label
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        };
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', fetchData);
+    </script>
+    <style>
+        /* General body styling */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+
+        /* Header styling */
+        h1 {
+            text-align: center;
+            font-size: 2.5rem;
+            color: #2c3e50;
+            margin: 20px 0;
+        }
+
+        /* Container for charts */
+        .chart-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+            gap: 20px;
+            padding: 20px;
+        }
+
+        /* Individual chart styling */
+        canvas {
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            width: 100%;
+            height: auto;
+        }
+
+        /* Responsive design for smaller screens */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+
+            .chart-container {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            canvas {
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Member Statistics</h1>
+    <div class="chart-container">
+        <canvas id="genderChart"></canvas>
+        <canvas id="churchChart"></canvas>
+        <canvas id="ministryChart"></canvas>
+        <canvas id="yobChart"></canvas>
+    </div>
+</body>
+</html>

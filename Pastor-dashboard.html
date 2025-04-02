@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gospel Springs Mission International Dashboard</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    /* General Reset */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      overflow: hidden; /* Prevent body scroll */
+    }
+
+    /* Dashboard Layout */
+    .dashboard {
+      display: flex;
+      height: 100vh; /* Full viewport height */
+    }
+
+    /* Sidebar Navigation */
+    .sidebar {
+      width: 250px;
+      background-color: #0c1daf;
+      color: #fff;
+      height: 100vh;
+      padding: 20px;
+      transition: width 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between; /* Space between top and bottom content */
+    }
+
+    .sidebar.collapsed {
+      width: 0;
+      overflow: hidden;
+      padding: 0;
+    }
+
+    .sidebar ul {
+      list-style: none;
+    }
+
+    .sidebar ul li {
+      margin-bottom: 15px;
+    }
+
+    .sidebar ul li a {
+      color: #fff;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+    }
+
+    .sidebar ul li a i {
+      margin-right: 10px;
+    }
+
+    .sidebar ul li a:hover {
+      color: #1abc9c;
+    }
+
+    .sidebar .sidebar-footer {
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    .sidebar .sidebar-footer img {
+      width: 50px;
+      margin-bottom: 10px;
+    }
+
+    .sidebar .sidebar-footer p {
+      font-size: 14px;
+      color: #ccc;
+    }
+
+    /* Main Content */
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden; /* Prevent main content scroll */
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      align-items: center;
+      background-color: #fff;
+      padding: 15px 20px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .toggle-sidebar {
+      background: none;
+      border: none;
+      font-size: 20px;
+      cursor: pointer;
+      margin-right: 15px;
+    }
+
+    .logo img {
+      width: 50px;
+      border-radius: 16px;
+    }
+
+    .church-name {
+      font-size: 24px;
+      font-weight: bold;
+      color: #2c3e50;
+      flex: 1;
+      text-align: center;
+    }
+
+    /* Content Area */
+    .content {
+      flex: 1;
+      position: relative;
+      overflow: hidden; /* Prevent content area scroll */
+    }
+
+    /* Homepage with Image and Text Overlay */
+    .homepage {
+      position: relative;
+      width: 100%;
+      height: 100%;
+    }
+
+    .church-image {
+      width: 100%;
+      height: 100vh;
+      object-fit: cover;
+    }
+
+    .text-overlay {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      color: #fff;
+      background-color: rgba(0, 0, 0, 0.5);
+      padding: 20px;
+      border-radius: 10px;
+    }
+
+    .text-overlay h1 {
+      font-size: 36px;
+      margin-bottom: 10px;
+    }
+
+    .text-overlay p {
+      font-size: 18px;
+    }
+
+    /* Iframe Styling */
+    iframe {
+      width: 100%;
+      height: calc(100vh - 80px); /* Adjust height based on header */
+      border: none;
+      display: none; /* Hidden by default */
+    }
+
+    iframe.active {
+      display: block; /* Show when active */
+    }
+  </style>
+</head>
+<body>
+  <div class="dashboard">
+    <!-- Sidebar Navigation -->
+    <div class="sidebar" id="sidebar">
+      <ul>
+        <li><a href="#" data-page="add-member"><i class="fas fa-user-plus"></i> Add Member</a></li>
+        <li><a href="#" data-page="view-members"><i class="fas fa-users"></i> View Members</a></li>
+        <li><a href="#" data-page="prayer-requests"><i class="fas fa-pray"></i> Prayer Requests</a></li>
+        <li><a href="#" data-page="raise-issue"><i class="fas fa-exclamation-circle"></i> Raise Issue</a></li>
+        <li><a href="#" data-page="comments"><i class="fas fa-comments"></i> Comments</a></li>
+        <li><a href="Login type.html"><i class="fas fa-sign-in"></i> Admin Login</a></li>
+        <li><a href="Login type.html" id="logout-link"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+      </ul>
+
+      <!-- Sidebar Footer with Logo and Copyright -->
+      <div class="sidebar-footer">
+        <img src="Gospel springs logo.jpg" alt="Local Logo" style="border-radius: 12px;">
+        <p>&copy; 2025 Gospel Springs Mission International</p>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+      <!-- Header -->
+      <div class="header">
+        <button class="toggle-sidebar" id="toggle-sidebar">
+          <i class="fas fa-bars"></i>
+        </button>
+        <div class="logo">
+          <img src="Gospel springs logo.jpg" alt="Church Logo" width="70">
+        </div>
+        <div class="church-name">
+          Gospel Springs Mission International
+        </div>
+        <p style="color: orangered;font-weight: bolder;">Welcome pastor!</p>
+      </div>
+
+      <!-- Dashboard Content -->
+      <div class="content">
+        <!-- Homepage with Image and Text Overlay -->
+        <div class="homepage" id="homepage">
+          <img src="church.jpg" alt="Church Image" class="church-image">
+          <div class="text-overlay">
+            <h1>Welcome to Gospel Springs Mission International</h1>
+            <p>We are a community of faith, love, and hope.</p>
+          </div>
+        </div>
+
+        <!-- Iframes for Pages -->
+        <iframe id="add-member" src="Members register.html"></iframe>
+        <iframe id="view-members" src="Pastor member view.html"></iframe>
+        <iframe id="prayer-requests" src="prayer request pastor.html"></iframe>
+        <iframe id="raise-issue" src="Raise issue.html"></iframe>
+        <iframe id="comments" src="Comments.html"></iframe>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Toggle Sidebar
+    const toggleSidebar = document.getElementById('toggle-sidebar');
+    const sidebar = document.getElementById('sidebar');
+
+    toggleSidebar.addEventListener('click', () => {
+      sidebar.classList.toggle('collapsed');
+    });
+
+    // Handle Navigation Links
+    const links = document.querySelectorAll('.sidebar a');
+    const homepage = document.getElementById('homepage');
+    const iframes = document.querySelectorAll('iframe');
+
+    links.forEach(link => {
+      link.addEventListener('click', (e) => {
+        if (link.getAttribute('data-page')) {
+          e.preventDefault();
+          const targetPage = link.getAttribute('data-page');
+
+          // Hide homepage and all iframes
+          homepage.style.display = 'none';
+          iframes.forEach(iframe => {
+            iframe.classList.remove('active');
+          });
+
+          // Show the selected iframe
+          document.getElementById(targetPage).classList.add('active');
+        }
+      });
+    });
+
+    // Handle Logout Link
+    const logoutLink = document.getElementById('logout-link');
+    logoutLink.addEventListener('click', (e) => {
+      e.preventDefault(); // Prevent default link behavior
+
+      // Redirect to the login page
+      window.location.href = logoutLink.getAttribute('href');
+
+      // Clear session history to prevent back/forward navigation
+      setTimeout(() => {
+        window.history.pushState(null, "", window.location.href); // Replace current history entry
+        window.onpopstate = function () {
+          window.history.pushState(null, "", window.location.href); // Block back navigation
+        };
+      }, 100); // Delay to ensure the redirect happens first
+    });
+  </script>
+</body>
+</html>

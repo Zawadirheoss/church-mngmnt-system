@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gospel Ministers Dashboard</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <style>
+    body { background: linear-gradient(135deg, #f3f4f6, #e5e7eb); }
+    .modal { background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(5px); }
+    .modal-content { background: white; border-radius: 12px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2); }
+    .table-row:hover { background: #f9fafb; transform: scale(1.02); transition: all 0.2s ease; }
+    .search-input { border: 2px solid #e5e7eb; transition: border-color 0.3s ease; }
+    .search-input:focus { border-color: #3b82f6; outline: none; }
+    .add-button { background: linear-gradient(135deg, #3b82f6, #1d4ed8); transition: transform 0.2s ease, box-shadow 0.2s ease; }
+    .add-button:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(59, 130, 246, 0.4); }
+    .delete-button { background: linear-gradient(135deg, #ef4444, #dc2626); transition: transform 0.2s ease, box-shadow 0.2s ease; }
+    .delete-button:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(239, 68, 68, 0.4); }
+  </style>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
+    import { getDatabase, ref, push, onValue, remove } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDl612wDzyx7GjCmppUhttHP_bUTAzoDZA",
+      authDomain: "gospel-ministers.firebaseapp.com",
+      databaseURL: "https://gospel-ministers-default-rtdb.firebaseio.com",
+      projectId: "gospel-ministers",
+      storageBucket: "gospel-ministers.firebasestorage.app",
+      messagingSenderId: "758802296692",
+      appId: "1:758802296692:web:719659c89a43500e190621"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const database = getDatabase(app);
+    const ministersRef = ref(database, 'ministers');
+    let ministers = [];
+
+    // Initialize event listeners
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('addMinisterBtn').addEventListener('click', openModal);
+      document.getElementById('search').addEventListener('input', searchMinisters);
+      document.getElementById('addMinisterForm').addEventListener('submit', addMinister);
+    });
+
+    // Firebase data handling
+    onValue(ministersRef, (snapshot) => {
+      ministers = [];
+      snapshot.forEach((childSnapshot) => {
+        ministers.push({ id: childSnapshot.key, ...childSnapshot.val() });
+      });
+      renderTable();
+      updateTotalMinisters();
+    });
+
+    // Modal functions
+    function openModal() {
+      document.getElementById('addMinisterModal').classList.remove('hidden');
+    }
+
+    function closeModal() {
+      document.getElementById('addMinisterModal').classList.add('hidden');
+      document.getElementById('addMinisterForm').reset();
+    }
+
+    // Minister operations
+    function addMinister(event) {
+      event.preventDefault();
+      const name = document.getElementById('name').value;
+      const homechurch = document.getElementById('homechurch').value;
+      const phone = document.getElementById('phone').value;
+      const profileLink = document.getElementById('profileLink').value;
+      const imageFile = document.getElementById('image').files[0];
+
+      if (name && homechurch && phone && profileLink && imageFile) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const minister = { name, homechurch, phone, profileLink, imageUrl: e.target.result };
+          push(ministersRef, minister);
+          closeModal();
+        };
+        reader.readAsDataURL(imageFile);
+      } else {
+        alert('Please fill all fields and upload an image.');
+      }
+    }
+
+    function deleteMinister(id) {
+      if (confirm('Are you sure you want to delete this minister?')) {
+        remove(ref(database, `ministers/${id}`));
+      }
+    }
+
+    // UI updates
+    function renderTable(filteredMinisters = ministers) {
+      const tableBody = document.getElementById('ministersTableBody');
+      tableBody.innerHTML = '';
+      filteredMinisters.forEach((minister) => {
+        const row = document.createElement('tr');
+        row.className = 'table-row';
+        row.innerHTML = `
+          <td class="py-3 px-4 border-b">${minister.name}</td>
+          <td class="py-3 px-4 border-b">${minister.homechurch}</td>
+          <td class="py-3 px-4 border-b">${minister.phone}</td>
+          <td class="py-3 px-4 border-b"><a href="${minister.profileLink}" target="_blank" class="text-blue-500 hover:underline">Profile</a></td>
+          <td class="py-3 px-4 border-b">
+            <button data-id="${minister.id}" class="delete-button px-4 py-2 rounded-lg">Delete</button>
+          </td>
+        `;
+        row.querySelector('button').addEventListener('click', () => deleteMinister(minister.id));
+        tableBody.appendChild(row);
+      });
+    }
+
+    function updateTotalMinisters() {
+      document.getElementById('totalMinisters').textContent = ministers.length;
+    }
+
+    function searchMinisters() {
+      const searchTerm = document.getElementById('search').value.toLowerCase();
+      const filteredMinisters = ministers.filter(minister => 
+        minister.name.toLowerCase().includes(searchTerm) || 
+        minister.homechurch.toLowerCase().includes(searchTerm)
+      );
+      renderTable(filteredMinisters);
+    }
+  </script>
+</head>
+<body class="bg-gray-100">
+  <div class="container mx-auto p-8">
+    <h1 class="text-4xl font-bold text-gray-800 mb-8">Gospel Ministers Dashboard</h1>
+    <div class="flex justify-between items-center mb-8">
+      <div class="text-xl font-semibold text-gray-700">
+        Total Ministers: <span id="totalMinisters" class="font-bold text-blue-600">0</span>
+      </div>
+      <input type="text" id="search" placeholder="Search by name or homechurch" class="search-input px-4 py-2 rounded-lg w-64">
+      <button id="addMinisterBtn" class="add-button text-white px-6 py-3 rounded-lg">Add Minister</button>
+    </div>
+
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+      <table class="min-w-full">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="py-3 px-4 text-left font-semibold text-gray-700">Name</th>
+            <th class="py-3 px-4 text-left font-semibold text-gray-700">Homechurch</th>
+            <th class="py-3 px-4 text-left font-semibold text-gray-700">Phone Number</th>
+            <th class="py-3 px-4 text-left font-semibold text-gray-700">Profile Link</th>
+            <th class="py-3 px-4 text-left font-semibold text-gray-700">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="ministersTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Add Minister Modal -->
+  <div id="addMinisterModal" class="modal hidden fixed inset-0 flex items-center justify-center">
+    <div class="modal-content w-96 p-6">
+      <h2 class="text-2xl font-bold text-gray-800 mb-4">Add Minister</h2>
+      <form id="addMinisterForm">
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-700 mb-1">Name</label>
+          <input type="text" id="name" class="w-full px-3 py-2 border rounded-lg" required>
+        </div>
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-700 mb-1">Homechurch</label>
+          <input type="text" id="homechurch" class="w-full px-3 py-2 border rounded-lg" required>
+        </div>
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-700 mb-1">Phone Number (e.g., +254768398308)</label>
+          <input type="tel" id="phone" pattern="\+254\d{9}" class="w-full px-3 py-2 border rounded-lg" required>
+        </div>
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-700 mb-1">Profile Link</label>
+          <input type="url" id="profileLink" class="w-full px-3 py-2 border rounded-lg" required>
+        </div>
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-700 mb-1">Image</label>
+          <input type="file" id="image" class="w-full px-3 py-2 border rounded-lg" accept="image/*" required>
+        </div>
+        <div class="flex justify-end">
+          <button type="button" onclick="closeModal()" class="mr-2 bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600">Cancel</button>
+          <button type="submit" class="add-button text-white px-4 py-2 rounded-lg">Add</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</body>
+</html>

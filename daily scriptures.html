@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scripture Admin Panel</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            background: #eee;
+            margin-right: 5px;
+            border-radius: 5px 5px 0 0;
+        }
+        
+        .tab.active {
+            background: #3498db;
+            color: white;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        input[type="text"], 
+        textarea, 
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s;
+        }
+        
+        button:hover {
+            background: #2980b9;
+        }
+        
+        .btn-secondary {
+            background: #95a5a6;
+        }
+        
+        .btn-secondary:hover {
+            background: #7f8c8d;
+        }
+        
+        .scripture-list {
+            margin-top: 30px;
+        }
+        
+        .scripture-item {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            border-left: 4px solid #3498db;
+            position: relative;
+        }
+        
+        .scripture-item h3 {
+            margin-top: 0;
+            color: #2c3e50;
+        }
+        
+        .scripture-actions {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+        }
+        
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            display: none;
+        }
+        
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Daily Scriptures Admin Panel</h1>
+        
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('individual')">Add Scripture</div>
+            <div class="tab" onclick="switchTab('manage')">Manage Scriptures</div>
+        </div>
+        
+        <!-- Individual Upload Tab -->
+        <div id="individualTab" class="tab-content active">
+            <form id="individualForm">
+                <div class="form-group">
+                    <label for="verseText">Scripture Text</label>
+                    <textarea id="verseText" required></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="verseReference">Reference (e.g. John 3:16)</label>
+                    <input type="text" id="verseReference" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="verseCategory">Category (optional)</label>
+                    <select id="verseCategory">
+                        <option value="">None</option>
+                        <option value="faith">Faith</option>
+                        <option value="love">Love</option>
+                        <option value="hope">Hope</option>
+                        <option value="salvation">Salvation</option>
+                        <option value="comfort">Comfort</option>
+                        <option value="wisdom">Wisdom</option>
+                    </select>
+                </div>
+                
+                <button type="submit">Add Scripture</button>
+                <div id="individualStatus" class="status"></div>
+            </form>
+        </div>
+        
+        <!-- Manage Scriptures Tab -->
+        <div id="manageTab" class="tab-content">
+            <div class="form-group">
+                <input type="text" id="searchScriptures" placeholder="Search scriptures...">
+                <button onclick="searchScriptures()">Search</button>
+                <button class="btn-secondary" onclick="loadAllScriptures()">Show All</button>
+            </div>
+            
+            <div id="scriptureList" class="scripture-list">
+                <!-- Scriptures will be loaded here -->
+            </div>
+            
+            <div id="manageStatus" class="status"></div>
+        </div>
+    </div>
+
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBaeGl-0R-RgKuHYCUeArCuQQuNl9P5rPc",
+            authDomain: "daily-scriptures-afc99.firebaseapp.com",
+            databaseURL: "https://daily-scriptures-afc99-default-rtdb.firebaseio.com",
+            projectId: "daily-scriptures-afc99",
+            storageBucket: "daily-scriptures-afc99.appspot.com",
+            messagingSenderId: "107359409823",
+            appId: "1:107359409823:web:b0dbf2bbc4d4474042f4aa",
+            measurementId: "G-CCW5JLLFBS"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        const scripturesRef = database.ref('scriptures');
+
+        // Tab switching
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            document.getElementById(tabName + 'Tab').classList.add('active');
+            document.querySelector(`.tab[onclick="switchTab('${tabName}')"]`).classList.add('active');
+            
+            if (tabName === 'manage') {
+                loadAllScriptures();
+            }
+        }
+
+        // Individual form submission
+        document.getElementById('individualForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const text = document.getElementById('verseText').value.trim();
+            const reference = document.getElementById('verseReference').value.trim();
+            const category = document.getElementById('verseCategory').value;
+            
+            if (!text || !reference) {
+                showStatus('individualStatus', 'Please fill in all required fields', 'error');
+                return;
+            }
+            
+            const newScripture = {
+                text: text,
+                reference: reference,
+                category: category,
+                dateAdded: new Date().toISOString()
+            };
+            
+            scripturesRef.push(newScripture)
+                .then(() => {
+                    showStatus('individualStatus', 'Scripture added successfully!', 'success');
+                    document.getElementById('individualForm').reset();
+                })
+                .catch(error => {
+                    showStatus('individualStatus', 'Error adding scripture: ' + error.message, 'error');
+                });
+        });
+
+        // Manage scriptures functions
+        function loadAllScriptures() {
+            showStatus('manageStatus', 'Loading scriptures...', 'success');
+            
+            scripturesRef.once('value')
+                .then(snapshot => {
+                    const scriptures = snapshot.val();
+                    displayScriptures(scriptures);
+                    showStatus('manageStatus', `Loaded ${Object.keys(scriptures || {}).length} scriptures`, 'success');
+                })
+                .catch(error => {
+                    showStatus('manageStatus', 'Error loading scriptures: ' + error.message, 'error');
+                });
+        }
+
+        function searchScriptures() {
+            const searchTerm = document.getElementById('searchScriptures').value.toLowerCase().trim();
+            
+            if (!searchTerm) {
+                showStatus('manageStatus', 'Please enter a search term', 'error');
+                return;
+            }
+            
+            showStatus('manageStatus', 'Searching...', 'success');
+            
+            scripturesRef.once('value')
+                .then(snapshot => {
+                    const allScriptures = snapshot.val();
+                    const filtered = {};
+                    
+                    Object.keys(allScriptures || {}).forEach(key => {
+                        const scripture = allScriptures[key];
+                        if ((scripture.text && scripture.text.toLowerCase().includes(searchTerm)) || 
+                            (scripture.reference && scripture.reference.toLowerCase().includes(searchTerm))) {
+                            filtered[key] = scripture;
+                        }
+                    });
+                    
+                    displayScriptures(filtered);
+                    showStatus('manageStatus', `Found ${Object.keys(filtered).length} matching scriptures`, 'success');
+                })
+                .catch(error => {
+                    showStatus('manageStatus', 'Error searching scriptures: ' + error.message, 'error');
+                });
+        }
+
+        function displayScriptures(scriptures) {
+            const scriptureList = document.getElementById('scriptureList');
+            
+            if (!scriptures || Object.keys(scriptures).length === 0) {
+                scriptureList.innerHTML = '<p>No scriptures found</p>';
+                return;
+            }
+            
+            scriptureList.innerHTML = '';
+            
+            Object.keys(scriptures).forEach(key => {
+                const scripture = scriptures[key];
+                const item = document.createElement('div');
+                item.className = 'scripture-item';
+                item.innerHTML = `
+                    <h3>${scripture.reference || 'No reference'}</h3>
+                    <p>${scripture.text || 'No text'}</p>
+                    ${scripture.category ? `<small>Category: ${scripture.category}</small><br>` : ''}
+                    <small>Added: ${new Date(scripture.dateAdded).toLocaleString()}</small>
+                    <div class="scripture-actions">
+                        <button onclick="deleteScripture('${key}')">Delete</button>
+                    </div>
+                `;
+                scriptureList.appendChild(item);
+            });
+        }
+
+        function deleteScripture(key) {
+            if (confirm('Are you sure you want to delete this scripture?')) {
+                scripturesRef.child(key).remove()
+                    .then(() => {
+                        showStatus('manageStatus', 'Scripture deleted successfully', 'success');
+                        loadAllScriptures();
+                    })
+                    .catch(error => {
+                        showStatus('manageStatus', 'Error deleting scripture: ' + error.message, 'error');
+                    });
+            }
+        }
+
+        // Utility function
+        function showStatus(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = 'status ' + type;
+            element.style.display = 'block';
+            
+            setTimeout(() => {
+                element.style.display = 'none';
+            }, 5000);
+        }
+
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Admin panel initialized');
+        });
+    </script>
+</body>
+</html>

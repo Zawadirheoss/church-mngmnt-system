@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ministry Pastors Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --secondary: #10b981;
+            --accent: #f59e0b;
+            --background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            --card-bg: rgba(255, 255, 255, 0.9);
+            --glass: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background: var(--background);
+            min-height: 100vh;
+            padding: 2rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .dashboard-title {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: #1e293b;
+            font-size: 2.5rem;
+            font-weight: 800;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+            animation: slideDown 0.8s ease;
+        }
+
+        .cards-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 1.5rem;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.1);
+            backdrop-filter: blur(4px);
+            border: 1px solid var(--glass);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            animation: fadeIn 0.8s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(31, 38, 135, 0.2);
+        }
+
+        .card h2 {
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+            font-size: 1.25rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .stat-number {
+            font-size: 2.75rem;
+            font-weight: 800;
+            color: #1e293b;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .gender-bars {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .gender-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .gender-bar-container {
+            flex-grow: 1;
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .gender-bar {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 1s ease;
+        }
+
+        .recent-pastors {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .recent-pastor {
+            padding: 1.25rem;
+            background: var(--card-bg);
+            border-radius: 1rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            animation: slideIn 0.5s ease;
+            border: 1px solid var(--glass);
+        }
+
+        .pastor-details {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            color: #475569;
+        }
+
+        .pastor-details span {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        #positionChart {
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 1.5rem;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.1);
+            border: 1px solid var(--glass);
+            animation: fadeIn 1s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideDown {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(-20px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .material-icons {
+            font-size: 1.2rem;
+            vertical-align: middle;
+        }
+    </style>
+</head>
+<body>
+    <h1 class="dashboard-title">Ministry Pastors Dashboard</h1>
+    
+    <div class="cards-container">
+        <div class="card">
+            <h2>📊 Total Pastors</h2>
+            <div class="stat-number" id="totalPastors">0</div>
+        </div>
+        
+        <div class="card">
+            <h2>🚻 Gender Variation</h2>
+            <div class="gender-bars" id="genderBars"></div>
+        </div>
+        
+        <div class="card">
+            <h2>🆕 Recent Additions</h2>
+            <ul class="recent-pastors" id="recentPastors"></ul>
+        </div>
+    </div>
+
+    <canvas id="positionChart"></canvas>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBHDj6uDucDVYVPVQpdAYO0dHbovV7_X1k",
+            authDomain: "ministry-pastors.firebaseapp.com",
+            databaseURL: "https://ministry-pastors-default-rtdb.firebaseio.com",
+            projectId: "ministry-pastors",
+            storageBucket: "ministry-pastors.firebasestorage.app",
+            messagingSenderId: "910721567737",
+            appId: "1:910721567737:web:1d806980872bfda70acb28"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const pastorsRef = ref(db, 'members');
+
+        // Chart initialization
+        const ctx = document.getElementById('positionChart').getContext('2d');
+        const positionChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Position Distribution',
+                    data: [],
+                    borderColor: '#6366f1',
+                    tension: 0.4,
+                    fill: true,
+                    backgroundColor: 'rgba(99, 102, 241, 0.1)'
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    title: {
+                        display: true,
+                        text: 'Ministry Position Distribution',
+                        font: { size: 16 }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(0, 0, 0, 0.05)' }
+                    },
+                    x: {
+                        grid: { color: 'rgba(0, 0, 0, 0.05)' }
+                    }
+                }
+            }
+        });
+
+        onValue(pastorsRef, (snapshot) => {
+            const data = snapshot.val();
+            const pastors = data ? Object.values(data) : [];
+            
+            // Update total pastors
+            document.getElementById('totalPastors').textContent = pastors.length;
+
+            // Update gender distribution
+            const genderCounts = pastors.reduce((acc, { gender }) => {
+                acc[gender] = (acc[gender] || 0) + 1;
+                return acc;
+            }, {});
+
+            const genderBars = document.getElementById('genderBars');
+            genderBars.innerHTML = Object.entries(genderCounts)
+                .map(([gender, count]) => `
+                    <div class="gender-item">
+                        <span>${gender.toUpperCase()}</span>
+                        <div class="gender-bar-container">
+                            <div class="gender-bar" 
+                                 style="width: ${(count / pastors.length) * 100 || 0}%;
+                                        background: ${gender === 'male' ? '#6366f1' : '#10b981'}">
+                            </div>
+                        </div>
+                        <span>${((count / pastors.length) * 100 || 0).toFixed(1)}%</span>
+                    </div>
+                `).join('');
+
+            // Update recent pastors
+            const recentPastors = pastors.slice(-2).reverse();
+            document.getElementById('recentPastors').innerHTML = recentPastors
+                .map(pastor => `
+                    <li class="recent-pastor">
+                        <div class="pastor-details">
+                            <span>👤 ${pastor.fullname}</span>
+                            <span>${pastor.gender === 'male' ? '♂' : '♀'} ${pastor.gender}</span>
+                            <span>💍 ${pastor.maritalStatus || 'N/A'}</span>
+                            <span>⛪ ${pastor.church || 'N/A'}</span>
+                        </div>
+                    </li>
+                `).join('');
+
+            // Update position chart
+            const positionCounts = pastors.reduce((acc, { position }) => {
+                acc[position] = (acc[position] || 0) + 1;
+                return acc;
+            }, {});
+
+            positionChart.data.labels = Object.keys(positionCounts);
+            positionChart.data.datasets[0].data = Object.values(positionCounts);
+            positionChart.update();
+        });
+    </script>
+</body>
+</html>

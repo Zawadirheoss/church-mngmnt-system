@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mentorship Dashboard</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f6fa;
+        }
+
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: #1909a2;
+            color: white;
+            border-radius: 8px;
+        }
+
+        .total-count {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .search-box {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            min-width: 250px;
+        }
+
+        .filter-select {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: white;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .data-table th {
+            background-color: #1909a2;
+            color: white;
+        }
+
+        .data-table tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .btn:hover {
+            opacity: 0.8;
+        }
+
+        .btn-delete {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .btn-whatsapp {
+            background-color: #25d366;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-header">
+        <h2>Mentorship Program Dashboard</h2>
+        <div class="total-count">Total Entries: <span id="totalCount">0</span></div>
+    </div>
+
+    <div class="controls">
+        <input type="text" class="search-box" placeholder="Search by name..." id="searchInput">
+        <select class="filter-select" id="genderFilter">
+            <option value="">All Genders</option>
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+            <option value="other">Other</option>
+        </select>
+        <select class="filter-select" id="mentorFilter">
+            <option value="">All Mentors</option>
+            <option value="mentor1">Mentor 1</option>
+            <option value="mentor2">Mentor 2</option>
+            <option value="mentor3">Mentor 3</option>
+        </select>
+    </div>
+
+    <table class="data-table" id="dataTable">
+        <thead>
+            <tr>
+                <th>Full Name</th>
+                <th>Gender</th>
+                <th>Phone</th>
+                <th>Date of Birth</th>
+                <th>Mentor</th>
+                <th>Area</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+    </table>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
+        import { getDatabase, ref, onValue, remove } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyA6JrY2N1Up2VR2IXyGM72iV9mlnRIcX_g",
+            authDomain: "mentorship-8ca44.firebaseapp.com",
+            projectId: "mentorship-8ca44",
+            storageBucket: "mentorship-8ca44.firebasestorage.app",
+            messagingSenderId: "87027895262",
+            appId: "1:87027895262:web:40007128f8e725691d2b4f",
+            databaseURL: "https://mentorship-8ca44-default-rtdb.firebaseio.com/"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const dbRef = ref(db, 'users/');
+
+        let allData = {};
+
+        function formatPhoneNumber(phone) {
+            if (!phone) return '';
+            phone = phone.replace(/\D/g, '');
+            if (phone.startsWith('254')) return `+${phone}`;
+            if (phone.startsWith('0')) return `+254${phone.slice(1)}`;
+            return `+254${phone}`;
+        }
+
+        function renderTable(data) {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+            
+            Object.entries(data).forEach(([key, entry]) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${entry.fullname}</td>
+                    <td>${entry.gender}</td>
+                    <td>${formatPhoneNumber(entry.phone)}</td>
+                    <td>${new Date(entry.dob).toLocaleDateString()}</td>
+                    <td>${entry.mentor}</td>
+                    <td>${entry.area}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn btn-delete" data-key="${key}">Delete</button>
+                            <button class="btn btn-whatsapp" data-phone="${entry.phone}">WhatsApp</button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById('totalCount').textContent = Object.keys(data).length;
+        }
+
+        function filterData() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const genderFilter = document.getElementById('genderFilter').value;
+            const mentorFilter = document.getElementById('mentorFilter').value;
+
+            const filtered = Object.entries(allData).filter(([key, entry]) => {
+                const matchesSearch = entry.fullname.toLowerCase().includes(searchTerm);
+                const matchesGender = !genderFilter || entry.gender === genderFilter;
+                const matchesMentor = !mentorFilter || entry.mentor === mentorFilter;
+                return matchesSearch && matchesGender && matchesMentor;
+            });
+
+            renderTable(Object.fromEntries(filtered));
+        }
+
+        async function deleteEntry(key) {
+            if (confirm('Are you sure you want to delete this entry?')) {
+                await remove(ref(db, `users/${key}`));
+            }
+        }
+
+        function openWhatsApp(phone) {
+            const formatted = formatPhoneNumber(phone);
+            window.open(`https://wa.me/${formatted}`, '_blank');
+        }
+
+        // Event listeners
+        document.getElementById('searchInput').addEventListener('input', filterData);
+        document.getElementById('genderFilter').addEventListener('change', filterData);
+        document.getElementById('mentorFilter').addEventListener('change', filterData);
+        
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('btn-delete')) {
+                deleteEntry(e.target.dataset.key);
+            }
+            if (e.target.classList.contains('btn-whatsapp')) {
+                openWhatsApp(e.target.dataset.phone);
+            }
+        });
+
+        // Initialize
+        onValue(dbRef, (snapshot) => {
+            allData = snapshot.val() || {};
+            filterData();
+        });
+    </script>
+</body>
+</html>

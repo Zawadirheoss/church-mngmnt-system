@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gospel Springs Mission - Management Dashboard</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --sidebar-bg: #0815a6;
+            --sidebar-width: 240px;
+            --primary-color: #3f51b5;
+            --hover-color: #3949ab;
+            --text-light: #ffffff;
+            --dropdown-bg: #ffffff;
+            --transition-speed: 0.3s;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        body {
+            display: flex;
+            background: #f8f9fa;
+            min-height: 100vh;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #ddd;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #ccc;
+        }
+
+        .sidebar {
+            background: var(--sidebar-bg);
+            color: var(--text-light);
+            width: var(--sidebar-width);
+            height: 100vh;
+            position: fixed;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            transition: transform var(--transition-speed) ease;
+        }
+
+        .sidebar.collapsed {
+            transform: translateX(-100%);
+        }
+
+        .logo-container {
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .logo {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid white;
+        }
+
+        .nav-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem 0;
+        }
+
+        .nav-menu {
+            list-style: none;
+            padding-right: 8px;
+        }
+
+        .nav-item {
+            position: relative;
+        }
+
+        .nav-link {
+            color: var(--text-light);
+            text-decoration: none;
+            padding: 0.8rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            transition: all 0.2s ease;
+            font-size: 0.9rem;
+        }
+
+        .nav-link:hover {
+            background: var(--hover-color);
+            padding-left: 1.7rem;
+        }
+
+        .nav-link i {
+            width: 22px;
+            text-align: center;
+            font-size: 1rem;
+        }
+
+        .dropdown-menu {
+            background: var(--dropdown-bg);
+            border-radius: 4px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin: 0 1rem;
+            max-height: 0;
+            overflow: hidden;
+            transition: all var(--transition-speed) ease;
+        }
+
+        .dropdown-menu.show {
+            max-height: 300px;
+            overflow-y: auto;
+            margin: 0.5rem 1rem;
+        }
+
+        .dropdown-menu a {
+            color: #2d3436;
+            padding: 0.7rem 1.2rem;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            font-size: 0.85rem;
+            transition: all 0.2s ease;
+        }
+
+        .dropdown-menu a:hover {
+            background: #f8f9fa;
+            padding-left: 1.5rem;
+            color: var(--primary-color);
+        }
+
+        .dropdown-header {
+            padding: 0.5rem 1.2rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .dropdown-divider {
+            height: 1px;
+            background: #eee;
+            margin: 0.5rem 0;
+        }
+
+        .main-content {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            transition: margin-left var(--transition-speed) ease;
+        }
+
+        .main-content.expanded {
+            margin-left: 0;
+        }
+
+        .top-bar {
+            background: #ffffff;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 1.5rem;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .digital-clock {
+            margin-right: 1.5rem;
+            font-family: 'Courier New', monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+
+        #clock-time {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #444;
+            letter-spacing: 1.5px;
+        }
+
+        #clock-date {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 2px;
+        }
+
+        .greeting {
+            font-size: 1.1rem;
+            color: #444;
+            font-weight: 500;
+        }
+
+        .logout-btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: background 0.2s ease;
+        }
+
+        .logout-btn:hover {
+            background: var(--hover-color);
+        }
+
+        .iframe-container {
+            height: calc(100vh - 70px);
+            background: #ffffff;
+            margin: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .sidebar-toggle {
+            position: fixed;
+            left: calc(var(--sidebar-width) + 20px);
+            top: 20px;
+            background: white;
+            color: var(--sidebar-bg);
+            border: none;
+            padding: 0.8rem;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all var(--transition-speed) ease;
+            z-index: 1000;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .sidebar-toggle.collapsed {
+            left: 20px;
+        }
+
+        .copyright {
+            padding: 1.5rem;
+            text-align: center;
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.7);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            margin-top: auto;
+        }
+    </style>
+</head>
+<body>
+    <nav class="sidebar" id="sidebar">
+        <div class="logo-container">
+            <img src="Gospel springs logo.jpg" alt="Church Logo" class="logo">
+        </div>
+        
+        <div class="nav-container">
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="dashboardd.html" class="nav-link" target="main-iframe">
+                        <i class="fas fa-home"></i>Home
+                    </a>
+                </li>
+
+                <li class="nav-item dropdown">
+                    <a href="#" class="nav-link">
+                        <i class="fas fa-building"></i> Assets <i class="fas fa-chevron-down ml-auto"></i>
+                    </a>
+                    <div class="dropdown-menu">
+                        <a href="Assets dasboard.html" target="main-iframe"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+                        <a href="Assets.html" target="main-iframe"><i class="fas fa-boxes"></i> Assets</a>
+                    </div>
+                </li>
+
+                <li class="nav-item dropdown">
+                    <a href="#" class="nav-link">
+                        <i class="fas fa-users"></i> Conference <i class="fas fa-chevron-down ml-auto"></i>
+                    </a>
+                    <div class="dropdown-menu">
+                        <a href="Attendance admin.html" target="main-iframe"><i class="fas fa-clipboard-check"></i> Attendance</a>
+                        <a href="contribution.html" target="main-iframe"><i class="fas fa-donate"></i> Contribution</a>
+                        <a href="reports.html" target="main-iframe"><i class="fas fa-chart-pie"></i> Reports</a>
+                        <a href="Results admin.html" target="main-iframe"><i class="fas fa-comment-dots"></i> Feedback</a>
+                    </div>
+                </li>
+
+                <li class="nav-item dropdown">
+                    <a href="#" class="nav-link">
+                        <i class="fas fa-church"></i> Churches <i class="fas fa-chevron-down ml-auto"></i>
+                    </a>
+                    <div class="dropdown-menu">
+                        <a href="Branch churches dashboard.html" target="main-iframe"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+                        <a href="Branch churches.html" target="main-iframe"><i class="fas fa-code-branch"></i> Branch Churches</a>
+                    </div>
+                </li>
+                <li class="nav-item dropdown">
+                    <a href="#" class="nav-link">
+                        <i class="fas fa-gavel"></i> Constitution <i class="fas fa-chevron-down ml-auto"></i>
+                    </a>
+                    <div class="dropdown-menu">
+                        <!-- Core Documents -->
+                        <h6 class="dropdown-header"><i class="fas fa-file-contract"></i> Governing Documents</h6>
+                        <a href="constitution-full.html" target="main-iframe"><i class="fas fa-book"></i> Full Constitution</a>
+                        <a href="bylaws.html" target="main-iframe"><i class="fas fa-file-signature"></i> Church Bylaws</a>
+                        <a href="statement-of-faith.html" target="main-iframe"><i class="fas fa-cross"></i> Statement of Faith</a>
+                
+                        <!-- Policies -->
+                        <h6 class="dropdown-header"><i class="fas fa-clipboard-list"></i> Policies & Procedures</h6>
+                        <a href="membership-policy.html" target="main-iframe"><i class="fas fa-user-check"></i> Membership Policy</a>
+                        <a href="leadership-code.html" target="main-iframe"><i class="fas fa-user-tie"></i> Leadership Code</a>
+                        <a href="dispute-resolution.html" target="main-iframe"><i class="fas fa-handshake"></i> Dispute Resolution</a>
+                
+                        <!-- Amendments -->
+                        <h6 class="dropdown-header"><i class="fas fa-edit"></i> Amendments</h6>
+                        <a href="amendment-log.html" target="main-iframe"><i class="fas fa-history"></i> Amendment History</a>
+                        <a href="proposed-changes.html" target="main-iframe"><i class="fas fa-lightbulb"></i> Proposed Changes</a>
+                    </div>
+                </li>
+                <li class="nav-item dropdown">
+                    <a href="#" class="nav-link">
+                        <i class="fas fa-sitemap"></i> Departments <i class="fas fa-chevron-down ml-auto"></i>
+                    </a>
+                    <div class="dropdown-menu">
+                        <!-- Worship & Spiritual -->
+                        <h6 class="dropdown-header"><i class="fas fa-pray"></i> Worship & Spiritual</h6>
+                        <a href="#" target="main-iframe"><i class="fas fa-music"></i> Music Ministry</a>
+                        <a href="#" target="main-iframe"><i class="fas fa-praying-hands"></i> Prayer Team</a>
+                        <a href="#" target="main-iframe"><i class="fas fa-bible"></i> Bible Teaching</a>
+                
+                        <!-- Youth & Family -->
+                        <h6 class="dropdown-header"><i class="fas fa-child"></i> Youth & Family</h6>
+                        <a href="#" target="main-iframe"><i class="fas fa-child"></i> Children's Ministry</a>
+                        <a href="#" target="main-iframe"><i class="fas fa-users"></i> Youth Department</a>
+                        <a href="#" target="main-iframe"><i class="fas fa-heart"></i> Couples Fellowship</a>
+                
+                        <!-- Operations -->
+                        <h6 class="dropdown-header"><i class="fas fa-tasks"></i> Operations</h6>
+                        <a href="#" target="main-iframe"><i class="fas fa-wrench"></i> Facility Management</a>
+                        <a href="#" target="main-iframe"><i class="fas fa-laptop"></i> Media & Tech</a>
+                        <a href="#" target="main-iframe"><i class="fas fa-car"></i> Transport Team</a>
+                
+                        <!-- Outreach -->
+                        <h6 class="dropdown-header"><i class="fas fa-hands-helping"></i> Outreach</h6>
+                        <a href="#" target="main-iframe"><i class="fas fa-utensils"></i> Hospitality</a>
+                        <a href="#" target="main-iframe"><i class="fas fa-hand-holding-medical"></i> Compassion Ministry</a>
+                        <a href="#" target="main-iframe"><i class="fas fa-globe-africa"></i> Missions</a>
+                    </div>
+                </li>
+                <li class="nav-item dropdown">
+                    <a href="#" class="nav-link">
+                        <i class="fas fa-folder"></i> Documents <i class="fas fa-chevron-down ml-auto"></i>
+                    </a>
+                    <div class="dropdown-menu">
+                        <a href="#" target="main-iframe"><i class="fas fa-file-alt"></i> Minutes</a>
+                        <a href="#" target="main-iframe"><i class="fas fa-file-alt"></i> Meeting Minutes</a>
+                        <a href="#" target="main-iframe"><i class="fas fa-calendar-check"></i> Event Reports</a>
+                        <a href="#" target="main-iframe"><i class="fas fa-file-signature"></i> Policies</a>
+                        <a href="#" target="main-iframe"><i class="fas fa-file-invoice-dollar"></i> Budgets</a>
+                        <a href="#" target="main-iframe"><i class="fas fa-receipt"></i> Tithe Records</a>
+                        <a href="#" target="main-iframe"><i class="fas fa-certificate"></i> Baptism Certificates</a>
+                    </div>
+                </li>
+                
+                <li class="nav-item dropdown">
+                    <a href="#" class="nav-link">
+                        <i class="fas fa-coins"></i> Finance <i class="fas fa-chevron-down ml-auto"></i>
+                    </a>
+                    <div class="dropdown-menu">
+                        <a href="finance dashboard.html" target="main-iframe"><i class="fas fa-tachometer-alt"></i> Finance Dashboard</a>
+                        <a href="sunday-school.html" target="main-iframe"><i class="fas fa-exchange-alt"></i> Transactions</a>
+                        <a href="bank-accounts.html" target="main-iframe"><i class="fas fa-university"></i> Bank Accounts</a>
+                        <a href="pay-fund.html" target="main-iframe"><i class="fas fa-money-bill-wave"></i> Pay/Fund</a>
+                        <a href="request-money.html" target="main-iframe"><i class="fas fa-hand-holding-usd"></i> Request Money</a>
+                        <a href="Jobs admin.html" target="main-iframe"><i class="fas fa-briefcase"></i> Jobs</a>
+                        <a href="#" target="main-iframe"><i class="fas fa-file-invoice"></i> Financial Reports</a>
+                        <a href="#" target="main-iframe"><i class="fas fa-chart-line"></i> Budgets</a>
+                        <a href="payroll.html" target="main-iframe"><i class="fas fa-money-check-alt"></i> Payroll</a>
+                    </div>
+                </li>
+
+                <li class="nav-item dropdown">
+                    <a href="#" class="nav-link">
+                        <i class="fas fa-user-friends"></i> Members <i class="fas fa-chevron-down ml-auto"></i>
+                    </a>
+                    <div class="dropdown-menu">
+                        <a href="Ministry members.html" target="main-iframe"><i class="fas fa-praying-hands"></i> Ministry Members</a>
+                        <a href="Members admin.html" target="main-iframe"><i class="fas fa-users"></i> Community Members</a>
+                        <a href="groups.html" target="main-iframe"><i class="fas fa-layer-group"></i> Fellowship Groups</a>
+                        <a href="Communicate to ministry memmbers.html" target="main-iframe"><i class="fas fa-comments"></i> Communicate</a>
+                    </div>
+                </li>
+                <li class="nav-item dropdown">
+                    <a href="#" class="nav-link">
+                        <i class="fas fa-hands-helping"></i> Ministries <i class="fas fa-chevron-down ml-auto"></i>
+                    </a>
+                    <div class="dropdown-menu">
+                        <a href="#" target="main-iframe"><i class="fas fa-child"></i> Children's Ministry</a>
+                        <a href="#" target="main-iframe"><i class="fas fa-users"></i> Youth Ministry</a>
+                        <a href="#" target="main-iframe"><i class="fas fa-female"></i> Ladies Ministry</a>
+                        <a href="#" target="main-iframe"><i class="fas fa-music"></i> Band Ministry</a>
+                    </div>
+                </li>
+                <li class="nav-item dropdown">
+                    <a href="#" class="nav-link">
+                        <i class="fas fa-user-tie"></i>Leaders<i class="fas fa-chevron-down ml-auto"></i>
+                    </a>
+                    <div class="dropdown-menu">
+                        <a href="Leaders dasboard.html" target="main-iframe"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+                        <a href="Leaders.html" target="main-iframe"><i class="fas fa-eye"></i> View Leaders</a>
+                        <a href="leader card and verification.html" target="main-iframe"><i class="fas fa-check-circle"></i> Verify Leaders</a>
+                    </div>
+                </li>
+              
+                <li class="nav-item dropdown">
+                    <a href="#" class="nav-link">
+                        <i class="fas fa-user-tie"></i> Pastors <i class="fas fa-chevron-down ml-auto"></i>
+                    </a>
+                    <div class="dropdown-menu">
+                        <a href="Pastors dashboard.html" target="main-iframe"><i class="fas fa-tachometer-alt"></i> Pastor Dashboard</a>
+                        <a href="Add pastor.html" target="main-iframe"><i class="fas fa-user-plus"></i> Add Pastor</a>
+                        <a href="Pastor view.html" target="main-iframe"><i class="fas fa-eye"></i> View Pastors</a>
+                    </div>
+                </li>
+              
+                <li class="nav-item dropdown">
+                    <a href="#" class="nav-link">
+                        <i class="fas fa-print"></i> Print <i class="fas fa-chevron-down ml-auto"></i>
+                    </a>
+                    <div class="dropdown-menu">
+                        <a href="Event tickets.html" target="main-iframe"><i class="fas fa-ticket-alt"></i> Free Event Tickets</a>
+                        <a href="Paid tickets.html" target="main-iframe"><i class="fas fa-receipt"></i> Paid Tickets</a>
+                        <a href="Badges.html" target="main-iframe"><i class="fas fa-id-badge"></i> Badges</a>
+                        <a href="Ministry members print.html" target="main-iframe"><i class="fas fa-users"></i> Ministry Members</a>
+                        <a href="Branch members.html" target="main-iframe"><i class="fas fa-user-friends"></i> Branch Church Members</a>
+                        <a href="Member statisticsss.html" target="main-iframe"><i class="fas fa-chart-bar"></i> Member Statistics</a>
+                        <a href="Membership cards.html" target="main-iframe"><i class="fas fa-address-card"></i> Membership Cards</a>
+                        <a href="Conference attendance report.html" target="main-iframe"><i class="fas fa-clipboard-list"></i> Conference Report</a>
+                    </div>
+                </li>
+
+                <li class="nav-item dropdown">
+                    <a href="#" class="nav-link">
+                        <i class="fas fa-hands-helping"></i> Welfare <i class="fas fa-chevron-down ml-auto"></i>
+                    </a>
+                    <div class="dropdown-menu">
+                        <a href="weddings.html" target="main-iframe"><i class="fas fa-ring"></i> Weddings</a>
+                        <a href="funerals.html" target="main-iframe"><i class="fas fa-cross"></i> Funerals</a>
+                        <div class="dropdown-divider"></div>
+                        <a href="counseling.html" target="main-iframe"><i class="fas fa-comments"></i> Counseling</a>
+                        <a href="financial assistance.html" target="main-iframe"><i class="fas fa-hand-holding-usd"></i> Financial Assistance</a>
+                        <a href="Scholarships.html" target="main-iframe"><i class="fas fa-graduation-cap"></i> Student Scholarship</a>
+                    </div>
+                </li>
+
+                <li class="nav-item dropdown">
+                    <a href="#" class="nav-link">
+                        <i class="fas fa-globe"></i>Ministry Website <i class="fas fa-chevron-down ml-auto"></i>
+                    </a>
+                    <div class="dropdown-menu">
+                        <a href="https://gsweb.netlify.app/" target="main-iframe"><i class="fas fa-globe"></i> Website</a>
+                        <a href="announcements.html" target="main-iframe"><i class="fas fa-bullhorn"></i> Announcements</a>
+                        <a href="App users.html" target="main-iframe"><i class="fas fa-users"></i> App Users</a>
+                        <a href="Appointment view.html" target="main-iframe"><i class="fas fa-calendar-check"></i> Appointments</a>
+                        <div class="dropdown-divider"></div>
+                        <a href="Communicate.html" target="main-iframe"><i class="fas fa-envelope"></i> Communicate</a>
+                        <a href="Comments admin.html" target="main-iframe"><i class="fas fa-comment-alt"></i> Suggestion Box</a>
+                        <a href="ICT messages.html" target="main-iframe"><i class="fas fa-sms"></i> ICT Messages</a>
+                        <a href="Notification.html" target="main-iframe"><i class="fas fa-bell"></i> Notification</a>
+                        <div class="dropdown-divider"></div>
+                        <a href="Manage communities.html" target="main-iframe"><i class="fas fa-address-book"></i> Manage Communities</a>
+                        <a href="Manage events.html" target="main-iframe"><i class="fas fa-calendar-alt"></i> Manage Events</a>
+                        <a href="Community-outreach.html" target="main-iframe"><i class="fas fa-people-carry"></i> Community Outreach</a>
+                        <div class="dropdown-divider"></div>
+                        <a href="Members admin.html" target="main-iframe"><i class="fas fa-users"></i> Members</a>
+                        <a href="Bible study members.html" target="main-iframe"><i class="fas fa-bible"></i> Bible Study Members</a>
+                        <a href="Mentorship admin.html" target="main-iframe"><i class="fas fa-user-graduate"></i> Mentorship</a>
+                        <a href="Pastoral support dashboard.html" target="main-iframe"><i class="fas fa-hands-praying"></i> Pastoral Support</a>
+                        <a href="Prayer request admin.html" target="main-iframe"><i class="fas fa-pray"></i> Prayer Requests</a>
+                        <a href="Testimonies admin.html" target="main-iframe"><i class="fas fa-comment"></i> Testimonies</a>
+                        <div class="dropdown-divider"></div>
+                        <a href="Downloads.html" target="main-iframe"><i class="fas fa-download"></i> Downloads</a>
+                        <a href="Library admin.html" target="main-iframe"><i class="fas fa-book"></i> Manage Library</a>
+                        <a href="Resources.html" target="main-iframe"><i class="fas fa-desktop"></i> Resources</a>
+                        <a href="Sermons.html" target="main-iframe"><i class="fas fa-book-open"></i> Sermons</a>
+                        <a href="Blogs.html" target="main-iframe"><i class="fas fa-blog"></i> Blogs</a>
+                        <a href="News.html" target="main-iframe"><i class="fas fa-newspaper"></i> News</a>
+                        <div class="dropdown-divider"></div>
+                        <a href="Live manage admin.html" target="main-iframe"><i class="fas fa-video"></i> Manage Livestream</a>
+                        <a href="Live support admin.html" target="main-iframe"><i class="fas fa-headset"></i> Livestream Support</a>
+                        <div class="dropdown-divider"></div>
+                        <a href="Volunteer admin.html" target="main-iframe"><i class="fas fa-hands-helping"></i> Volunteer Opportunities</a>
+                        <a href="Gospel ministers admin.html" target="main-iframe"><i class="fas fa-user"></i> Gospel Ministers</a>
+                        <div class="dropdown-divider"></div>
+                        <a href="Church store admin.html" target="main-iframe"><i class="fas fa-store"></i> Church Store</a>
+                        <a href="daily scriptures.html" target="main-iframe"><i class="fas fa-church"></i>Daily scriptures</a>
+                        <a href="Newsletter.html" target="main-iframe"><i class="fas fa-church"></i>Newsletter subscribers</a>
+                    </div>
+                </li>
+            </ul>
+        </div>
+
+        <div class="copyright">
+            &copy; Gospel Springs Mission <span id="currentYear"></span>
+        </div>
+    </nav>
+
+    <div class="main-content" id="mainContent">
+        <button class="sidebar-toggle" id="sidebarToggle"><i class="fas fa-bars"></i></button>
+        
+        <div class="top-bar">
+            <div class="digital-clock">
+                <div id="clock-time"></div>
+                <div id="clock-date"></div>
+            </div>
+            <div class="greeting" id="greeting"></div>
+            <button class="logout-btn" onclick="logout()">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
+        </div>
+
+        <div class="iframe-container">
+            <iframe name="main-iframe" src="dashboardd.html"></iframe>
+        </div>
+    </div>
+
+    <script>
+        function updateClock() {
+            const now = new Date();
+            const options = { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            };
+            
+            const timeString = now.toLocaleTimeString('en-US', {
+                hour12: true,
+                hour: 'numeric',
+                minute: '2-digit',
+                second: '2-digit'
+            }).toUpperCase();
+
+            const dateString = now.toLocaleDateString('en-US', options);
+            
+            document.getElementById('clock-time').textContent = timeString;
+            document.getElementById('clock-date').textContent = dateString;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            updateClock();
+            setInterval(updateClock, 1000);
+
+            document.getElementById('currentYear').textContent = new Date().getFullYear();
+            
+            const hour = new Date().getHours();
+            const greeting = document.getElementById('greeting');
+            greeting.textContent = hour < 12 ? '🌞 Hello,Good Morning!' :
+                hour < 18 ? '🌤️Hello,Good Afternoon!' : '🌙Hello,Good Evening!';
+
+            document.querySelectorAll('.dropdown').forEach(item => {
+                item.addEventListener('click', (e) => {
+                    const menu = item.querySelector('.dropdown-menu');
+                    if (!menu) return;
+                    
+                    menu.classList.toggle('show');
+                    document.querySelectorAll('.dropdown-menu').forEach(otherMenu => {
+                        if(otherMenu !== menu) otherMenu.classList.remove('show');
+                    });
+                });
+            });
+
+            document.addEventListener('click', (e) => {
+                if(!e.target.closest('.dropdown')) {
+                    document.querySelectorAll('.dropdown-menu').forEach(menu => {
+                        menu.classList.remove('show');
+                    });
+                }
+            });
+        });
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('mainContent');
+            const toggleBtn = document.getElementById('sidebarToggle');
+            
+            sidebar.classList.toggle('collapsed');
+            mainContent.classList.toggle('expanded');
+            toggleBtn.classList.toggle('collapsed');
+        }
+
+        document.getElementById('sidebarToggle').addEventListener('click', toggleSidebar);
+
+        function logout() {
+            window.location.href = 'index.html';
+        }
+
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', function() {
+                document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>

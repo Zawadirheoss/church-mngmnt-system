@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Church Branches Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #ffffff;
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .dashboard-title {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 2rem;
+            font-size: 2.5em;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+        }
+
+        .cards-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid #e0e0e0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #3498db 0%, #9b59b6 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.12);
+            border-color: #3498db;
+        }
+
+        .card:hover::before {
+            opacity: 1;
+        }
+
+        .card-title {
+            color: #2c3e50;
+            margin-bottom: 1rem;
+            font-size: 1.3em;
+            font-weight: 600;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .card-content {
+            font-size: 1.1em;
+            color: #4a5568;
+        }
+
+        .stat-number {
+            font-size: 2.2em;
+            font-weight: 700;
+            color: #3498db;
+            text-align: center;
+            margin: 1rem 0;
+            transition: color 0.3s ease;
+        }
+
+        .recent-entry {
+            background: #f8f9fc;
+            padding: 1.2rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+            border: 1px solid #e0e6ed;
+        }
+
+        .recent-entry p {
+            margin: 0.6rem 0;
+            color: #4a5568;
+            font-size: 0.95em;
+        }
+
+        .recent-entry strong {
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        .loader {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 1rem auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .cards-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .dashboard-title {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1 class="dashboard-title">Branch Churches Dashboard</h1>
+    
+    <div class="cards-container">
+        <div class="card">
+            <h2 class="card-title">Total Branch Churches</h2>
+            <div class="card-content">
+                <div class="stat-number" id="totalBranches">0</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2 class="card-title">Most Recent Addition</h2>
+            <div class="card-content">
+                <div class="recent-entry" id="recentEntry">
+                    <div class="loader"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+        import { getDatabase, ref, onValue, query, orderByKey, limitToLast } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCKgXCFoj_x0R8p5675uwVVdhm4uzQLXsI",
+            authDomain: "branch-churces.firebaseapp.com",
+            databaseURL: "https://branch-churces-default-rtdb.firebaseio.com",
+            projectId: "branch-churces",
+            storageBucket: "branch-churces.firebasestorage.app",
+            messagingSenderId: "275485033815",
+            appId: "1:275485033815:web:dd05d203e672e51873aa12"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const branchesRef = ref(db, 'branches');
+
+        // Fetch total branches
+        onValue(branchesRef, (snapshot) => {
+            const data = snapshot.val();
+            const total = data ? Object.keys(data).length : 0;
+            document.getElementById('totalBranches').textContent = total;
+        });
+
+        // Fetch most recent entry
+        const recentQuery = query(branchesRef, orderByKey(), limitToLast(1));
+        onValue(recentQuery, (snapshot) => {
+            const recentEntryDiv = document.getElementById('recentEntry');
+            recentEntryDiv.innerHTML = '';
+            
+            if (snapshot.exists()) {
+                const data = snapshot.val();
+                const [key] = Object.keys(data);
+                const { name, pastor } = data[key];
+                
+                recentEntryDiv.innerHTML = `
+                    <p><strong>Church Name:</strong> ${name || 'N/A'}</p>
+                    <p><strong>Pastor:</strong> ${pastor || 'N/A'}</p>
+                   
+                `;
+            } else {
+                recentEntryDiv.textContent = 'No entries found';
+            }
+        }, {
+            onlyOnce: true
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Church Store Dashboard</title>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
+        import { getDatabase, ref, push, onValue, set, remove } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-database.js";
+        import { getStorage, ref as storageRef, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-storage.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDXhdx8XZd1-LgCgGaACJL6kQdzE6uBKJg",
+            authDomain: "church-store-6a5fb.firebaseapp.com",
+            databaseURL: "https://church-store-6a5fb-default-rtdb.firebaseio.com",
+            projectId: "church-store-6a5fb",
+            storageBucket: "church-store-6a5fb.appspot.com",
+            messagingSenderId: "169328717152",
+            appId: "1:169328717152:web:32aeaaed475ec0793ec205"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+        const storage = getStorage(app);
+
+        // Global products array
+        window.products = [];
+
+        // Initialize realtime listener
+        function initRealtimeListener() {
+            const productsRef = ref(database, 'products');
+            onValue(productsRef, (snapshot) => {
+                window.products = [];
+                const data = snapshot.val();
+                if (data) {
+                    Object.keys(data).forEach(key => {
+                        window.products.push({
+                            id: key,
+                            ...data[key]
+                        });
+                    });
+                }
+                updateProductCount();
+                renderProducts(window.products);
+            }, (error) => {
+                console.error("Database error: ", error);
+            });
+        }
+
+        // Initialize the app
+        function initApp() {
+            initRealtimeListener();
+        }
+
+        window.addEventListener('load', initApp);
+
+        async function addProduct(product) {
+            try {
+                const newProductRef = push(ref(database, 'products'));
+                await set(newProductRef, {
+                    ...product,
+                    timestamp: Date.now()
+                });
+            } catch (e) {
+                console.error("Error adding product: ", e);
+            }
+        }
+
+        async function deleteProduct(productId, imageUrl) {
+            try {
+                // Delete from Realtime Database
+                await remove(ref(database, `products/${productId}`));
+
+                // Delete image from Storage if it exists
+                if (imageUrl) {
+                    const imageRef = storageRef(storage, imageUrl);
+                    await deleteObject(imageRef);
+                }
+            } catch (e) {
+                console.error("Error deleting product: ", e);
+            }
+        }
+
+        async function uploadImage(file) {
+            const fileRef = storageRef(storage, `products/${Date.now()}_${file.name}`);
+            await uploadBytes(fileRef, file);
+            return await getDownloadURL(fileRef);
+        }
+
+        window.handleImageUpload = async (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                const url = await uploadImage(file);
+                document.getElementById('imagePreview').src = url;
+                document.getElementById('imageUrl').value = url;
+            }
+        };
+
+        window.submitProduct = async (e) => {
+            e.preventDefault();
+            const product = {
+                title: document.getElementById('title').value,
+                description: document.getElementById('description').value,
+                price: Number(document.getElementById('price').value),
+                number: document.getElementById('number').value,
+                link: document.getElementById('link').value,
+                imageUrl: document.getElementById('imageUrl').value
+            };
+            await addProduct(product);
+            document.getElementById('addProductModal').classList.remove('active');
+            document.getElementById('productForm').reset();
+            document.getElementById('imagePreview').src = '';
+        };
+
+        window.handleDelete = async (productId, imageUrl) => {
+            if (confirm("Are you sure you want to delete this product?")) {
+                await deleteProduct(productId, imageUrl);
+            }
+        };
+    </script>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #3498db;
+            --light: #ecf0f1;
+            --dark: #2c3e50;
+            --success: #27ae60;
+            --danger: #e74c3c;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        body {
+            background: #f5f6fa;
+            min-height: 100vh;
+        }
+
+        .dashboard {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .stats {
+            background: white;
+            padding: 1rem 2rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+        }
+
+        .btn {
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: var(--secondary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2980b9;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+
+        .filters {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .search-box {
+            flex: 1;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .sort-select {
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background: white;
+        }
+
+        .products-table {
+            width: 100%;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        th {
+            background: var(--primary);
+            color: white;
+        }
+
+        .product-img {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 5px;
+        }
+
+        .actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            width: 500px;
+            max-width: 95%;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .image-preview {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 5px;
+            margin-bottom: 1rem;
+            background: #f0f0f0;
+            display: block;
+        }
+
+        .image-upload {
+            margin-bottom: 1rem;
+        }
+
+        .error-message {
+            color: #e74c3c;
+            margin-top: 0.5rem;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <div class="header">
+            <h1>Church Store Inventory</h1>
+            <div class="stats">
+                Total Products: <span id="productCount">0</span>
+            </div>
+        </div>
+
+        <div class="filters">
+            <input type="text" class="search-box" placeholder="Search products..." onkeyup="searchProducts(this.value)">
+            <select class="sort-select" onchange="sortProducts(this.value)">
+                <option value="">Filter by Price</option>
+                <option value=">2000">Above Ksh 2000</option>
+                <option value=">1000">Above Ksh 1000</option>
+                <option value=">500">Above Ksh 500</option>
+                <option value=">100">Above Ksh 100</option>
+                <option value="<200">Below Ksh 200</option>
+            </select>
+            <button class="btn btn-primary" onclick="document.getElementById('addProductModal').classList.add('active')">
+                Add Product
+            </button>
+        </div>
+
+        <div class="products-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Image</th>
+                        <th>Title</th>
+                        <th>Description</th>
+                        <th>Price</th>
+                        <th>Quantity</th>
+                        <th>Date Added</th>
+                        <th>Link</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="productsBody">
+                    <!-- Products will be populated here -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Add Product Modal -->
+        <div class="modal" id="addProductModal">
+            <div class="modal-content">
+                <h2>Add New Product</h2>
+                <form id="productForm" onsubmit="submitProduct(event)">
+                    <div class="form-group image-upload">
+                        <img src="" class="image-preview" id="imagePreview">
+                        <input type="file" accept="image/*" onchange="handleImageUpload(event)" required>
+                        <div class="error-message" id="imageError">Please upload an image</div>
+                    </div>
+                    <div class="form-group">
+                        <label>Title</label>
+                        <input type="text" id="title" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Description</label>
+                        <textarea id="description" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Price (Ksh)</label>
+                        <input type="number" id="price" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Quantity</label>
+                        <input type="number" id="number" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Product Link</label>
+                        <input type="url" id="link" required>
+                    </div>
+                    <input type="hidden" id="imageUrl" required>
+                    <button type="submit" class="btn btn-primary">Add Product</button>
+                    <button type="button" class="btn" onclick="document.getElementById('addProductModal').classList.remove('active')">
+                        Cancel
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global functions
+        function updateProductCount() {
+            document.getElementById('productCount').textContent = window.products.length;
+        }
+
+        function renderProducts(products) {
+            const tbody = document.getElementById('productsBody');
+            tbody.innerHTML = products.map(product => `
+                <tr>
+                    <td><img src="${product.imageUrl}" class="product-img" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgZmlsbD0iI2YwZjBmMCI+PHJlY3Qgd2lkdGg9IjYwIiBoZWlnaHQ9IjYwIi8+PHRleHQgeD0iNTA%2BIiB5PSI1MCUiIGR5PSIuMzVlbSIgZm9udC1zaXplPSIxNCIgdGV4dC1hbmNob3I9Im1pZGRsZSI%2BOjwvdGV4dD48L3N2Zz4%3D'"></td>
+                    <td>${product.title}</td>
+                    <td>${product.description}</td>
+                    <td>Ksh ${product.price}</td>
+                    <td>${product.number}</td>
+                    <td>${new Date(product.timestamp).toLocaleDateString()}</td>
+                    <td><a href="${product.link}" target="_blank">View Product</a></td>
+                    <td class="actions">
+                        <button class="btn btn-danger" onclick="handleDelete('${product.id}', '${product.imageUrl}')">Delete</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function searchProducts(query) {
+            const filtered = window.products.filter(p => 
+                p.title.toLowerCase().includes(query.toLowerCase()) ||
+                p.description.toLowerCase().includes(query.toLowerCase())
+            );
+            renderProducts(filtered);
+        }
+
+        function sortProducts(value) {
+            let filtered = [...window.products];
+            switch(value) {
+                case '>2000': filtered = filtered.filter(p => p.price > 2000); break;
+                case '>1000': filtered = filtered.filter(p => p.price > 1000); break;
+                case '>500': filtered = filtered.filter(p => p.price > 500); break;
+                case '>100': filtered = filtered.filter(p => p.price > 100); break;
+                case '<200': filtered = filtered.filter(p => p.price < 200); break;
+                default: filtered = window.products;
+            }
+            renderProducts(filtered);
+        }
+    </script>
+</body>
+</html>

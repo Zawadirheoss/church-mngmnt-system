@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Library Dashboard</title>
+    <!-- Tailwind CSS via CDN (for development only) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto p-8">
+        <h1 class="text-3xl font-bold mb-8 text-gray-800">Library Resources Dashboard</h1>
+        
+        <!-- Category Buttons -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <button data-category="bible_study" class="category-btn relative bg-blue-600 text-white p-6 rounded-lg shadow-lg hover:bg-blue-700 transition cursor-pointer">
+                Bible Study
+                <span class="badge absolute -top-2 -right-2 bg-red-500 text-white rounded-full px-3 py-1 text-sm">0</span>
+            </button>
+            <button data-category="devotional" class="category-btn relative bg-green-600 text-white p-6 rounded-lg shadow-lg hover:bg-green-700 transition cursor-pointer">
+                Devotional
+                <span class="badge absolute -top-2 -right-2 bg-red-500 text-white rounded-full px-3 py-1 text-sm">0</span>
+            </button>
+            <button data-category="children_books" class="category-btn relative bg-purple-600 text-white p-6 rounded-lg shadow-lg hover:bg-purple-700 transition cursor-pointer">
+                Children Books
+                <span class="badge absolute -top-2 -right-2 bg-red-500 text-white rounded-full px-3 py-1 text-sm">0</span>
+            </button>
+            <button data-category="other_resources" class="category-btn relative bg-orange-600 text-white p-6 rounded-lg shadow-lg hover:bg-orange-700 transition cursor-pointer">
+                Other Resources
+                <span class="badge absolute -top-2 -right-2 bg-red-500 text-white rounded-full px-3 py-1 text-sm">0</span>
+            </button>
+        </div>
+
+        <!-- Category Selector -->
+        <div class="mb-8 flex gap-4 items-center">
+            <select id="categorySelect" class="bg-white border border-gray-300 rounded-lg px-4 py-2 w-64">
+                <option value="">Select Category</option>
+                <option value="bible_study">Bible Study</option>
+                <option value="devotional">Devotional</option>
+                <option value="children_books">Children Books</option>
+                <option value="other_resources">Other Resources</option>
+            </select>
+        </div>
+
+        <!-- Entries Table -->
+        <div class="bg-white rounded-lg shadow overflow-x-auto">
+            <table class="min-w-full">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-sm font-medium text-gray-500">Title</th>
+                        <th class="px-6 py-3 text-left text-sm font-medium text-gray-500">Author</th>
+                        <th class="px-6 py-3 text-left text-sm font-medium text-gray-500">Link</th>
+                        <th class="px-6 py-3 text-left text-sm font-medium text-gray-500">Date Published</th>
+                        <th class="px-6 py-3 text-left text-sm font-medium text-gray-500">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="entriesBody" class="divide-y divide-gray-200"></tbody>
+            </table>
+        </div>
+
+        <!-- Entry Modal -->
+        <div id="entryModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div class="bg-white rounded-lg p-8 w-full max-w-lg mx-4">
+                <h2 class="text-2xl font-bold mb-4">New Entry</h2>
+                <form id="entryForm" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Title</label>
+                        <input id="title" type="text" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Author</label>
+                        <input id="author" type="text" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Link</label>
+                        <input id="link" type="url" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Date Published</label>
+                        <input id="date" type="date" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Description</label>
+                        <textarea id="description" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border" rows="3"></textarea>
+                    </div>
+                    <div class="mt-6 flex justify-end gap-4">
+                        <button type="button" onclick="document.getElementById('entryModal').classList.add('hidden')" 
+                                class="px-4 py-2 text-gray-600 hover:text-gray-800">
+                            Cancel
+                        </button>
+                        <button id="saveEntry" type="button" 
+                                class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                            Save
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Delete Confirmation Modal -->
+        <div id="deleteModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div class="bg-white rounded-lg p-8 max-w-md w-full mx-4">
+                <h2 class="text-xl font-bold mb-4">Confirm Delete</h2>
+                <p class="text-gray-600 mb-6">Are you sure you want to delete this entry?</p>
+                <div class="flex justify-end gap-4">
+                    <button onclick="document.getElementById('deleteModal').classList.add('hidden')" 
+                            class="px-4 py-2 text-gray-600 hover:text-gray-800">
+                        Cancel
+                    </button>
+                    <button id="confirmDelete" 
+                            class="px-6 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">
+                        Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
+        import { getDatabase, ref, push, onValue, remove } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBVF9QsKDQD-rzGINx1J6koFmTBVWW-6vI",
+            authDomain: "library-3a828.firebaseapp.com",
+            databaseURL: "https://library-3a828-default-rtdb.firebaseio.com",
+            projectId: "library-3a828",
+            storageBucket: "library-3a828.firebasestorage.app",
+            messagingSenderId: "940268315200",
+            appId: "1:940268315200:web:893023dbe54c0f5cebf5a5"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        let currentCategory = '';
+        let deleteKey = '';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Category buttons handler
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    currentCategory = e.currentTarget.dataset.category;
+                    document.getElementById('entryModal').classList.remove('hidden');
+                });
+            });
+
+            // Save entry handler
+            document.getElementById('saveEntry').addEventListener('click', saveEntry);
+            
+            // Category select handler
+            document.getElementById('categorySelect').addEventListener('change', showEntries);
+            
+            // Delete handler
+            document.getElementById('confirmDelete').addEventListener('click', deleteEntry);
+
+            // Initial badges update
+            updateBadges();
+        });
+
+        async function saveEntry() {
+            const title = document.getElementById('title').value;
+            const author = document.getElementById('author').value;
+            const link = document.getElementById('link').value;
+            const date = document.getElementById('date').value;
+            const description = document.getElementById('description').value;
+
+            const entryData = { title, author, link, date, description };
+
+            try {
+                await push(ref(db, `${currentCategory}/`), entryData);
+                document.getElementById('entryForm').reset();
+                document.getElementById('entryModal').classList.add('hidden');
+                updateBadges();
+            } catch (error) {
+                console.error('Save error:', error);
+            }
+        }
+
+        async function showEntries() {
+            const category = document.getElementById('categorySelect').value;
+            const entriesRef = ref(db, `${category}/`);
+            
+            onValue(entriesRef, (snapshot) => {
+                const entries = snapshot.val() || {};
+                const tbody = document.getElementById('entriesBody');
+                tbody.innerHTML = '';
+                
+                Object.entries(entries).forEach(([key, entry]) => {
+                    tbody.innerHTML += `
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4">${entry.title}</td>
+                            <td class="px-6 py-4">${entry.author}</td>
+                            <td class="px-6 py-4">
+                                <a href="${entry.link}" target="_blank" class="text-blue-600 hover:underline">View</a>
+                            </td>
+                            <td class="px-6 py-4">${entry.date}</td>
+                            <td class="px-6 py-4">
+                                <button onclick="showDeleteModal('${key}', '${category}')" 
+                                        class="text-red-600 hover:text-red-900">
+                                    Delete
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            });
+        }
+
+        function updateBadges() {
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                const category = btn.dataset.category;
+                const entriesRef = ref(db, `${category}/`);
+                
+                onValue(entriesRef, (snapshot) => {
+                    const count = snapshot.size;
+                    btn.querySelector('.badge').textContent = count;
+                });
+            });
+        }
+
+        window.showDeleteModal = (key, category) => {
+            deleteKey = key;
+            currentCategory = category;
+            document.getElementById('deleteModal').classList.remove('hidden');
+        }
+
+        async function deleteEntry() {
+            try {
+                await remove(ref(db, `${currentCategory}/${deleteKey}`));
+                document.getElementById('deleteModal').classList.add('hidden');
+                showEntries();
+                updateBadges();
+            } catch (error) {
+                console.error('Delete error:', error);
+            }
+        }
+    </script>
+</body>
+</html>

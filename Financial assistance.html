@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Financial Assistance Management</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    @media print {
+      body * {
+        visibility: hidden;
+      }
+      #printable-receipt, #printable-receipt * {
+        visibility: visible;
+      }
+      #printable-receipt {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        padding: 20px;
+      }
+    }
+    .action-btn {
+      margin: 2px;
+      padding: 5px 8px;
+    }
+    .receipt-logo {
+      width: 70px;
+      height: 70px;
+    }
+  </style>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.5.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, getDocs, doc, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.5.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyB9HNcwHfcGG6sISd8qnJzAnXW99kVsVp8",
+      authDomain: "welfare-10c94.firebaseapp.com",
+      projectId: "welfare-10c94",
+      storageBucket: "welfare-10c94.appspot.com",
+      messagingSenderId: "345650882989",
+      appId: "1:345650882989:web:9d69530f2e9fc05dfed924"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    let members = [];
+
+    async function fetchMembers() {
+      const querySnapshot = await getDocs(collection(db, "financialAssistance"));
+      members = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      populatePaymentMembers();
+      renderMembers();
+      updateTotalCards();
+    }
+
+    function populatePaymentMembers() {
+      const paymentMemberSelect = document.getElementById('paymentMember');
+      paymentMemberSelect.innerHTML = '<option value="">Select Member</option>';
+      members.forEach(member => {
+        if (!member.transactionCode) {
+          const option = document.createElement('option');
+          option.value = member.id;
+          option.textContent = member.name;
+          paymentMemberSelect.appendChild(option);
+        }
+      });
+    }
+
+    function renderMembers() {
+      const tableBody = document.getElementById('membersTable').getElementsByTagName('tbody')[0];
+      tableBody.innerHTML = '';
+      members.forEach(member => {
+        const paid = member.transactionCode ? member.amountAllocated : 0;
+        const balance = member.amountAllocated - paid;
+        const paymentStatus = member.transactionCode ? 'Fully Paid' : 'Not yet paid';
+        const paymentDate = member.paymentDate ? new Date(member.paymentDate).toLocaleDateString() : 'N/A';
+
+        const row = `<tr>
+          <td>${member.name}</td>
+          <td>${member.gender}</td>
+          <td>${member.idNumber}</td>
+          <td>${member.phoneNumber}</td>
+          <td>${member.email}</td>
+          <td>${member.duration}</td>
+          <td>Kshs ${member.amountAllocated}</td>
+          <td>Yearly</td>
+          <td>${paymentStatus}</td>
+          <td>Kshs ${balance}</td>
+          <td>
+            ${paymentStatus === 'Fully Paid' ? `
+              <button class="btn btn-success btn-sm action-btn" title="Generate Receipt" onclick="generateReceipt('${member.id}')">
+                <i class="fas fa-receipt"></i>
+              </button>
+              <button class="btn btn-info btn-sm action-btn" title="Send SMS" onclick="sendSMS('${member.phoneNumber}')">
+                <i class="fas fa-comment-sms"></i>
+              </button>
+              <button class="btn btn-primary btn-sm action-btn" title="Make Call" onclick="makeCall('${member.phoneNumber}')">
+                <i class="fas fa-phone"></i>
+              </button>
+            ` : ''}
+            <button class="btn btn-danger btn-sm action-btn" title="Delete" onclick="deleteMember('${member.id}')">
+              <i class="fas fa-trash"></i>
+            </button>
+          </td>
+        </tr>`;
+        tableBody.innerHTML += row;
+      });
+      updateTotalCards();
+    }
+
+    function updateTotalCards() {
+      const totalAllocated = members.reduce((sum, member) => sum + member.amountAllocated, 0);
+      const totalPaid = members.reduce((sum, member) => sum + (member.transactionCode ? member.amountAllocated : 0), 0);
+      const remainingBalance = totalAllocated - totalPaid;
+
+      document.getElementById('totalAllocated').textContent = `Kshs ${totalAllocated}`;
+      document.getElementById('totalPaid').textContent = `Kshs ${totalPaid}`;
+      document.getElementById('remainingBalance').textContent = `Kshs ${remainingBalance}`;
+    }
+
+    window.deleteMember = async function(memberId) {
+      if (confirm('Are you sure you want to delete this member?')) {
+        await deleteDoc(doc(db, "financialAssistance", memberId));
+        fetchMembers();
+      }
+    };
+
+    window.sendSMS = function(phoneNumber) {
+      window.open(`sms:${phoneNumber}`, '_blank');
+    };
+
+    window.makeCall = function(phoneNumber) {
+      window.open(`tel:${phoneNumber}`, '_blank');
+    };
+
+    document.getElementById('addMemberForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const memberData = {
+        name: document.getElementById('memberName').value,
+        gender: document.getElementById('memberGender').value,
+        idNumber: document.getElementById('memberIdNumber').value,
+        phoneNumber: document.getElementById('memberPhoneNumber').value,
+        email: document.getElementById('memberEmail').value,
+        duration: document.getElementById('memberDuration').value,
+        amountAllocated: parseFloat(document.getElementById('memberAmountAllocated').value),
+        paymentBasis: 'yearly'
+      };
+      await addDoc(collection(db, "financialAssistance"), memberData);
+      fetchMembers();
+      $('#addMemberModal').modal('hide');
+      $('#successModal').modal('show');
+    });
+
+    document.getElementById('makePaymentForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const memberId = document.getElementById('paymentMember').value;
+      const transactionCode = document.getElementById('transactionCode').value;
+      const member = members.find(m => m.id === memberId);
+
+      if (member) {
+        await updateDoc(doc(db, "financialAssistance", memberId), {
+          transactionCode: transactionCode,
+          paymentDate: new Date().toISOString()
+        });
+        fetchMembers();
+        $('#makePaymentModal').modal('hide');
+        $('#paymentSuccessModal').modal('show');
+      }
+    });
+
+    document.getElementById('paymentMember').addEventListener('change', (e) => {
+      const memberId = e.target.value;
+      const member = members.find(m => m.id === memberId);
+      if (member) {
+        document.getElementById('paymentAmountAllocated').value = member.amountAllocated;
+        document.getElementById('paymentPhoneNumber').value = member.phoneNumber;
+      }
+    });
+
+    document.getElementById('checkPaidMembers').addEventListener('click', () => {
+      const paidMembers = members.filter(m => m.transactionCode);
+      const paidMembersList = document.getElementById('paidMembersList');
+      paidMembersList.innerHTML = '';
+      
+      paidMembers.forEach(member => {
+        const paymentDate = member.paymentDate ? new Date(member.paymentDate).toLocaleDateString() : 'N/A';
+        paidMembersList.innerHTML += `
+          <li class="list-group-item">
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <h5>${member.name}</h5>
+                <small class="text-muted">
+                  Phone: ${member.phoneNumber}<br>
+                  Amount: Kshs ${member.amountAllocated}<br>
+                  Paid on: ${paymentDate}
+                </small>
+              </div>
+              <div>
+                <button class="btn btn-sm btn-success action-btn" title="Receipt" onclick="generateReceipt('${member.id}')">
+                  <i class="fas fa-receipt"></i>
+                </button>
+                <button class="btn btn-sm btn-info action-btn" title="SMS" onclick="sendSMS('${member.phoneNumber}')">
+                  <i class="fas fa-comment-sms"></i>
+                </button>
+                <button class="btn btn-sm btn-primary action-btn" title="Call" onclick="makeCall('${member.phoneNumber}')">
+                  <i class="fas fa-phone"></i>
+                </button>
+              </div>
+            </div>
+          </li>`;
+      });
+      $('#paidMembersModal').modal('show');
+    });
+
+    window.generateReceipt = function(memberId) {
+      const member = members.find(m => m.id === memberId);
+      if (member) {
+        const paymentDate = member.paymentDate ? new Date(member.paymentDate).toLocaleDateString() : 'N/A';
+        const receiptContent = document.getElementById('receiptContent');
+        receiptContent.innerHTML = `
+          <div id="printable-receipt">
+            <div class="text-center mb-4">
+              <img src="church-logo.png" alt="Church Logo" class="receipt-logo">
+              <h3 class="mt-2">Grace Community Church</h3>
+              <p class="mb-0">Financial Assistance Receipt</p>
+            </div>
+            <hr>
+            <div class="row mb-3">
+              <div class="col-6">
+                <p><strong>Date:</strong> ${paymentDate}</p>
+                <p><strong>Transaction ID:</strong> ${member.transactionCode}</p>
+              </div>
+              <div class="col-6 text-end">
+                <p><strong>Name:</strong> ${member.name}</p>
+                <p><strong>Phone:</strong> ${member.phoneNumber}</p>
+              </div>
+            </div>
+            <table class="table table-bordered">
+              <thead>
+                <tr>
+                  <th>Description</th>
+                  <th>Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Financial Assistance Allocation</td>
+                  <td>Kshs ${member.amountAllocated}</td>
+                </tr>
+              </tbody>
+            </table>
+            <hr>
+            <div class="text-center mt-4">
+              <p class="mb-1">Thank you for your contribution!</p>
+              <p class="mb-0 text-muted small">Grace Community Church<br>
+              P.O Box 123-00100, Nairobi | Tel: +254 700 000 000</p>
+            </div>
+          </div>`;
+        $('#receiptModal').modal('show');
+      }
+    };
+
+    window.onload = () => {
+      fetchMembers();
+    };
+  </script>
+</head>
+<body>
+  <div class="container mt-5">
+    <h1 class="mb-4">Financial Assistance Management</h1>
+    
+    <div class="mb-4">
+      <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addMemberModal">
+        <i class="fas fa-user-plus"></i> Add Member
+      </button>
+      <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#makePaymentModal">
+        <i class="fas fa-hand-holding-usd"></i> Make Payment
+      </button>
+      <button class="btn btn-info" id="checkPaidMembers">
+        <i class="fas fa-list-check"></i> Paid Members
+      </button>
+    </div>
+
+    <div class="row g-4 mb-4">
+      <div class="col-md-4">
+        <div class="card h-100">
+          <div class="card-body">
+            <h5 class="card-title">Total Allocated</h5>
+            <p class="card-text fs-2 text-primary" id="totalAllocated">Kshs 0</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card h-100">
+          <div class="card-body">
+            <h5 class="card-title">Total Paid</h5>
+            <p class="card-text fs-2 text-success" id="totalPaid">Kshs 0</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card h-100">
+          <div class="card-body">
+            <h5 class="card-title">Remaining Balance</h5>
+            <p class="card-text fs-2 text-danger" id="remainingBalance">Kshs 0</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table table-hover" id="membersTable">
+        <thead class="table-light">
+          <tr>
+            <th>Name</th>
+            <th>Gender</th>
+            <th>ID Number</th>
+            <th>Phone</th>
+            <th>Email</th>
+            <th>Duration</th>
+            <th>Amount</th>
+            <th>Basis</th>
+            <th>Status</th>
+            <th>Balance</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Modals -->
+  <!-- Add Member Modal -->
+  <div class="modal fade" id="addMemberModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Add New Member</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <form id="addMemberForm">
+            <div class="mb-3">
+              <label for="memberName" class="form-label">Name</label>
+              <input type="text" class="form-control" id="memberName" required>
+            </div>
+            <div class="mb-3">
+              <label for="memberGender" class="form-label">Gender</label>
+              <select class="form-select" id="memberGender" required>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label for="memberIdNumber" class="form-label">ID Number</label>
+              <input type="text" class="form-control" id="memberIdNumber" required>
+            </div>
+            <div class="mb-3">
+              <label for="memberPhoneNumber" class="form-label">Phone Number</label>
+              <input type="text" class="form-control" id="memberPhoneNumber" required>
+            </div>
+            <div class="mb-3">
+              <label for="memberEmail" class="form-label">Email</label>
+              <input type="email" class="form-control" id="memberEmail" required>
+            </div>
+            <div class="mb-3">
+              <label for="memberDuration" class="form-label">Duration</label>
+              <input type="text" class="form-control" id="memberDuration" required>
+            </div>
+            <div class="mb-3">
+              <label for="memberAmountAllocated" class="form-label">Amount Allocated (Kshs)</label>
+              <input type="number" class="form-control" id="memberAmountAllocated" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Save</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Make Payment Modal -->
+  <div class="modal fade" id="makePaymentModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Record Payment</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <form id="makePaymentForm">
+            <div class="mb-3">
+              <label for="paymentMember" class="form-label">Member</label>
+              <select class="form-select" id="paymentMember" required>
+                <option value="">Select Member</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label for="paymentAmountAllocated" class="form-label">Amount Allocated (Kshs)</label>
+              <input type="number" class="form-control" id="paymentAmountAllocated" readonly>
+            </div>
+            <div class="mb-3">
+              <label for="paymentPhoneNumber" class="form-label">Phone Number</label>
+              <input type="text" class="form-control" id="paymentPhoneNumber" readonly>
+            </div>
+            <div class="mb-3">
+              <label for="transactionCode" class="form-label">Transaction Code</label>
+              <input type="text" class="form-control" id="transactionCode" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Save Payment</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Success Modal -->
+  <div class="modal fade" id="successModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Success</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          Member added successfully!
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Payment Success Modal -->
+  <div class="modal fade" id="paymentSuccessModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Success</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          Payment recorded successfully!
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Paid Members Modal -->
+  <div class="modal fade" id="paidMembersModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Paid Members</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <ul class="list-group" id="paidMembersList"></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Receipt Modal -->
+  <div class="modal fade" id="receiptModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Payment Receipt</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body" id="receiptContent"></div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary" onclick="window.print()">
+            <i class="fas fa-print"></i> Print
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

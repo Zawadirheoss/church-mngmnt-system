@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Church Membership Analytics</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .printable { display: none; }
+        .chart-container { margin: 20px 0; padding: 15px; border: 1px solid #ddd; }
+        .filter-section { margin-bottom: 20px; }
+        .print-header { display: flex; justify-content: space-between; margin-bottom: 20px; }
+        .church-info { text-align: right; }
+        
+        @media print {
+            body * { visibility: hidden; }
+            .printable, .printable * { visibility: visible; }
+            .printable { position: absolute; left: 0; top: 0; width: 100%; }
+            .chart-container { 
+                page-break-inside: avoid;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            .print-header { margin-top: 20px; }
+            .chart-container canvas {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+                width: 100% !important;
+                height: auto !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="filter-section">
+        <label>Select Home Church: 
+            <select id="homeChurchFilter">
+                <option value="all">All</option>
+            </select>
+        </label>
+        <button id="printButton">Print Report</button>
+    </div>
+
+    <div id="mainContent">
+        <!-- Main Charts -->
+        <div class="chart-container"><canvas id="genderChart"></canvas></div>
+        <div class="chart-container"><canvas id="departmentChart"></canvas></div>
+        <div class="chart-container"><canvas id="maritalStatusChart"></canvas></div>
+        <div class="chart-container"><canvas id="ministryChart"></canvas></div>
+        <div class="chart-container"><canvas id="positionChart"></canvas></div>
+        <div class="chart-container"><canvas id="yearJoinedChart"></canvas></div>
+        <div class="chart-container"><canvas id="homeChurchChart"></canvas></div>
+    </div>
+
+    <div class="printable">
+        <!-- Printable Charts -->
+        <div class="print-header">
+            <img src="Gospel springs logo.jpg" alt="Church Logo" style="width: 100px; height: auto;">
+            <div class="church-info">
+                <h2>Gospel Springs Mission International</h2>
+                <p>P.O Box 1234</p>
+                <p>Email: info@gospelsprings.org</p>
+                <p>Contact: +1 234-567-890</p>
+            </div>
+        </div>
+        <hr style="border: 1px solid black; margin-bottom: 20px;">
+        <div class="chart-container"><canvas id="printGenderChart"></canvas></div>
+        <div class="chart-container"><canvas id="printDepartmentChart"></canvas></div>
+        <div class="chart-container"><canvas id="printMaritalStatusChart"></canvas></div>
+        <div class="chart-container"><canvas id="printMinistryChart"></canvas></div>
+        <div class="chart-container"><canvas id="printPositionChart"></canvas></div>
+        <div class="chart-container"><canvas id="printYearJoinedChart"></canvas></div>
+        <div class="chart-container"><canvas id="printHomeChurchChart"></canvas></div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.5.0/firebase-app.js";
+        import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/11.5.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAyiRtkvdxnGWaiG-Xn-50Vm_Pb1J0ya6E",
+            authDomain: "church-cms-96407.firebaseapp.com",
+            projectId: "church-cms-96407",
+            storageBucket: "church-cms-96407.appspot.com",
+            messagingSenderId: "19370427001",
+            appId: "1:19370427001:web:b1d20215c437fc324e4aa8",
+            measurementId: "G-NKDZSFGR4X"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const membersCollection = collection(db, 'Members');
+
+        let members = [];
+        let charts = {
+            main: {},
+            print: {}
+        };
+
+        const chartConfig = (type, labels, data, title) => ({
+            type: type,
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: data,
+                    backgroundColor: [
+                        '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0',
+                        '#9966FF', '#FF9F40', '#E7E9ED'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: { display: true, text: title, font: { size: 16 } },
+                    legend: { position: 'bottom' }
+                }
+            }
+        });
+
+        function createOrUpdateChart(ctx, chartId, data, title, type = 'pie') {
+            return new Promise((resolve) => {
+                if (charts[chartId]) charts[chartId].destroy();
+
+                const config = chartConfig(type, Object.keys(data), Object.values(data), title);
+                config.plugins = [{
+                    id: 'renderComplete',
+                    afterRender: () => resolve()
+                }];
+
+                charts[chartId] = new Chart(ctx, config);
+            });
+        }
+
+        function processData(members) {
+            const counts = {
+                gender: {}, department: {}, maritalStatus: {},
+                ministry: {}, position: {}, homeChurch: {},
+                yearJoined: {}
+            };
+
+            members.forEach(member => {
+                const year = member.dateJoined ? new Date(member.dateJoined.seconds * 1000).getFullYear() : 'Unknown';
+                
+                ['gender', 'department', 'maritalStatus', 'ministry', 'position', 'homeChurch'].forEach(field => {
+                    const value = member[field]?.toString() || 'Unknown';
+                    counts[field][value] = (counts[field][value] || 0) + 1;
+                });
+                
+                counts.yearJoined[year] = (counts.yearJoined[year] || 0) + 1;
+            });
+
+            return counts;
+        }
+
+        function updateMainCharts(counts, total) {
+            createOrUpdateChart(document.getElementById('genderChart').getContext('2d'), 
+                'mainGender', counts.gender, `Gender Distribution (Total: ${total})`);
+            createOrUpdateChart(document.getElementById('departmentChart').getContext('2d'), 
+                'mainDepartment', counts.department, `Department Distribution`);
+            createOrUpdateChart(document.getElementById('maritalStatusChart').getContext('2d'), 
+                'mainMaritalStatus', counts.maritalStatus, `Marital Status`);
+            createOrUpdateChart(document.getElementById('ministryChart').getContext('2d'), 
+                'mainMinistry', counts.ministry, `Ministry Involvement`);
+            createOrUpdateChart(document.getElementById('positionChart').getContext('2d'), 
+                'mainPosition', counts.position, `Position Distribution`);
+            createOrUpdateChart(document.getElementById('yearJoinedChart').getContext('2d'), 
+                'mainYearJoined', counts.yearJoined, `Year Joined`);
+            createOrUpdateChart(document.getElementById('homeChurchChart').getContext('2d'), 
+                'mainHomeChurch', counts.homeChurch, `Home Church Distribution`);
+        }
+
+        async function updatePrintCharts(counts, total) {
+            const promises = [];
+            
+            promises.push(createOrUpdateChart(document.getElementById('printGenderChart').getContext('2d'), 
+                'printGender', counts.gender, `Gender Distribution (Total: ${total})`));
+            promises.push(createOrUpdateChart(document.getElementById('printDepartmentChart').getContext('2d'), 
+                'printDepartment', counts.department, `Department Distribution`));
+            promises.push(createOrUpdateChart(document.getElementById('printMaritalStatusChart').getContext('2d'), 
+                'printMaritalStatus', counts.maritalStatus, `Marital Status`));
+            promises.push(createOrUpdateChart(document.getElementById('printMinistryChart').getContext('2d'), 
+                'printMinistry', counts.ministry, `Ministry Involvement`));
+            promises.push(createOrUpdateChart(document.getElementById('printPositionChart').getContext('2d'), 
+                'printPosition', counts.position, `Position Distribution`));
+            promises.push(createOrUpdateChart(document.getElementById('printYearJoinedChart').getContext('2d'), 
+                'printYearJoined', counts.yearJoined, `Year Joined`));
+            promises.push(createOrUpdateChart(document.getElementById('printHomeChurchChart').getContext('2d'), 
+                'printHomeChurch', counts.homeChurch, `Home Church Distribution`));
+
+            await Promise.all(promises);
+        }
+
+        function setupFilter() {
+            const homeChurches = [...new Set(members.map(m => m.homeChurch))].filter(Boolean);
+            const filter = document.getElementById('homeChurchFilter');
+            filter.innerHTML = '<option value="all">All</option>' + 
+                homeChurches.map(h => `<option value="${h}">${h}</option>`).join('');
+            
+            filter.addEventListener('change', () => {
+                const selected = filter.value;
+                const filtered = selected === 'all' ? members : 
+                    members.filter(m => m.homeChurch === selected);
+                const counts = processData(filtered);
+                const total = filtered.length;
+                updateMainCharts(counts, total);
+            });
+        }
+
+        async function preparePrint() {
+            const printableSection = document.querySelector('.printable');
+            printableSection.style.display = 'block';
+            
+            const selected = document.getElementById('homeChurchFilter').value;
+            const filtered = selected === 'all' ? members : members.filter(m => m.homeChurch === selected);
+            const counts = processData(filtered);
+            const total = filtered.length;
+
+            await updatePrintCharts(counts, total);
+            await new Promise(resolve => setTimeout(resolve, 5000));
+            
+            window.print();
+            printableSection.style.display = 'none';
+        }
+
+        document.getElementById('printButton').addEventListener('click', preparePrint);
+
+        onSnapshot(membersCollection, (snapshot) => {
+            members = snapshot.docs.map(doc => doc.data());
+            setupFilter();
+            const counts = processData(members);
+            const total = members.length;
+            updateMainCharts(counts, total);
+        });
+    </script>
+</body>
+</html>

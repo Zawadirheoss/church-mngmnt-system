@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Church Member Management</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #8e44ad;
+            --accent: #3498db;
+        }
+
+        .gradient-header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+        }
+
+        .table-hover tbody tr:hover {
+            background-color: rgba(46, 134, 222, 0.1);
+            cursor: pointer;
+        }
+
+        .search-container {
+            position: relative;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6c757d;
+        }
+
+        .total-members {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        .action-buttons .btn {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.875rem;
+            margin: 0 2px;
+        }
+
+        .view-modal-table td {
+            padding: 0.75rem;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .view-modal-table tr:last-child td {
+            border-bottom: none;
+        }
+    </style>
+</head>
+<body class="bg-light">
+    <div class="container-fluid py-4">
+        <!-- Header Section -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="text-primary"><i class="fas fa-users-cog me-2"></i>Member Management</h2>
+            <div class="d-flex gap-3 align-items-center">
+                <div class="total-members">
+                    Total Members: <span id="totalMembers">0</span>
+                </div>
+                <div class="search-container">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" id="searchInput" class="form-control ps-5" placeholder="Search by name or church...">
+                </div>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addMemberModal">
+                    <i class="fas fa-user-plus me-2"></i>Add Member
+                </button>
+            </div>
+        </div>
+
+        <!-- Members Table -->
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="gradient-header text-light">
+                    <tr>
+                        <th>Name</th>
+                        <th>Gender</th>
+                        <th>Phone</th>
+                        <th>Home Church</th>
+                        <th>Date Joined</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="membersTable">
+                    <!-- Table rows will be populated here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Add/Edit Member Modal -->
+    <div class="modal fade" id="addMemberModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header gradient-header">
+                    <h5 class="modal-title">Add/Edit Member</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="memberForm">
+                    <div class="modal-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">First Name *</label>
+                                <input type="text" class="form-control" id="firstName" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Second Name *</label>
+                                <input type="text" class="form-control" id="secondName" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Gender *</label>
+                                <select class="form-select" id="gender" required>
+                                    <option value="">Select Gender</option>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Phone Number *</label>
+                                <input type="tel" class="form-control" id="phone" 
+                                       pattern="\+254[0-9]{9}" 
+                                       placeholder="+254XXXXXXXXX" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Email</label>
+                                <input type="email" class="form-control" id="email">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Date of Birth</label>
+                                <input type="date" class="form-control" id="dob">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Date Joined *</label>
+                                <input type="date" class="form-control" id="dateJoined" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Marital Status</label>
+                                <select class="form-select" id="maritalStatus">
+                                    <option value="">Select Status</option>
+                                    <option value="Single">Single</option>
+                                    <option value="Married">Married</option>
+                                    <option value="Divorced">Divorced</option>
+                                    <option value="Widowed">Widowed</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Home Church *</label>
+                                <select class="form-select" id="homeChurch" required>
+                                    <option value="">Select Home Church</option>
+                                    <option value="Emasinga">Emasinga</option>
+                                    <option value="Lubinu">Lubinu</option>
+                                    <option value="Ikoli">Ikoli</option>
+                                    <option value="Nasira">Nasira</option>
+                                    <option value="Ekero">Ekero</option>
+                                    <option value="Ruai">Ruai</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Save Member</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- View Member Modal -->
+    <div class="modal fade" id="viewMemberModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header gradient-header">
+                    <h5 class="modal-title">Member Details</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <table class="table view-modal-table">
+                        <tbody>
+                            <tr>
+                                <td><strong>Full Name:</strong></td>
+                                <td id="viewFullName"></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Gender:</strong></td>
+                                <td id="viewGender"></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Phone:</strong></td>
+                                <td id="viewPhone"></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Email:</strong></td>
+                                <td id="viewEmail"></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Date of Birth:</strong></td>
+                                <td id="viewDob"></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Date Joined:</strong></td>
+                                <td id="viewDateJoined"></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Marital Status:</strong></td>
+                                <td id="viewMaritalStatus"></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Home Church:</strong></td>
+                                <td id="viewHomeChurch"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading and Status Modals -->
+    <div class="modal fade" id="loadingModal" tabindex="-1">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-body text-center">
+                    <div class="spinner-border text-primary" role="status"></div>
+                    <p class="mt-2">Processing...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="successModal" tabindex="-1">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-body text-center text-success">
+                    <i class="fas fa-check-circle fa-3x mb-3"></i>
+                    <p class="mb-0">Operation Successful!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="errorModal" tabindex="-1">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-body text-center text-danger">
+                    <i class="fas fa-times-circle fa-3x mb-3"></i>
+                    <p class="mb-0" id="errorMessage"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
+        import { 
+            getFirestore, 
+            collection, 
+            addDoc, 
+            getDocs, 
+            doc, 
+            updateDoc, 
+            deleteDoc,
+            onSnapshot,
+            query,
+            where,
+            orderBy,
+            getDoc
+        } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAyiRtkvdxnGWaiG-Xn-50Vm_Pb1J0ya6E",
+            authDomain: "church-cms-96407.firebaseapp.com",
+            projectId: "church-cms-96407",
+            storageBucket: "church-cms-96407.appspot.com",
+            messagingSenderId: "19370427001",
+            appId: "1:19370427001:web:b1d20215c437fc324e4aa8",
+            measurementId: "G-NKDZSFGR4X"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const membersCollection = collection(db, "Members");
+
+        const modals = {
+            loading: new bootstrap.Modal('#loadingModal'),
+            success: new bootstrap.Modal('#successModal'),
+            error: new bootstrap.Modal('#errorModal'),
+            view: new bootstrap.Modal('#viewMemberModal')
+        };
+
+        let currentEditId = null;
+
+        // Form Submission Handler
+        document.getElementById('memberForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            modals.loading.show();
+
+            const memberData = {
+                firstName: document.getElementById('firstName').value.trim(),
+                secondName: document.getElementById('secondName').value.trim(),
+                gender: document.getElementById('gender').value,
+                phone: document.getElementById('phone').value.trim(),
+                email: document.getElementById('email').value.trim(),
+                dob: document.getElementById('dob').value,
+                dateJoined: document.getElementById('dateJoined').value,
+                maritalStatus: document.getElementById('maritalStatus').value,
+                homeChurch: document.getElementById('homeChurch').value,
+                timestamp: new Date()
+            };
+
+            try {
+                if (currentEditId) {
+                    // Update existing member
+                    await updateDoc(doc(db, "Members", currentEditId), memberData);
+                } else {
+                    // Add new member
+                    await addDoc(membersCollection, memberData);
+                }
+
+                modals.loading.hide();
+                modals.success.show();
+                resetForm();
+                setTimeout(() => modals.success.hide(), 1500);
+            } catch (error) {
+                showError(error.message);
+            }
+        });
+
+        // Real-time Data Loader with Sorting
+        const unsubscribe = onSnapshot(
+            query(membersCollection, orderBy('firstName', 'asc')), 
+            (snapshot) => {
+                const members = [];
+                snapshot.forEach(doc => members.push({ id: doc.id, ...doc.data() }));
+                renderTable(members);
+                updateTotalMembers(members.length);
+            }
+        );
+
+        // Render Table
+        function renderTable(members) {
+            const tbody = document.getElementById('membersTable');
+            tbody.innerHTML = members.map(member => `
+                <tr data-id="${member.id}">
+                    <td>${member.firstName} ${member.secondName}</td>
+                    <td>${member.gender}</td>
+                    <td>${member.phone}</td>
+                    <td>${member.homeChurch}</td>
+                    <td>${new Date(member.dateJoined).toLocaleDateString()}</td>
+                    <td class="action-buttons">
+                        <button class="btn btn-sm btn-info view-btn">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="btn btn-sm btn-warning edit-btn">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger delete-btn">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Event Delegation for Actions
+        document.addEventListener('click', async (e) => {
+            const row = e.target.closest('tr');
+            if (!row) return;
+            const memberId = row.dataset.id;
+
+            if (e.target.closest('.delete-btn')) {
+                if (confirm('Are you sure you want to delete this member?')) {
+                    try {
+                        modals.loading.show();
+                        await deleteDoc(doc(db, "Members", memberId));
+                        modals.loading.hide();
+                        modals.success.show();
+                        setTimeout(() => modals.success.hide(), 1500);
+                    } catch (error) {
+                        showError(error.message);
+                    }
+                }
+            }
+
+            if (e.target.closest('.edit-btn')) {
+                const docRef = doc(db, "Members", memberId);
+                const docSnap = await getDoc(docRef);
+                populateForm(docSnap.data());
+                currentEditId = memberId;
+                new bootstrap.Modal('#addMemberModal').show();
+            }
+
+            if (e.target.closest('.view-btn')) {
+                const docRef = doc(db, "Members", memberId);
+                const docSnap = await getDoc(docRef);
+                populateViewModal(docSnap.data());
+                modals.view.show();
+            }
+        });
+
+        // Search Functionality
+        document.getElementById('searchInput').addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const rows = document.querySelectorAll('#membersTable tr');
+            
+            rows.forEach(row => {
+                const name = row.cells[0].textContent.toLowerCase();
+                const church = row.cells[3].textContent.toLowerCase();
+                row.style.display = (name.includes(searchTerm) || church.includes(searchTerm)) ? '' : 'none';
+            });
+        });
+
+        // Helper Functions
+        function populateForm(data) {
+            for (const [key, value] of Object.entries(data)) {
+                const element = document.getElementById(key);
+                if (element) element.value = value;
+            }
+        }
+
+        function populateViewModal(data) {
+            document.getElementById('viewFullName').textContent = `${data.firstName} ${data.secondName}`;
+            document.getElementById('viewGender').textContent = data.gender;
+            document.getElementById('viewPhone').textContent = data.phone;
+            document.getElementById('viewEmail').textContent = data.email || 'N/A';
+            document.getElementById('viewDob').textContent = data.dob || 'N/A';
+            document.getElementById('viewDateJoined').textContent = new Date(data.dateJoined).toLocaleDateString();
+            document.getElementById('viewMaritalStatus').textContent = data.maritalStatus || 'N/A';
+            document.getElementById('viewHomeChurch').textContent = data.homeChurch;
+        }
+
+        function resetForm() {
+            document.getElementById('memberForm').reset();
+            currentEditId = null;
+        }
+
+        function showError(message) {
+            modals.loading.hide();
+            document.getElementById('errorMessage').textContent = message;
+            modals.error.show();
+        }
+
+        function updateTotalMembers(total) {
+            document.getElementById('totalMembers').textContent = total;
+        }
+
+        window.addEventListener('beforeunload', () => unsubscribe());
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Page</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #6a11cb, #2575fc);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: #333;
+        }
+
+        .login-container {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            width: 350px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .login-container:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .logo {
+            width: 60px;
+            margin-bottom: 20px;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+        }
+
+        h2 {
+            margin-bottom: 20px;
+            color: #333;
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            outline: none;
+            font-size: 14px;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        input:focus {
+            border-color: #6a11cb;
+            box-shadow: 0 0 8px rgba(106, 17, 203, 0.3);
+        }
+
+        button[type="submit"] {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #6a11cb, #2575fc);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: background 0.3s ease, transform 0.3s ease;
+        }
+
+        button[type="submit"]:hover {
+            background: linear-gradient(135deg, #2575fc, #6a11cb);
+            transform: translateY(-2px);
+        }
+
+        .switch-button {
+            width: 100%;
+            padding: 12px;
+            background: transparent;
+            color: #6a11cb;
+            border: 2px solid #6a11cb;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 15px;
+            font-size: 14px;
+            font-weight: 600;
+            transition: background 0.3s ease, color 0.3s ease, transform 0.3s ease;
+        }
+
+        .switch-button:hover {
+            background: #6a11cb;
+            color: #fff;
+            transform: translateY(-2px);
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .login-form {
+            animation: fadeIn 0.5s ease;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-content img {
+            width: 50px;
+            margin-bottom: 10px;
+        }
+
+        .home-link {
+            margin-top: 15px;
+            display: block;
+            color: #6a11cb;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .home-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <!-- Pastor Login -->
+        <div class="login-form" id="pastor-login">
+            <img src="Gospel springs logo.jpg" alt="Logo" class="logo" style="border-radius: 10px;">
+            <h2>Pastor Login</h2>
+            <form id="pastorForm">
+                <input type="email" placeholder="Email" required id="pastorEmail">
+                <input type="password" placeholder="Password" required id="pastorPassword">
+                <button type="submit">Login</button>
+            </form>
+            <button class="switch-button" onclick="switchLogin('admin')">Switch to Admin</button>
+            <a href="index.html" class="home-link">Home</a>
+        </div>
+
+        <!-- Admin Login -->
+        <div class="login-form" id="admin-login" style="display: none;">
+            <img src="Gospel springs logo.jpg" alt="Logo" class="logo">
+            <h2>Admin Login</h2>
+            <form id="adminForm">
+                <input type="email" placeholder="Email" required id="adminEmail">
+                <input type="password" placeholder="Password" required id="adminPassword">
+                <button type="submit">Login</button>
+            </form>
+            <button class="switch-button" onclick="switchLogin('user')">Switch to User</button>
+            <a href="index.html" class="home-link">Home</a>
+        </div>
+
+        <!-- User Login -->
+        <div class="login-form" id="user-login" style="display: none;">
+            <img src="Gospel springs logo.jpg" alt="Logo" class="logo">
+            <h2>User Login</h2>
+            <form id="userForm">
+                <input type="email" placeholder="Email" required id="userEmail">
+                <input type="password" placeholder="Password" required id="userPassword">
+                <button type="submit">Login</button>
+            </form>
+            <button class="switch-button" onclick="switchLogin('pastor')">Switch to Pastor</button>
+            <a href="index.html" class="home-link">Home</a>
+        </div>
+    </div>
+
+    <!-- Modal for Verifying and Success -->
+    <div id="verifyingModal" class="modal">
+        <div class="modal-content">
+            <p>Verifying details...</p>
+        </div>
+    </div>
+
+    <div id="successModal" class="modal">
+        <div class="modal-content">
+            <img src="https://cdn-icons-png.flaticon.com/512/190/190411.png" alt="Success">
+            <p>Successfully logged in!</p>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.0/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.3.0/firebase-auth.js";
+
+        // Initialize Firebase Apps
+        const pastorApp = initializeApp({
+            apiKey: "AIzaSyAnSLQtEhlLUSjh3zu-gmfjlaVxGRnAnXA",
+            authDomain: "pastor-login-3e69f.firebaseapp.com",
+            projectId: "pastor-login-3e69f",
+            storageBucket: "pastor-login-3e69f.firebasestorage.app",
+            messagingSenderId: "790256387703",
+            appId: "1:790256387703:web:b436bfefc72c65ec4e2872"
+        }, "pastorApp");
+
+        const adminApp = initializeApp({
+            apiKey: "AIzaSyC3JwWlxDRIRmcujdEnhSHBeshqfMT42YI",
+            authDomain: "admin-login-c5568.firebaseapp.com",
+            projectId: "admin-login-c5568",
+            storageBucket: "admin-login-c5568.firebasestorage.app",
+            messagingSenderId: "1014468459949",
+            appId: "1:1014468459949:web:91a5f51180aaab5de9b524"
+        }, "adminApp");
+
+        const userApp = initializeApp({
+            apiKey: "AIzaSyAAYKKvgdDHWFiYk-5DEt155thwrsLkEBc",
+            authDomain: "user-1ac92.firebaseapp.com",
+            projectId: "user-1ac92",
+            storageBucket: "user-1ac92.firebasestorage.app",
+            messagingSenderId: "54852169310",
+            appId: "1:54852169310:web:528ca4351708e6ff280ecf"
+        }, "userApp");
+
+        // Get Auth Instances
+        const pastorAuth = getAuth(pastorApp);
+        const adminAuth = getAuth(adminApp);
+        const userAuth = getAuth(userApp);
+
+        // Modal Functions
+        function showModal(modalId) {
+            const modal = document.getElementById(modalId);
+            modal.style.display = 'flex';
+        }
+
+        function hideModal(modalId) {
+            const modal = document.getElementById(modalId);
+            modal.style.display = 'none';
+        }
+
+        // Form Submission Handlers
+        document.getElementById('pastorForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            showModal('verifyingModal');
+            try {
+                await signInWithEmailAndPassword(
+                    pastorAuth,
+                    document.getElementById('pastorEmail').value,
+                    document.getElementById('pastorPassword').value
+                );
+                hideModal('verifyingModal');
+                showModal('successModal');
+                setTimeout(() => {
+                    window.location.href = 'pastor-dashboard.html';
+                }, 1500);
+            } catch (error) {
+                hideModal('verifyingModal');
+                alert('Pastor login failed: ' + error.message);
+            }
+        });
+
+        document.getElementById('adminForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            showModal('verifyingModal');
+            try {
+                await signInWithEmailAndPassword(
+                    adminAuth,
+                    document.getElementById('adminEmail').value,
+                    document.getElementById('adminPassword').value
+                );
+                hideModal('verifyingModal');
+                showModal('successModal');
+                setTimeout(() => {
+                    window.location.href = 'Dashboard.html';
+                }, 1500);
+            } catch (error) {
+                hideModal('verifyingModal');
+                alert('Admin login failed: ' + error.message);
+            }
+        });
+
+        document.getElementById('userForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            showModal('verifyingModal');
+            try {
+                await signInWithEmailAndPassword(
+                    userAuth,
+                    document.getElementById('userEmail').value,
+                    document.getElementById('userPassword').value
+                );
+                hideModal('verifyingModal');
+                showModal('successModal');
+                setTimeout(() => {
+                    window.location.href = 'User dashboard.html';
+                }, 1500);
+            } catch (error) {
+                hideModal('verifyingModal');
+                alert('User login failed: ' + error.message);
+            }
+        });
+
+        // Login Switching Logic
+        window.switchLogin = (type) => {
+            const allForms = document.querySelectorAll('.login-form');
+            allForms.forEach(form => form.style.display = 'none');
+            
+            const activeForm = document.getElementById(`${type}-login`);
+            if (activeForm) {
+                activeForm.style.display = 'block';
+            }
+        };
+    </script>
+</body>
+</html>

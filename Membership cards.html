@@ -1,0 +1,38 @@
+provided with the followiung cdn for the firestore database
+<script type="module">
+  // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.5.0/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.5.0/firebase-analytics.js";
+  // TODO: Add SDKs for Firebase products that you want to use
+  // https://firebase.google.com/docs/web/setup#available-libraries
+
+  // Your web app's Firebase configuration
+  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+  const firebaseConfig = {
+    apiKey: "AIzaSyAyiRtkvdxnGWaiG-Xn-50Vm_Pb1J0ya6E",
+    authDomain: "church-cms-96407.firebaseapp.com",
+    projectId: "church-cms-96407",
+    storageBucket: "church-cms-96407.firebasestorage.app",
+    messagingSenderId: "19370427001",
+    appId: "1:19370427001:web:b1d20215c437fc324e4aa8",
+    measurementId: "G-NKDZSFGR4X"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+</script>
+design me a webpage that has a table that will fetch all the the member details from firestore database under a collection called"Members" add actions for print  in each person in the table
+on print should print membershipcards the sixe of the visa card
+the card should have the following features
+1.The name of the church in the (Gospel springs mission in the top left corner and in the top right have the logo of the church(Gospel springs logo.jpg) then a hr line to seperete the header with the body..
+2.in the body have profile icon then the Member first name and second name combined,gender,homechurch,phonenumber and email address aligned from left to right that will come beside the profile icon
+then a hr line to seperate the body with the footer
+3.in the footer have the the church phone number  which +254768398208
+4.have the  logo in the card body as a watermark...in the header have a blue bg and in the footer a red bg and in the body white bg
+on each member the on click print,should preview the printable card..
+the printable pdf should be colored...
+in each card have a place for the profile icon which will have the first letters of first name  and second name of the member inside in caps and the size is 60 px and should be in the left of the card athen the other details will come beside the profile icon
+ensure the print function is implemented well
+also have a print all  which will preview  all members card the automatically open print preview to allow print
+write as a single hmtl file and ensure data is fetched from the members collection...

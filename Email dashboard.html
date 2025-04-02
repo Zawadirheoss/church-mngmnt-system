@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emails Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: #f0f2f5;
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+            padding: 1rem;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .logo {
+            width: 60px;
+        }
+
+        .logo img {
+            width: 100%;
+            border-radius: 8px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+        }
+
+        .stats {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .total-emails {
+            background: #6c5ce7;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 500;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        th {
+            background: #040c95;
+            color: #ffffff;
+            font-weight: 600;
+        }
+
+        .actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .respond-btn {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .forward-btn {
+            background: #2196F3;
+            color: white;
+        }
+
+        .delete-btn {
+            background: #f44336;
+            color: white;
+        }
+
+        .delete-all {
+            margin-top: 1rem;
+            background: #ff4757;
+            color: white;
+            padding: 10px 20px;
+        }
+    </style>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <header>
+        
+        <h1>Emails Dashboard</h1>
+        <div class="stats">
+            <div class="total-emails" id="totalEmails">Loading...</div>
+        </div>
+    </header>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Date/Time</th>
+                <th>Email From</th>
+                <th>Message</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="emailsTable">
+            <!-- Data will be populated here -->
+        </tbody>
+    </table>
+
+    <button class="btn delete-all" onclick="confirmDeleteAll()">Delete All Emails</button>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
+        import { getDatabase, ref, onValue, remove } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBBb-w9cH_gsAmheunI_Rd3u7NrOenj-_g",
+            authDomain: "emails-5eb96.firebaseapp.com",
+            databaseURL: "https://emails-5eb96-default-rtdb.firebaseio.com",
+            projectId: "emails-5eb96",
+            storageBucket: "emails-5eb96.firebasestorage.app",
+            messagingSenderId: "301065222212",
+            appId: "1:301065222212:web:dcbcec5ad8770c36b12411"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+        const emailsRef = ref(database, 'emails');
+
+        function renderEmails(snapshot) {
+            const tableBody = document.getElementById('emailsTable');
+            const totalCount = document.getElementById('totalEmails');
+            tableBody.innerHTML = '';
+            
+            if (snapshot.exists()) {
+                const emailsData = snapshot.val();
+                const emails = Object.entries(emailsData);
+                
+                totalCount.textContent = `${emails.length} Emails`;
+                
+                emails.forEach(([key, email]) => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${email.date}</td>
+                        <td>${email.email}</td>
+                        <td>${email.message}</td>
+                        <td>
+                            <div class="actions">
+                                <button class="btn respond-btn" onclick="respondToEmail('${email.email}')">
+                                    <i class="fas fa-reply"></i>
+                                </button>
+                                <button class="btn forward-btn" onclick="forwardEmail('${email.email}', '${email.message}')">
+                                    <i class="fas fa-share"></i>
+                                </button>
+                                <button class="btn delete-btn" onclick="confirmDelete('${key}')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            } else {
+                totalCount.textContent = '0 Emails';
+                tableBody.innerHTML = `<tr><td colspan="4">No emails found</td></tr>`;
+            }
+        }
+
+        function deleteEmail(emailKey) {
+            const emailRef = ref(database, `emails/${emailKey}`);
+            remove(emailRef).then(() => {
+                alert('Email deleted successfully');
+            });
+        }
+
+        window.confirmDelete = (emailKey) => {
+            if (confirm('Are you sure you want to delete this email?')) {
+                deleteEmail(emailKey);
+            }
+        };
+
+        window.confirmDeleteAll = () => {
+            if (confirm('WARNING: This will delete ALL emails. Are you absolutely sure?')) {
+                remove(emailsRef).then(() => {
+                    alert('All emails deleted successfully');
+                });
+            }
+        };
+
+        window.respondToEmail = (emailAddress) => {
+            window.location.href = `mailto:${emailAddress}`;
+        };
+
+        window.forwardEmail = (originalSender, message) => {
+            const body = `Forwarded message from ${originalSender}:\n\n${message}`;
+            window.location.href = `mailto:?body=${encodeURIComponent(body)}`;
+        };
+
+        // Real-time listener for database changes
+        onValue(emailsRef, (snapshot) => {
+            renderEmails(snapshot);
+        });
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sermons Dashboard</title>
+    <style>
+        /* Modern CSS Reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+            color: #333;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .dashboard {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            color: #4a90e2;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        #uploadSermonBtn {
+            background: linear-gradient(135deg, #6a11cb, #2575fc);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        #uploadSermonBtn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        #totalSermons {
+            font-size: 1.2rem;
+            margin: 20px 0;
+            color: #666;
+            text-align: center;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background: #4a90e2;
+            color: white;
+            font-weight: 600;
+        }
+
+        tr:hover {
+            background: #f1f1f1;
+        }
+
+        .actions button {
+            background: #4a90e2;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-right: 5px;
+            transition: background 0.3s;
+        }
+
+        .actions button:hover {
+            background: #357abd;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            width: 400px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .close {
+            float: right;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .close:hover {
+            color: #333;
+        }
+
+        input[type="text"], input[type="datetime-local"], input[type="url"] {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        button[type="submit"] {
+            background: #4a90e2;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background 0.3s;
+        }
+
+        button[type="submit"]:hover {
+            background: #357abd;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <h1>Sermons Dashboard</h1>
+        <button id="uploadSermonBtn">Upload Sermon</button>
+        <div id="totalSermons">Total Sermons: 0</div>
+        <table id="sermonsTable">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Minister</th>
+                    <th>Date & Time</th>
+                    <th>Platform</th>
+                    <th>Venue</th>
+                    <th>Link</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Sermons will be populated here -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Modal for Uploading Sermon -->
+    <div id="uploadModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Upload Sermon</h2>
+            <form id="sermonForm">
+                <input type="text" id="title" placeholder="Title" required>
+                <input type="text" id="minister" placeholder="Minister" required>
+                <input type="datetime-local" id="datetime" required>
+                <input type="text" id="platform" placeholder="Platform" required>
+                <input type="text" id="venue" placeholder="Venue" required>
+                <input type="url" id="link" placeholder="Link" required>
+                <button type="submit">Save</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal for Editing Sermon -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Edit Sermon</h2>
+            <form id="editSermonForm">
+                <input type="text" id="editTitle" placeholder="Title" required>
+                <input type="text" id="editMinister" placeholder="Minister" required>
+                <input type="datetime-local" id="editDatetime" required>
+                <input type="text" id="editPlatform" placeholder="Platform" required>
+                <input type="text" id="editVenue" placeholder="Venue" required>
+                <input type="url" id="editLink" placeholder="Link" required>
+                <button type="submit">Update</button>
+            </form>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
+        import { getDatabase, ref, push, onValue, remove, update } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCsq6JnXTQLnoNYpgPD1BjcisJbAOi2X6A",
+            authDomain: "sermons-2a6b6.firebaseapp.com",
+            databaseURL: "https://sermons-2a6b6-default-rtdb.firebaseio.com",
+            projectId: "sermons-2a6b6",
+            storageBucket: "sermons-2a6b6.firebasestorage.app",
+            messagingSenderId: "973976718289",
+            appId: "1:973976718289:web:df77e2e30a33e04c2faef0"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+        const sermonsRef = ref(database, 'sermons');
+
+        document.getElementById('uploadSermonBtn').addEventListener('click', () => {
+            document.getElementById('uploadModal').style.display = 'flex';
+        });
+
+        document.querySelectorAll('.close').forEach(button => {
+            button.addEventListener('click', () => {
+                document.querySelectorAll('.modal').forEach(modal => {
+                    modal.style.display = 'none';
+                });
+            });
+        });
+
+        document.getElementById('sermonForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const sermon = {
+                title: document.getElementById('title').value,
+                minister: document.getElementById('minister').value,
+                datetime: document.getElementById('datetime').value,
+                platform: document.getElementById('platform').value,
+                venue: document.getElementById('venue').value,
+                link: document.getElementById('link').value
+            };
+            push(sermonsRef, sermon);
+            document.getElementById('uploadModal').style.display = 'none';
+            document.getElementById('sermonForm').reset();
+        });
+
+        onValue(sermonsRef, (snapshot) => {
+            const sermons = [];
+            snapshot.forEach(childSnapshot => {
+                sermons.push({ id: childSnapshot.key, ...childSnapshot.val() });
+            });
+            document.getElementById('totalSermons').textContent = `Total Sermons: ${sermons.length}`;
+            const tbody = document.querySelector('#sermonsTable tbody');
+            tbody.innerHTML = '';
+            sermons.forEach(sermon => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${sermon.title}</td>
+                    <td>${sermon.minister}</td>
+                    <td>${sermon.datetime}</td>
+                    <td>${sermon.platform}</td>
+                    <td>${sermon.venue}</td>
+                    <td><a href="${sermon.link}" target="_blank">View</a></td>
+                    <td class="actions">
+                        <button onclick="editSermon('${sermon.id}')">Edit</button>
+                        <button onclick="deleteSermon('${sermon.id}')">Delete</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        });
+
+        window.editSermon = function(id) {
+            const sermonRef = ref(database, `sermons/${id}`);
+            onValue(sermonRef, (snapshot) => {
+                const sermon = snapshot.val();
+                document.getElementById('editTitle').value = sermon.title;
+                document.getElementById('editMinister').value = sermon.minister;
+                document.getElementById('editDatetime').value = sermon.datetime;
+                document.getElementById('editPlatform').value = sermon.platform;
+                document.getElementById('editVenue').value = sermon.venue;
+                document.getElementById('editLink').value = sermon.link;
+                document.getElementById('editModal').style.display = 'flex';
+                document.getElementById('editSermonForm').onsubmit = (e) => {
+                    e.preventDefault();
+                    update(sermonRef, {
+                        title: document.getElementById('editTitle').value,
+                        minister: document.getElementById('editMinister').value,
+                        datetime: document.getElementById('editDatetime').value,
+                        platform: document.getElementById('editPlatform').value,
+                        venue: document.getElementById('editVenue').value,
+                        link: document.getElementById('editLink').value
+                    });
+                    document.getElementById('editModal').style.display = 'none';
+                };
+            });
+        };
+
+        window.deleteSermon = function(id) {
+            const sermonRef = ref(database, `sermons/${id}`);
+            remove(sermonRef);
+        };
+    </script>
+</body>
+</html>

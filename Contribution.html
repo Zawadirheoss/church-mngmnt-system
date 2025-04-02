@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contribution Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+      background-color: #f4f7f6;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      color: #333;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .add-btn {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      cursor: pointer;
+      border-radius: 5px;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .add-btn:hover {
+      background-color: #45a049;
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0, 0, 0, 0.5);
+      padding-top: 60px;
+    }
+    .modal-content {
+      background-color: #fff;
+      margin: 5% auto;
+      padding: 20px;
+      border: 1px solid #888;
+      width: 50%;
+      border-radius: 10px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    }
+    .close {
+      color: #aaa;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .close:hover {
+      color: #000;
+    }
+    input[type="text"], input[type="date"] {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    .submit-btn {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      cursor: pointer;
+      border-radius: 5px;
+      font-size: 16px;
+      width: 100%;
+    }
+    .submit-btn:hover {
+      background-color: #45a049;
+    }
+    .search-sort {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .search-sort input, .search-sort select {
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      flex: 1;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    table, th, td {
+      border: 1px solid #ddd;
+    }
+    th, td {
+      padding: 12px;
+      text-align: left;
+    }
+    th {
+      background-color: #150daa;
+      color: white;
+     
+    }
+    tr:nth-child(even) {
+      background-color: #f2f2f2;
+    }
+    .actions {
+      display: flex;
+      gap: 8px;
+    }
+    .actions button {
+      padding: 5px 10px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .edit-btn {
+      background-color: #ffc107;
+      color: white;
+    }
+    .delete-btn {
+      background-color: #dc3545;
+      color: white;
+    }
+    .delete-all-btn {
+      background-color: #a20f1e;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      cursor: pointer;
+      border-radius: 5px;
+      font-size: 16px;
+      margin-top: 20px;
+      width: 20%;
+    }
+    .delete-all-btn:hover {
+      background-color: #c82333;
+    }
+  </style>
+</head>
+<body>
+  <h1>Contribution Dashboard</h1>
+  <div class="header">
+    <button class="add-btn" id="addBtn"><i class="fas fa-plus"></i> Add Contribution</button>
+    <div class="search-sort">
+      <input type="text" id="searchAuthor" placeholder="Search by Author">
+      <input type="text" id="searchType" placeholder="Search by Type">
+      <input type="date" id="searchDate">
+      <select id="sortBy">
+        <option value="date">Sort by Date</option>
+        <option value="author">Sort by Author</option>
+        <option value="type">Sort by Type</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Modal for adding/editing contributions -->
+  <div id="addModal" class="modal">
+    <div class="modal-content">
+      <span class="close" id="closeModal">&times;</span>
+      <h2 id="modalTitle">Add Contribution</h2>
+      <input type="text" id="author" placeholder="Author">
+      <input type="text" id="conferenceType" placeholder="Conference Type">
+      <input type="date" id="date">
+      <input type="text" id="fileLink" placeholder="File Link">
+      <button class="submit-btn" id="submitBtn">Submit</button>
+    </div>
+  </div>
+
+  <!-- Table to display contributions -->
+  <table id="contributionsTable">
+    <thead>
+      <tr>
+        <th>Conference Type</th>
+        <th>Author</th>
+        <th>File Link</th>
+        <th>Date</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Rows will be populated here -->
+    </tbody>
+  </table>
+
+  <!-- Delete All Button -->
+  <button class="delete-all-btn" id="deleteAllBtn"><i class="fas fa-trash"></i> Delete All</button>
+
+  <script type="module">
+    // Import Firebase modules
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, getDocs, doc, deleteDoc, updateDoc, query, where, orderBy } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
+
+    // Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyAyiRtkvdxnGWaiG-Xn-50Vm_Pb1J0ya6E",
+      authDomain: "church-cms-96407.firebaseapp.com",
+      projectId: "church-cms-96407",
+      storageBucket: "church-cms-96407.firebasestorage.app",
+      messagingSenderId: "19370427001",
+      appId: "1:19370427001:web:b1d20215c437fc324e4aa8",
+      measurementId: "G-NKDZSFGR4X"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // Reference to the Contributions collection
+    const contributionsRef = collection(db, "Contributions");
+
+    // DOM Elements
+    const addBtn = document.getElementById('addBtn');
+    const closeModalBtn = document.getElementById('closeModal');
+    const submitBtn = document.getElementById('submitBtn');
+    const deleteAllBtn = document.getElementById('deleteAllBtn');
+    const modal = document.getElementById('addModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const searchAuthor = document.getElementById('searchAuthor');
+    const searchType = document.getElementById('searchType');
+    const searchDate = document.getElementById('searchDate');
+    const sortBy = document.getElementById('sortBy');
+
+    let editId = null; // Track the ID of the contribution being edited
+
+    // Open modal for adding/editing contributions
+    addBtn.addEventListener('click', () => {
+      editId = null; // Reset edit ID
+      modalTitle.textContent = "Add Contribution";
+      document.getElementById('author').value = "";
+      document.getElementById('conferenceType').value = "";
+      document.getElementById('date').value = "";
+      document.getElementById('fileLink').value = "";
+      modal.style.display = 'block';
+    });
+
+    // Close modal
+    closeModalBtn.addEventListener('click', () => {
+      modal.style.display = 'none';
+    });
+
+    // Submit contribution (add or edit)
+    submitBtn.addEventListener('click', async () => {
+      const author = document.getElementById('author').value;
+      const conferenceType = document.getElementById('conferenceType').value;
+      const date = document.getElementById('date').value;
+      const fileLink = document.getElementById('fileLink').value;
+
+      if (author && conferenceType && date && fileLink) {
+        if (editId) {
+          // Update existing contribution
+          await updateDoc(doc(db, "Contributions", editId), {
+            author,
+            conferenceType,
+            date,
+            fileLink
+          });
+        } else {
+          // Add new contribution
+          await addDoc(contributionsRef, {
+            author,
+            conferenceType,
+            date,
+            fileLink
+          });
+        }
+        modal.style.display = 'none';
+        loadContributions();
+      } else {
+        alert('Please fill all fields');
+      }
+    });
+
+    // Load contributions with search and sort
+    async function loadContributions() {
+      const tbody = document.querySelector('#contributionsTable tbody');
+      tbody.innerHTML = '';
+
+      let q = query(contributionsRef);
+
+      // Apply search filters
+      if (searchAuthor.value) {
+        q = query(q, where("author", "==", searchAuthor.value));
+      }
+      if (searchType.value) {
+        q = query(q, where("conferenceType", "==", searchType.value));
+      }
+      if (searchDate.value) {
+        q = query(q, where("date", "==", searchDate.value));
+      }
+
+      // Apply sorting
+      if (sortBy.value === "date") {
+        q = query(q, orderBy("date", "desc"));
+      } else if (sortBy.value === "author") {
+        q = query(q, orderBy("author"));
+      } else if (sortBy.value === "type") {
+        q = query(q, orderBy("conferenceType"));
+      }
+
+      const querySnapshot = await getDocs(q);
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        const row = `
+          <tr>
+            <td>${data.conferenceType}</td>
+            <td>${data.author}</td>
+            <td><a href="${data.fileLink}" target="_blank">View File</a></td>
+            <td>${data.date}</td>
+            <td class="actions">
+              <button class="edit-btn" onclick="openEditModal('${doc.id}', '${data.author}', '${data.conferenceType}', '${data.date}', '${data.fileLink}')"><i class="fas fa-edit"></i> Edit</button>
+              <button class="delete-btn" onclick="deleteContribution('${doc.id}')"><i class="fas fa-trash"></i> Delete</button>
+            </td>
+          </tr>
+        `;
+        tbody.innerHTML += row;
+      });
+    }
+
+    // Open edit modal
+    window.openEditModal = (id, author, conferenceType, date, fileLink) => {
+      editId = id;
+      modalTitle.textContent = "Edit Contribution";
+      document.getElementById('author').value = author;
+      document.getElementById('conferenceType').value = conferenceType;
+      document.getElementById('date').value = date;
+      document.getElementById('fileLink').value = fileLink;
+      modal.style.display = 'block';
+    };
+
+    // Delete contribution
+    window.deleteContribution = async (id) => {
+      if (confirm('Are you sure you want to delete this contribution?')) {
+        await deleteDoc(doc(db, "Contributions", id));
+        loadContributions();
+      }
+    };
+
+    // Delete all contributions
+    deleteAllBtn.addEventListener('click', async () => {
+      if (confirm('Are you sure you want to delete ALL contributions?')) {
+        const querySnapshot = await getDocs(contributionsRef);
+        querySnapshot.forEach(async (doc) => {
+          await deleteDoc(doc.ref);
+        });
+        loadContributions();
+      }
+    });
+
+    // Add event listeners for search and sort
+    searchAuthor.addEventListener('input', loadContributions);
+    searchType.addEventListener('input', loadContributions);
+    searchDate.addEventListener('input', loadContributions);
+    sortBy.addEventListener('change', loadContributions);
+
+    // Initial load of contributions
+    loadContributions();
+  </script>
+</body>
+</html>

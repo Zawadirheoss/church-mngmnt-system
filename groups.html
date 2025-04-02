@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fellowship Groups Dashboard</title>
+  <script type="module">
+    // Import Firebase modules
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, getDocs, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
+
+    // Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyAyiRtkvdxnGWaiG-Xn-50Vm_Pb1J0ya6E",
+      authDomain: "church-cms-96407.firebaseapp.com",
+      projectId: "church-cms-96407",
+      storageBucket: "church-cms-96407.appspot.com",
+      messagingSenderId: "19370427001",
+      appId: "1:19370427001:web:b1d20215c437fc324e4aa8",
+      measurementId: "G-NKDZSFGR4X"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // Reference to the Fellowship Groups collection
+    const fellowshipGroupsRef = collection(db, "FellowshipGroups");
+
+    // Function to add a new member
+    async function addMember(member) {
+      try {
+        await addDoc(fellowshipGroupsRef, member);
+        alert("Member added successfully!");
+        clearFormInputs(); // Clear form inputs after saving
+        loadMembers();
+      } catch (error) {
+        console.error("Error adding member: ", error);
+      }
+    }
+
+    // Function to load members into the table
+    async function loadMembers() {
+      const querySnapshot = await getDocs(fellowshipGroupsRef);
+      const members = [];
+      querySnapshot.forEach((doc) => {
+        members.push({ id: doc.id, ...doc.data() });
+      });
+      renderTable(members);
+      renderGroupButtons(members);
+    }
+
+    // Function to delete a member
+    async function deleteMember(id) {
+      try {
+        await deleteDoc(doc(db, "FellowshipGroups", id));
+        alert("Member deleted successfully!");
+        loadMembers();
+      } catch (error) {
+        console.error("Error deleting member: ", error);
+      }
+    }
+
+    // Function to render the table
+    function renderTable(members) {
+      const tableBody = document.getElementById("membersTableBody");
+      tableBody.innerHTML = "";
+      members.forEach((member) => {
+        const row = `
+          <tr>
+            <td>${member.Name}</td>
+            <td>${member.Email}</td>
+            <td>${member.Gender}</td>
+            <td>${member.HomeChurch}</td>
+            <td>${member.Phone}</td>
+            <td>${member.Title}</td>
+            <td>
+              <button onclick="deleteMember('${member.id}')" class="delete-btn">Delete</button>
+            </td>
+          </tr>
+        `;
+        tableBody.innerHTML += row;
+      });
+    }
+
+    // Function to render group buttons
+    function renderGroupButtons(members) {
+      const groupButtons = document.getElementById("groupButtons");
+      const groupCounts = {};
+
+      members.forEach((member) => {
+        if (groupCounts[member.Title]) {
+          groupCounts[member.Title]++;
+        } else {
+          groupCounts[member.Title] = 1;
+        }
+      });
+
+      groupButtons.innerHTML = "";
+      for (const [title, count] of Object.entries(groupCounts)) {
+        const button = `
+          <button onclick="filterByTitle('${title}')" class="group-btn">
+            ${title} <span class="badge">${count}</span>
+          </button>
+        `;
+        groupButtons.innerHTML += button;
+      }
+    }
+
+    // Function to filter by title
+    function filterByTitle(title) {
+      const rows = document.querySelectorAll("#membersTableBody tr");
+      rows.forEach((row) => {
+        if (row.cells[5].textContent === title) {
+          row.style.display = "";
+        } else {
+          row.style.display = "none";
+        }
+      });
+    }
+
+    // Function to search by name
+    function searchByName() {
+      const searchTerm = document.getElementById("searchInput").value.toLowerCase();
+      const rows = document.querySelectorAll("#membersTableBody tr");
+      rows.forEach((row) => {
+        if (row.cells[0].textContent.toLowerCase().includes(searchTerm)) {
+          row.style.display = "";
+        } else {
+          row.style.display = "none";
+        }
+      });
+    }
+
+    // Function to clear form inputs
+    function clearFormInputs() {
+      document.getElementById("name").value = "";
+      document.getElementById("email").value = "";
+      document.getElementById("gender").value = "";
+      document.getElementById("homeChurch").value = "";
+      document.getElementById("phone").value = "";
+      document.getElementById("title").value = "";
+    }
+
+    // Expose functions to the global scope
+    window.addMember = addMember;
+    window.deleteMember = deleteMember;
+    window.filterByTitle = filterByTitle;
+    window.searchByName = searchByName;
+
+    // Load members on page load
+    document.addEventListener("DOMContentLoaded", loadMembers);
+  </script>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #f4f7f6;
+      margin: 0;
+      padding: 0;
+    }
+    .dashboard {
+      max-width: 1200px;
+      margin: 20px auto;
+      padding: 20px;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+    .add-member-btn {
+      display: block;
+      margin: 20px auto;
+      padding: 10px 20px;
+      background-color: #1f11b8;
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    .add-member-btn:hover {
+      background-color: #0056b3;
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      justify-content: center;
+      align-items: center;
+    }
+    .modal-content {
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      width: 300px;
+      text-align: center;
+    }
+    .modal-content input {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    .modal-content button {
+      padding: 10px 20px;
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin: 5px;
+    }
+    .modal-content button:hover {
+      background-color: #0056b3;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    table th, table td {
+      padding: 10px;
+      border: 1px solid #ddd;
+      text-align: left;
+    }
+    table th {
+      background-color: #160595;
+      color: #fff;
+    }
+    .delete-btn {
+      padding: 5px 10px;
+      background-color: #ff4d4d;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .delete-btn:hover {
+      background-color: #cc0000;
+    }
+    .group-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .group-btn {
+      padding: 10px 20px;
+      background-color: #28a745;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .group-btn:hover {
+      background-color: #218838;
+    }
+    .badge {
+      background-color: #ffc107;
+      color: #000;
+      padding: 2px 6px;
+      border-radius: 10px;
+      margin-left: 5px;
+    }
+    .search-container {
+      margin-top: 20px;
+    }
+    .search-container input {
+      padding: 10px;
+      width: 300px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="dashboard">
+    <h1>Fellowship Groups Dashboard</h1>
+    <button class="add-member-btn" onclick="document.getElementById('addMemberModal').style.display='flex'">Add Member</button>
+    <div class="search-container">
+      <input type="text" id="searchInput" placeholder="Search by name..." oninput="searchByName()">
+    </div>
+    <div class="group-buttons" id="groupButtons"></div>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Gender</th>
+          <th>Home Church</th>
+          <th>Phone</th>
+          <th>Title</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="membersTableBody"></tbody>
+    </table>
+  </div>
+
+  <!-- Add Member Modal -->
+  <div class="modal" id="addMemberModal">
+    <div class="modal-content">
+      <h2>Add New Member</h2>
+      <input type="text" id="name" placeholder="Name">
+      <input type="email" id="email" placeholder="Email">
+      <input type="text" id="gender" placeholder="Gender">
+      <input type="text" id="homeChurch" placeholder="Home Church">
+      <input type="text" id="phone" placeholder="Phone">
+      <input type="text" id="title" placeholder="Title">
+      <button onclick="addMemberFromModal()">Add</button>
+      <button onclick="document.getElementById('addMemberModal').style.display='none'">Cancel</button>
+    </div>
+  </div>
+
+  <script>
+    // Function to add a member from the modal
+    function addMemberFromModal() {
+      const member = {
+        Name: document.getElementById("name").value,
+        Email: document.getElementById("email").value,
+        Gender: document.getElementById("gender").value,
+        HomeChurch: document.getElementById("homeChurch").value,
+        Phone: document.getElementById("phone").value,
+        Title: document.getElementById("title").value
+      };
+      addMember(member);
+      document.getElementById("addMemberModal").style.display = "none";
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Leadership Analysis</title>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.5.0/firebase-app.js";
+    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.5.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyC2p7puHKWXV0hc6InDjGQYKqYbp8jJDp8",
+      authDomain: "leadership-5d73c.firebaseapp.com",
+      projectId: "leadership-5d73c",
+      storageBucket: "leadership-5d73c.firebasestorage.app",
+      messagingSenderId: "880001716917",
+      appId: "1:880001716917:web:62000510a42594da82e4fc"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const leadershipCategories = [
+      "church-board",
+      "evangelism-leadership",
+      "executive",
+      "finance-department",
+      "hospitality-department",
+      "other",
+      "pastors-council",
+      "praise-worship-leaders",
+      "sunday-school-ministry",
+      "technical-leadership",
+      "ushering",
+      "women-leadership",
+      "youth-leadership"
+    ];
+
+    async function fetchData() {
+      const data = {};
+      let highestTotal = { category: "", total: 0 };
+
+      for (const category of leadershipCategories) {
+        const querySnapshot = await getDocs(collection(db, category));
+        const leaders = [];
+        querySnapshot.forEach((doc) => {
+          leaders.push(doc.data());
+        });
+
+        const total = leaders.length;
+        const maleCount = leaders.filter(leader => leader.gender === "male").length;
+        const femaleCount = total - maleCount;
+
+        data[category] = { total, maleCount, femaleCount };
+
+        if (total > highestTotal.total) {
+          highestTotal = { category, total };
+        }
+      }
+
+      renderCards(data);
+      renderHighestTotal(highestTotal);
+    }
+
+    function renderCards(data) {
+      const container = document.getElementById("cards-container");
+      container.innerHTML = "";
+
+      for (const [category, details] of Object.entries(data)) {
+        const card = document.createElement("div");
+        card.className = `card ${category}`; // Add category-specific class
+        card.innerHTML = `
+          <h3>${category.replace(/-/g, " ").toUpperCase()}</h3>
+          <p>Total: ${details.total}</p>
+          <p>Male: ${details.maleCount}</p>
+          <p>Female: ${details.femaleCount}</p>
+          ${details.total === 0 ? "<p>No data yet</p>" : ""}
+        `;
+        container.appendChild(card);
+      }
+    }
+
+    function renderHighestTotal(highestTotal) {
+      const highestTotalSection = document.getElementById("highest-total");
+      highestTotalSection.innerHTML = `
+        <h2>Highest Total Leadership Category</h2>
+        <p>${highestTotal.category.replace(/-/g, " ").toUpperCase()} - ${highestTotal.total}</p>
+      `;
+    }
+
+    window.onload = fetchData;
+  </script>
+  <style>
+    /* General Styles */
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #f4f4f9;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+      margin-bottom: 30px;
+      font-size: 2.5rem;
+    }
+
+    /* Cards Container */
+    #cards-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      justify-content: center;
+    }
+
+    /* Card Styles */
+    .card {
+      background-color: #fff;
+      border-radius: 15px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+      width: 200px;
+      text-align: center;
+      animation: fadeIn 0.5s ease-in-out;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .card:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+    }
+    .card h3 {
+      margin: 0 0 15px;
+      font-size: 1.2rem;
+      color: #333;
+    }
+    .card p {
+      margin: 8px 0;
+      font-size: 1rem;
+      color: #555;
+    }
+    .card p:last-child {
+      color: #888;
+    }
+
+    /* Category-Specific Colors */
+    .church-board { background: linear-gradient(135deg, #ff9a9e, #fad0c4); }
+    .evangelism-leadership { background: linear-gradient(135deg, #a1c4fd, #c2e9fb); }
+    .executive { background: linear-gradient(135deg, #84fab0, #8fd3f4); }
+    .finance-department { background: linear-gradient(135deg, #fbc2eb, #a6c1ee); }
+    .hospitality-department { background: linear-gradient(135deg, #ffecd2, #fcb69f); }
+    .other { background: linear-gradient(135deg, #e0c3fc, #8ec5fc); }
+    .pastors-council { background: linear-gradient(135deg, #f6d365, #fda085); }
+    .praise-worship-leaders { background: linear-gradient(135deg, #f093fb, #f5576c); }
+    .sunday-school-ministry { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+    .technical-leadership { background: linear-gradient(135deg, #43e97b, #38f9d7); }
+    .ushering { background: linear-gradient(135deg, #fa709a, #fee140); }
+    .women-leadership { background: linear-gradient(135deg, #667eea, #764ba2); }
+    .youth-leadership { background: linear-gradient(135deg, #96fbc4, #f9f586); }
+
+    /* Highest Total Section */
+    #highest-total {
+      margin-top: 40px;
+      text-align: center;
+      padding: 20px;
+      background-color: #fff;
+      border-radius: 15px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      animation: fadeIn 0.5s ease-in-out;
+    }
+    #highest-total h2 {
+      color: #333;
+      font-size: 1.8rem;
+      margin-bottom: 10px;
+    }
+    #highest-total p {
+      font-size: 1.2rem;
+      color: #555;
+    }
+
+    /* Animations */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <h1>Leadership Analysis</h1>
+  <div id="cards-container"></div>
+  <div id="highest-total"></div>
+</body>
+</html>

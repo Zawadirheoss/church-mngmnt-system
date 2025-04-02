@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pastoral Support Dashboard</title>
+  <style>
+    body {
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+  background: #f4f4f4;
+  color: #333;
+}
+
+.dashboard-container {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+header h1 {
+  margin: 0;
+  font-size: 24px;
+}
+
+.total-requests {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.controls {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.controls input, .controls select, .controls button {
+  padding: 10px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.controls button {
+  background: #ff4d4d;
+  color: white;
+  cursor: pointer;
+}
+
+.controls button:hover {
+  background: #cc0000;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+th, td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+th {
+  background: #4702af;
+  color: white;
+}
+
+tr:hover {
+  background: #f1f1f1;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+}
+
+.actions button {
+  padding: 5px 10px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.actions .call {
+  background: #4CAF50;
+  color: white;
+}
+
+.actions .call:hover {
+  background: #45a049;
+}
+
+.actions .delete {
+  background: #ff4d4d;
+  color: white;
+}
+
+.actions .delete:hover {
+  background: #cc0000;
+}
+  </style>
+</head>
+<body>
+  <div class="dashboard-container">
+    <header>
+      <h1>Pastoral Support</h1>
+      <div class="total-requests">
+        Total Requests: <span id="totalRequests">0</span>
+      </div>
+    </header>
+
+    <div class="controls">
+      <input type="text" id="searchBar" placeholder="Search by name...">
+      <select id="genderFilter">
+        <option value="">All Genders</option>
+        <option value="Male">Male</option>
+        <option value="Female">Female</option>
+        <option value="Other">Other</option>
+      </select>
+      <button id="deleteAll">Delete All</button>
+    </div>
+
+    <table id="requestsTable">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Gender</th>
+          <th>Phone Number</th>
+          <th>Request</th>
+          <th>Date & Time</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Rows will be populated dynamically -->
+      </tbody>
+    </table>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
+import { getDatabase, ref, onValue, remove } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
+
+// Firebase configuration
+const firebaseConfig = {
+  apiKey: "AIzaSyDDrT1C0Ou8VZeb4mwviXZaCKrkLL6u434",
+  authDomain: "pastoral-support.firebaseapp.com",
+  databaseURL: "https://pastoral-support-default-rtdb.firebaseio.com",
+  projectId: "pastoral-support",
+  storageBucket: "pastoral-support.firebasestorage.app",
+  messagingSenderId: "837955113964",
+  appId: "1:837955113964:web:15bfd3aaf90dd8f6a726c9"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const database = getDatabase(app);
+
+// DOM Elements
+const requestsTable = document.getElementById('requestsTable').getElementsByTagName('tbody')[0];
+const totalRequests = document.getElementById('totalRequests');
+const searchBar = document.getElementById('searchBar');
+const genderFilter = document.getElementById('genderFilter');
+const deleteAllButton = document.getElementById('deleteAll');
+
+// Fetch data from Firebase
+function fetchData() {
+  const dbRef = ref(database, 'supportRequests');
+  onValue(dbRef, (snapshot) => {
+    const data = snapshot.val();
+    requestsTable.innerHTML = ''; // Clear table
+    let count = 0;
+
+    if (data) {
+      Object.entries(data).forEach(([key, value]) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${value.name}</td>
+          <td>${value.gender}</td>
+          <td>${value.phone}</td>
+          <td>${value.support}</td>
+          <td>${new Date(value.timestamp).toLocaleString()}</td>
+          <td class="actions">
+            <button class="call" onclick="call('${value.phone}')">Call</button>
+            <button class="delete" onclick="deleteRequest('${key}')">Delete</button>
+          </td>
+        `;
+        requestsTable.appendChild(row);
+        count++;
+      });
+    }
+
+    totalRequests.textContent = count;
+  });
+}
+
+// Call action
+window.call = (phone) => {
+  window.open(`tel:${phone}`, '_self');
+};
+
+// Delete action
+window.deleteRequest = (key) => {
+  if (confirm('Are you sure you want to delete this request?')) {
+    const dbRef = ref(database, `supportRequests/${key}`);
+    remove(dbRef).then(() => {
+      alert('Request deleted successfully!');
+      fetchData(); // Refresh data
+    }).catch((error) => {
+      alert('Error deleting request: ' + error.message);
+    });
+  }
+};
+
+// Delete all action
+deleteAllButton.addEventListener('click', () => {
+  if (confirm('Are you sure you want to delete ALL requests?')) {
+    const dbRef = ref(database, 'supportRequests');
+    remove(dbRef).then(() => {
+      alert('All requests deleted successfully!');
+      fetchData(); // Refresh data
+    }).catch((error) => {
+      alert('Error deleting all requests: ' + error.message);
+    });
+  }
+});
+
+// Search and filter functionality
+searchBar.addEventListener('input', () => {
+  filterTable();
+});
+
+genderFilter.addEventListener('change', () => {
+  filterTable();
+});
+
+function filterTable() {
+  const searchTerm = searchBar.value.toLowerCase();
+  const gender = genderFilter.value;
+  const rows = requestsTable.getElementsByTagName('tr');
+
+  for (let row of rows) {
+    const name = row.getElementsByTagName('td')[0]?.textContent.toLowerCase();
+    const rowGender = row.getElementsByTagName('td')[1]?.textContent;
+
+    const matchesSearch = name?.includes(searchTerm);
+    const matchesGender = gender === '' || rowGender === gender;
+
+    if (matchesSearch && matchesGender) {
+      row.style.display = '';
+    } else {
+      row.style.display = 'none';
+    }
+  }
+}
+
+// Initial fetch
+fetchData();
+  </script>
+</body>
+</html>

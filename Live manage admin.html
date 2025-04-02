@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Events Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #f0f2f5;
+        }
+
+        .header {
+            background: #fff;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .stats {
+            display: flex;
+            gap: 20px;
+        }
+
+        .stat-box {
+            background: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .add-event-btn, .history-btn {
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+
+        .add-event-btn { background: #2196F3; }
+        .history-btn { background: #9C27B0; }
+
+        .events-table {
+            margin: 20px;
+            background: white;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .action-btn {
+            padding: 5px 10px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            margin: 0 5px;
+        }
+
+        .share-btn { background: #25D366; color: white; }
+        .delete-btn { background: #f44336; color: white; }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 500px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        input {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+        }
+
+        .support-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #2196F3;
+            color: white;
+            padding: 15px;
+            border-radius: 50%;
+            text-decoration: none;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .modal-table {
+            max-height: 400px;
+            overflow-y: auto;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Live Events Dashboard</h1>
+        <div class="stats">
+            <div class="stat-box">
+                <span>Live Events: <span id="liveCount">0</span></span>
+            </div>
+            <div class="stat-box">
+                <span>Total History: <span id="historyCount">0</span></span>
+            </div>
+        </div>
+        <div>
+            <button class="add-event-btn" onclick="openModal('eventModal')">Add Event</button>
+            <button class="history-btn" onclick="openModal('historyModal')">History</button>
+        </div>
+    </div>
+
+    <div class="events-table">
+        <table>
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Venue</th>
+                    <th>Date & Time</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="eventsBody"></tbody>
+        </table>
+    </div>
+
+    <!-- Add Event Modal -->
+    <div id="eventModal" class="modal">
+        <div class="modal-content">
+            <h2>New Event</h2>
+            <form id="eventForm">
+                <div class="form-group">
+                    <label>Title:</label>
+                    <input type="text" id="title" required>
+                </div>
+                <div class="form-group">
+                    <label>Venue:</label>
+                    <input type="text" id="venue" required>
+                </div>
+                <div class="form-group">
+                    <label>Link:</label>
+                    <input type="url" id="link" required>
+                </div>
+                <div class="form-group">
+                    <label>Date & Time:</label>
+                    <input type="datetime-local" id="datetime" required>
+                </div>
+                <button type="submit">Save</button>
+                <button type="button" onclick="closeModal('eventModal')">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- History Modal -->
+    <div id="historyModal" class="modal">
+        <div class="modal-content">
+            <h2>Event History</h2>
+            <div class="modal-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Venue</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyBody"></tbody>
+                </table>
+            </div>
+            <button onclick="closeModal('historyModal')">Close</button>
+        </div>
+    </div>
+
+    <a href="Live support admin.html" class="support-btn"><i class="fas fa-headset"></i></a>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
+        import { getDatabase, ref, push, onValue, remove, get } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCrz6qySUu5D1TBxvyVfVBLbY_DCvtY3rA",
+            authDomain: "live-events-bd682.firebaseapp.com",
+            databaseURL: "https://live-events-bd682-default-rtdb.firebaseio.com",
+            projectId: "live-events-bd682",
+            storageBucket: "live-events-bd682.firebasestorage.app",
+            messagingSenderId: "280445604397",
+            appId: "1:280445604397:web:00766767d770cf6e275ea4"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const eventsRef = ref(db, 'events');
+        const historyRef = ref(db, 'history');
+
+        let liveEvents = [];
+        let historyEvents = [];
+
+        // Live events listener
+        onValue(eventsRef, (snapshot) => {
+            liveEvents = [];
+            snapshot.forEach((childSnapshot) => {
+                liveEvents.push({
+                    id: childSnapshot.key,
+                    ...childSnapshot.val()
+                });
+            });
+            renderLiveEvents();
+            updateCounts();
+        });
+
+        // History events listener
+        onValue(historyRef, (snapshot) => {
+            historyEvents = [];
+            snapshot.forEach((childSnapshot) => {
+                historyEvents.push({
+                    id: childSnapshot.key,
+                    ...childSnapshot.val()
+                });
+            });
+            updateCounts();
+        });
+
+        function renderLiveEvents() {
+            const tbody = document.getElementById('eventsBody');
+            tbody.innerHTML = liveEvents.map(event => `
+                <tr>
+                    <td>${event.title}</td>
+                    <td>${event.venue}</td>
+                    <td>${new Date(event.datetime).toLocaleString()}</td>
+                    <td>
+                        <button class="action-btn share-btn" 
+                            onclick="shareEvent('${event.title}', '${event.venue}', '${event.link}', '${event.datetime}')">
+                            Share
+                        </button>
+                        <button class="action-btn delete-btn" 
+                            onclick="deleteEvent('${event.id}')">
+                            Delete
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        window.shareEvent = (title, venue, link, datetime) => {
+            const message = `Join us for ${title}!\nVenue: ${venue}\nDate: ${new Date(datetime).toLocaleString()}\nLink: ${link}`;
+            window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
+        };
+
+        window.deleteEvent = async (id) => {
+            if (!confirm('Delete this live event?')) return;
+            
+            try {
+                const eventRef = ref(db, `events/${id}`);
+                const snapshot = await get(eventRef);
+                
+                if (snapshot.exists()) {
+                    const eventData = snapshot.val();
+                    await push(historyRef, eventData);
+                    await remove(eventRef);
+                }
+            } catch (error) {
+                alert('Error deleting event: ' + error.message);
+            }
+        };
+
+        window.deleteHistory = (id) => {
+            if (confirm('Permanently remove from history?')) {
+                remove(ref(db, `history/${id}`));
+            }
+        };
+
+        function updateCounts() {
+            document.getElementById('liveCount').textContent = liveEvents.length;
+            document.getElementById('historyCount').textContent = historyEvents.length;
+        }
+
+        // Modal controls
+        window.openModal = (modalId) => {
+            if (modalId === 'historyModal') renderHistory();
+            document.getElementById(modalId).style.display = 'flex';
+        };
+
+        window.closeModal = (modalId) => {
+            document.getElementById(modalId).style.display = 'none';
+        };
+
+        function renderHistory() {
+            const tbody = document.getElementById('historyBody');
+            tbody.innerHTML = historyEvents.map(event => `
+                <tr>
+                    <td>${event.title}</td>
+                    <td>${event.venue}</td>
+                    <td>${new Date(event.datetime).toLocaleString()}</td>
+                    <td>
+                        <button class="action-btn delete-btn" 
+                            onclick="deleteHistory('${event.id}')">
+                            Delete
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Form handling
+        document.getElementById('eventForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const newEvent = {
+                title: document.getElementById('title').value,
+                venue: document.getElementById('venue').value,
+                link: document.getElementById('link').value,
+                datetime: document.getElementById('datetime').value
+            };
+            
+            try {
+                await push(eventsRef, newEvent);
+                closeModal('eventModal');
+                e.target.reset();
+            } catch (error) {
+                alert('Error saving event: ' + error.message);
+            }
+        });
+    </script>
+</body>
+</html>
