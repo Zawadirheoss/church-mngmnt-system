@@ -148,7 +148,7 @@
 
             // Home Church distribution
             const churchCounts = users.reduce((acc, user) => {
-                acc[user.homeChurch] = (acc[user.homeChurch] || 0) + 1;
+                acc[user.homeChurch] = (acc[user.homechurch] || 0) + 1;
                 return acc;
             }, {});
             updateList('churchStats', churchCounts);
