@@ -11,30 +11,9 @@
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        :root {
-            --primary: #4361ee;
-            --primary-dark: #3a56d4;
-            --secondary: #3f37c9;
-            --dark: #1f2937;
-            --light: #f3f4f6;
-        }
-        
         body {
             font-family: 'Poppins', sans-serif;
             background-color: #f8fafc;
-        }
-        
-        .sidebar {
-            transition: all 0.3s ease;
-        }
-        
-        @media (max-width: 768px) {
-            .sidebar {
-                transform: translateX(-100%);
-            }
-            .sidebar.active {
-                transform: translateX(0);
-            }
         }
         
         .card-shadow {
@@ -48,19 +27,8 @@
 </head>
 <body class="bg-gray-50">
     <div class="flex h-screen overflow-hidden">
-        <!-- Sidebar -->
-       
         <!-- Main Content -->
         <div class="flex-1 overflow-auto">
-            <!-- Mobile Header -->
-            <header class="md:hidden bg-white shadow-sm p-4 flex items-center justify-between">
-                <button id="sidebarToggle" class="text-gray-600">
-                    <i class="fas fa-bars text-xl"></i>
-                </button>
-                <h1 class="text-lg font-semibold text-gray-800">User Management</h1>
-                <div class="w-8"></div> <!-- Spacer for alignment -->
-            </header>
-            
             <!-- Main Content Area -->
             <main class="p-6">
                 <!-- Header -->
@@ -78,7 +46,7 @@
                 </div>
                 
                 <!-- Stats Cards -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                     <div class="bg-white rounded-xl p-6 shadow-sm border-l-4 border-blue-500">
                         <div class="flex items-center justify-between">
                             <div>
@@ -91,7 +59,18 @@
                         </div>
                     </div>
                     
-                   
+                    <div class="bg-white rounded-xl p-6 shadow-sm border-l-4 border-orange-500">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-500">Last 7 Days</p>
+                                <h3 id="lastSevenDays" class="text-3xl font-bold text-gray-800">0</h3>
+                            </div>
+                            <div class="bg-orange-100 p-3 rounded-full">
+                                <i class="fas fa-calendar-alt text-orange-500 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 
                 <!-- Users Table -->
                 <div class="bg-white rounded-xl shadow-sm overflow-hidden">
@@ -114,11 +93,11 @@
                                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
                                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Year of Birth</th>
                                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Home Church</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Joined</th>
                                     <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                                 </tr>
                             </thead>
                             <tbody id="usersTableBody" class="bg-white divide-y divide-gray-200">
-                                <!-- Users will be loaded here -->
                                 <tr>
                                     <td colspan="7" class="px-6 py-4 text-center text-gray-500">Loading users...</td>
                                 </tr>
@@ -144,27 +123,6 @@
         </div>
     </div>
     
-    <!-- Delete Confirmation Modal -->
-    <div id="deleteModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-        <div class="bg-white rounded-xl p-6 w-full max-w-md">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-semibold text-gray-800">Confirm Deletion</h3>
-                <button id="closeDeleteModal" class="text-gray-500 hover:text-gray-700">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <p class="text-gray-600 mb-6">Are you sure you want to delete this user account? This action cannot be undone.</p>
-            <div class="flex justify-end space-x-3">
-                <button id="cancelDelete" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
-                    Cancel
-                </button>
-                <button id="confirmDelete" class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600">
-                    Delete Account
-                </button>
-            </div>
-        </div>
-    </div>
-    
     <!-- Reset Password Modal -->
     <div id="resetPasswordModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
         <div class="bg-white rounded-xl p-6 w-full max-w-md">
@@ -186,38 +144,6 @@
         </div>
     </div>
     
-    <!-- Email User Modal -->
-    <div id="emailUserModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-        <div class="bg-white rounded-xl p-6 w-full max-w-md">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-semibold text-gray-800">Send Email</h3>
-                <button id="closeEmailModal" class="text-gray-500 hover:text-gray-700">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="mb-4">
-                <label class="block text-gray-700 text-sm font-medium mb-2">To:</label>
-                <input id="emailRecipient" type="email" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" readonly>
-            </div>
-            <div class="mb-4">
-                <label class="block text-gray-700 text-sm font-medium mb-2">Subject:</label>
-                <input id="emailSubject" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-            </div>
-            <div class="mb-4">
-                <label class="block text-gray-700 text-sm font-medium mb-2">Message:</label>
-                <textarea id="emailMessage" rows="4" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
-            </div>
-            <div class="flex justify-end space-x-3">
-                <button id="cancelEmail" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
-                    Cancel
-                </button>
-                <button id="sendEmail" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
-                    Send Email
-                </button>
-            </div>
-        </div>
-    </div>
-    
     <!-- Notification Toast -->
     <div id="notificationToast" class="fixed bottom-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg transform translate-y-16 transition-transform duration-300 hidden">
         <div class="flex items-center space-x-2">
@@ -228,7 +154,6 @@
 
     <!-- Firebase SDKs -->
     <script type="module">
-        // Import the functions you need from the SDKs you need
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
         import { 
             getFirestore, 
@@ -236,17 +161,14 @@
             getDocs, 
             query, 
             orderBy, 
-            deleteDoc, 
-            doc,
+            where,
             getCountFromServer
         } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
         import { 
-            getAuth, 
-            deleteUser,
+            getAuth,
             sendPasswordResetEmail
         } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
 
-        // Your web app's Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyDJJqxh3UOsTcBPAXLeEWeLoQRmIy_6hNU",
             authDomain: "web-app-ae5b6.firebaseapp.com",
@@ -256,22 +178,13 @@
             appId: "1:921251501161:web:316ff3fc4345735762bef8"
         };
 
-        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
 
-        // DOM Elements
         const usersTableBody = document.getElementById('usersTableBody');
         const totalUsers = document.getElementById('totalUsers');
-        const sidebarToggle = document.getElementById('sidebarToggle');
-        const sidebar = document.querySelector('.sidebar');
-        
-        // Modal Elements
-        const deleteModal = document.getElementById('deleteModal');
-        const closeDeleteModal = document.getElementById('closeDeleteModal');
-        const cancelDelete = document.getElementById('cancelDelete');
-        const confirmDelete = document.getElementById('confirmDelete');
+        const lastSevenDays = document.getElementById('lastSevenDays');
         
         const resetPasswordModal = document.getElementById('resetPasswordModal');
         const closeResetModal = document.getElementById('closeResetModal');
@@ -279,46 +192,23 @@
         const confirmReset = document.getElementById('confirmReset');
         const resetPasswordMessage = document.getElementById('resetPasswordMessage');
         
-        const emailUserModal = document.getElementById('emailUserModal');
-        const closeEmailModal = document.getElementById('closeEmailModal');
-        const cancelEmail = document.getElementById('cancelEmail');
-        const sendEmail = document.getElementById('sendEmail');
-        const emailRecipient = document.getElementById('emailRecipient');
-        const emailSubject = document.getElementById('emailSubject');
-        const emailMessage = document.getElementById('emailMessage');
-        
         const notificationToast = document.getElementById('notificationToast');
         const notificationMessage = document.getElementById('notificationMessage');
         
-        // State variables
         let currentPage = 1;
         const usersPerPage = 10;
         let allUsers = [];
-        let userToDelete = null;
         let userToReset = null;
-        let userToEmail = null;
 
-        // Event Listeners
-        sidebarToggle.addEventListener('click', () => {
-            sidebar.classList.toggle('active');
-        });
-        
-        closeDeleteModal.addEventListener('click', () => deleteModal.classList.add('hidden'));
-        cancelDelete.addEventListener('click', () => deleteModal.classList.add('hidden'));
-        
         closeResetModal.addEventListener('click', () => resetPasswordModal.classList.add('hidden'));
         cancelReset.addEventListener('click', () => resetPasswordModal.classList.add('hidden'));
-        
-        closeEmailModal.addEventListener('click', () => emailUserModal.classList.add('hidden'));
-        cancelEmail.addEventListener('click', () => emailUserModal.classList.add('hidden'));
-        
-        // Initialize the app
+
         document.addEventListener('DOMContentLoaded', () => {
             fetchUsers();
             fetchTotalUsers();
+            fetchLastSevenDays();
         });
 
-        // Fetch all users from Firestore
         async function fetchUsers() {
             try {
                 const usersRef = collection(db, 'users');
@@ -337,7 +227,6 @@
             }
         }
 
-        // Fetch total count of users
         async function fetchTotalUsers() {
             try {
                 const usersRef = collection(db, 'users');
@@ -348,7 +237,24 @@
             }
         }
 
-        // Render users in the table
+        async function fetchLastSevenDays() {
+            try {
+                const sevenDaysAgo = new Date();
+                sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+                
+                const usersRef = collection(db, 'users');
+                const q = query(usersRef, 
+                    where('createdAt', '>=', sevenDaysAgo),
+                    where('createdAt', '<=', new Date())
+                );
+                
+                const snapshot = await getCountFromServer(q);
+                lastSevenDays.textContent = snapshot.data().count;
+            } catch (error) {
+                console.error("Error counting last 7 days users: ", error);
+            }
+        }
+
         function renderUsers() {
             const startIndex = (currentPage - 1) * usersPerPage;
             const endIndex = startIndex + usersPerPage;
@@ -369,17 +275,17 @@
                 const row = document.createElement('tr');
                 row.className = 'table-row hover:bg-gray-50';
                 
-                // Format the createdAt date
-                const createdAt = user.createdAt ? new Date(user.createdAt.seconds * 1000).toLocaleDateString() : 'N/A';
+                const createdAt = user.createdAt ? 
+                    new Date(user.createdAt.seconds * 1000).toLocaleString() : 'N/A';
                 
                 row.innerHTML = `
                     <td class="px-6 py-4 whitespace-nowrap">
                         <div class="flex items-center">
                             <div class="flex-shrink-0 h-10 w-10 bg-blue-100 rounded-full flex items-center justify-center">
-                                <span class="text-blue-600">${user.fullName ? user.fullname.charAt(0).toUpperCase() : 'U'}</span>
+                                <span class="text-blue-600">${user.fullName ? user.fullName.charAt(0).toUpperCase() : 'U'}</span>
                             </div>
                             <div class="ml-4">
-                                <div class="text-sm font-medium text-gray-900">${user.fullname || 'N/A'}</div>
+                                <div class="text-sm font-medium text-gray-900">${user.fullName || 'N/A'}</div>
                             </div>
                         </div>
                     </td>
@@ -400,14 +306,8 @@
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div class="flex justify-end space-x-2">
-                            <button data-email="${user.email}" class="email-btn px-2 py-1 bg-blue-100 text-blue-600 rounded hover:bg-blue-200">
-                                <i class="fas fa-envelope"></i>
-                            </button>
                             <button data-email="${user.email}" class="reset-btn px-2 py-1 bg-yellow-100 text-yellow-600 rounded hover:bg-yellow-200">
                                 <i class="fas fa-key"></i>
-                            </button>
-                            <button data-id="${user.id}" data-email="${user.email}" class="delete-btn px-2 py-1 bg-red-100 text-red-600 rounded hover:bg-red-200">
-                                <i class="fas fa-trash"></i>
                             </button>
                         </div>
                     </td>
@@ -416,21 +316,9 @@
                 usersTableBody.appendChild(row);
             });
             
-            // Update pagination info
             document.getElementById('showingFrom').textContent = startIndex + 1;
             document.getElementById('showingTo').textContent = Math.min(endIndex, allUsers.length);
             document.getElementById('totalRecords').textContent = allUsers.length;
-            
-            // Add event listeners to action buttons
-            document.querySelectorAll('.delete-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    userToDelete = {
-                        id: btn.getAttribute('data-id'),
-                        email: btn.getAttribute('data-email')
-                    };
-                    deleteModal.classList.remove('hidden');
-                });
-            });
             
             document.querySelectorAll('.reset-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
@@ -439,46 +327,8 @@
                     resetPasswordModal.classList.remove('hidden');
                 });
             });
-            
-            document.querySelectorAll('.email-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    userToEmail = btn.getAttribute('data-email');
-                    emailRecipient.value = userToEmail;
-                    emailSubject.value = '';
-                    emailMessage.value = '';
-                    emailUserModal.classList.remove('hidden');
-                });
-            });
         }
 
-        // Delete user account
-        confirmDelete.addEventListener('click', async () => {
-            if (!userToDelete) return;
-            
-            try {
-                // First check if the email matches in Firebase Auth
-                const currentUser = auth.currentUser;
-                if (currentUser && currentUser.email === userToDelete.email) {
-                    // Delete from Firestore
-                    await deleteDoc(doc(db, 'users', userToDelete.id));
-                    
-                    // Delete from Authentication
-                    await deleteUser(currentUser);
-                    
-                    showNotification('User account deleted successfully');
-                    deleteModal.classList.add('hidden');
-                    fetchUsers();
-                    fetchTotalUsers();
-                } else {
-                    showNotification('Cannot delete user at this time. Authentication mismatch.', 'error');
-                }
-            } catch (error) {
-                console.error("Error deleting user: ", error);
-                showNotification('Error deleting user account', 'error');
-            }
-        });
-
-        // Reset password
         confirmReset.addEventListener('click', async () => {
             if (!userToReset) return;
             
@@ -492,18 +342,9 @@
             }
         });
 
-        // Send email (mock implementation)
-        sendEmail.addEventListener('click', () => {
-            // In a real app, you would connect to an email service or use Firebase Cloud Functions
-            showNotification(`Email to ${userToEmail} would be sent in a real implementation`);
-            emailUserModal.classList.add('hidden');
-        });
-
-        // Show notification toast
         function showNotification(message, type = 'success') {
             notificationMessage.textContent = message;
             
-            // Change color based on type
             if (type === 'error') {
                 notificationToast.className = notificationToast.className.replace('bg-green-500', 'bg-red-500');
             } else {
@@ -514,7 +355,6 @@
             notificationToast.classList.remove('translate-y-16');
             notificationToast.classList.add('translate-y-0');
             
-            // Hide after 3 seconds
             setTimeout(() => {
                 notificationToast.classList.remove('translate-y-0');
                 notificationToast.classList.add('translate-y-16');
@@ -524,7 +364,6 @@
             }, 3000);
         }
 
-        // Pagination controls
         document.getElementById('prevPage').addEventListener('click', () => {
             if (currentPage > 1) {
                 currentPage--;
