@@ -1,1 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Statistics Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
 
+        body {
+            background: #f0f2f5;
+        }
+
+        .header {
+            background: #ffffff;
+            padding: 1.5rem 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+
+        .header h1 {
+            color: #1a1a1a;
+            font-size: 1.8rem;
+            font-weight: 600;
+        }
+
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            padding: 0 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            transition: transform 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .stat-title {
+            color: #666;
+            font-size: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .stat-value {
+            color: #1a1a1a;
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-details {
+            list-style: none;
+            margin-top: 1rem;
+        }
+
+        .stat-details li {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .chart-container {
+            grid-column: 1 / -1;
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 0 2rem 2rem;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <h1>User Statistics Dashboard</h1>
+    </header>
+
+    <div class="stats-container">
+        <div class="stat-card">
+            <h2 class="stat-title">Total Users</h2>
+            <div class="stat-value" id="totalUsers">0</div>
+        </div>
+
+        <div class="stat-card">
+            <h2 class="stat-title">Gender Distribution</h2>
+            <ul class="stat-details" id="genderStats"></ul>
+        </div>
+
+        <div class="stat-card">
+            <h2 class="stat-title">Home Church Distribution</h2>
+            <ul class="stat-details" id="churchStats"></ul>
+        </div>
+
+        <div class="stat-card">
+            <h2 class="stat-title">Year of Birth</h2>
+            <ul class="stat-details" id="yobStats"></ul>
+        </div>
+
+        <div class="stat-card">
+            <h2 class="stat-title">Registration Date</h2>
+            <ul class="stat-details" id="regDateStats"></ul>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDJJqxh3UOsTcBPAXLeEWeLoQRmIy_6hNU",
+            authDomain: "web-app-ae5b6.firebaseapp.com",
+            projectId: "web-app-ae5b6",
+            storageBucket: "web-app-ae5b6.firebasestorage.app",
+            messagingSenderId: "921251501161",
+            appId: "1:921251501161:web:316ff3fc4345735762bef8"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        async function fetchUserStats() {
+            const usersCol = collection(db, 'users');
+            const userSnapshot = await getDocs(usersCol);
+            const users = userSnapshot.docs.map(doc => doc.data());
+
+            // Update total users
+            document.getElementById('totalUsers').textContent = users.length.toLocaleString();
+
+            // Gender distribution
+            const genderCounts = users.reduce((acc, user) => {
+                acc[user.gender] = (acc[user.gender] || 0) + 1;
+                return acc;
+            }, {});
+            updateList('genderStats', genderCounts);
+
+            // Home Church distribution
+            const churchCounts = users.reduce((acc, user) => {
+                acc[user.homeChurch] = (acc[user.homeChurch] || 0) + 1;
+                return acc;
+            }, {});
+            updateList('churchStats', churchCounts);
+
+            // Year of Birth distribution
+            const yobCounts = users.reduce((acc, user) => {
+                acc[user.yob] = (acc[user.yob] || 0) + 1;
+                return acc;
+            }, {});
+            updateList('yobStats', yobCounts);
+
+            // Registration Date distribution
+            const regDateCounts = users.reduce((acc, user) => {
+                const date = new Date(user.createdAt?.toDate()).toLocaleDateString();
+                acc[date] = (acc[date] || 0) + 1;
+                return acc;
+            }, {});
+            updateList('regDateStats', regDateCounts);
+        }
+
+        function updateList(elementId, data) {
+            const list = document.getElementById(elementId);
+            list.innerHTML = Object.entries(data)
+                .sort((a, b) => b[1] - a[1])
+                .map(([key, value]) => `
+                    <li>
+                        <span>${key}</span>
+                        <span>${value.toLocaleString()}</span>
+                    </li>
+                `).join('');
+        }
+
+        fetchUserStats().catch(error => console.error('Error fetching user data:', error));
+    </script>
+</body>
+</html>
