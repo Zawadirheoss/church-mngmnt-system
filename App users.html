@@ -4,1093 +4,606 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Management Dashboard</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
         :root {
             --primary: #4361ee;
-            --primary-light: #eef2ff;
+            --primary-dark: #3a56d4;
             --secondary: #3f37c9;
-            --danger: #f87171;
-            --danger-light: #fee2e2;
-            --success: #4ade80;
-            --success-light: #dcfce7;
-            --warning: #fbbf24;
-            --warning-light: #fef3c7;
-            --info: #60a5fa;
-            --info-light: #dbeafe;
-            --dark: #1e293b;
-            --light: #f8fafc;
-            --gray: #94a3b8;
-            --gray-light: #f1f5f9;
+            --dark: #1f2937;
+            --light: #f3f4f6;
         }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--gray-light);
-            color: var(--dark);
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-        }
-
-        .header h1 {
-            font-size: 28px;
-            font-weight: 700;
-            color: var(--dark);
-        }
-
-        .stats-container {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .stat-card {
-            background: white;
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            transition: transform 0.2s;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-5px);
-        }
-
-        .stat-card .title {
-            font-size: 14px;
-            color: var(--gray);
-            margin-bottom: 10px;
-        }
-
-        .stat-card .value {
-            font-size: 28px;
-            font-weight: 700;
-            margin-bottom: 5px;
-        }
-
-        .stat-card .change {
-            font-size: 12px;
-            display: flex;
-            align-items: center;
-        }
-
-        .stat-card.primary {
-            border-left: 4px solid var(--primary);
-        }
-
-        .stat-card.success {
-            border-left: 4px solid var(--success);
-        }
-
-        .stat-card.warning {
-            border-left: 4px solid var(--warning);
-        }
-
-        .stat-card.danger {
-            border-left: 4px solid var(--danger);
-        }
-
-        .charts-container {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .chart-card {
-            background: white;
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        }
-
-        .chart-card h3 {
-            font-size: 18px;
-            margin-bottom: 20px;
-            color: var(--dark);
-        }
-
-        .chart-container {
-            position: relative;
-            height: 300px;
-        }
-
-        .users-table-container {
-            background: white;
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            margin-bottom: 30px;
-        }
-
-        .users-table-container h3 {
-            font-size: 18px;
-            margin-bottom: 20px;
-            color: var(--dark);
-        }
-
-        .table-actions {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 15px;
-        }
-
-        .search-box {
-            padding: 8px 12px;
-            border: 1px solid var(--gray-light);
-            border-radius: 6px;
-            width: 300px;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        th {
-            text-align: left;
-            padding: 12px 15px;
-            background-color: var(--gray-light);
-            font-weight: 500;
-            cursor: pointer;
-            user-select: none;
-        }
-
-        th.sort-asc::after {
-            content: " ↑";
-            font-size: 12px;
-        }
-
-        th.sort-desc::after {
-            content: " ↓";
-            font-size: 12px;
-        }
-
-        td {
-            padding: 12px 15px;
-            border-bottom: 1px solid var(--gray-light);
-        }
-
-        tr:hover {
-            background-color: var(--primary-light);
-        }
-
-        .badge {
-            display: inline-block;
-            padding: 4px 8px;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: 500;
-        }
-
-        .badge.primary {
-            background-color: var(--primary-light);
-            color: var(--primary);
-        }
-
-        .badge.success {
-            background-color: var(--success-light);
-            color: var(--success);
-        }
-
-        .badge.warning {
-            background-color: var(--warning-light);
-            color: var(--warning);
-        }
-
-        .badge.danger {
-            background-color: var(--danger-light);
-            color: var(--danger);
-        }
-
-        .action-btn {
-            border: none;
-            background: none;
-            cursor: pointer;
-            padding: 5px;
-            border-radius: 4px;
-            margin-right: 5px;
-            font-size: 14px;
-        }
-
-        .action-btn.edit {
-            color: var(--info);
-        }
-
-        .action-btn.edit:hover {
-            background-color: var(--info-light);
-        }
-
-        .action-btn.reset {
-            color: var(--warning);
-        }
-
-        .action-btn.reset:hover {
-            background-color: var(--warning-light);
-        }
-
-        .action-btn.delete {
-            color: var(--danger);
-        }
-
-        .action-btn.delete:hover {
-            background-color: var(--danger-light);
-        }
-
-        .action-btn.email {
-            color: var(--primary);
-        }
-
-        .action-btn.email:hover {
-            background-color: var(--primary-light);
-        }
-
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .modal-content {
-            background-color: white;
-            padding: 25px;
-            border-radius: 12px;
-            width: 400px;
-            max-width: 90%;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .modal-header h3 {
-            font-size: 20px;
-            color: var(--dark);
-        }
-
-        .modal-header .close {
-            font-size: 24px;
-            cursor: pointer;
-            color: var(--gray);
-        }
-
-        .modal-body {
-            margin-bottom: 20px;
-        }
-
-        .form-group {
-            margin-bottom: 15px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-size: 14px;
-            color: var(--dark);
-        }
-
-        .form-control {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid var(--gray-light);
-            border-radius: 6px;
-            font-size: 14px;
-        }
-
-        .modal-footer {
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-        }
-
-        .btn {
-            padding: 8px 16px;
-            border-radius: 6px;
-            border: none;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 500;
-        }
-
-        .btn-primary {
-            background-color: var(--primary);
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background-color: var(--secondary);
-        }
-
-        .btn-secondary {
-            background-color: var(--gray-light);
-            color: var(--dark);
-        }
-
-        .btn-secondary:hover {
-            background-color: var(--gray);
-        }
-
-        .btn-danger {
-            background-color: var(--danger);
-            color: white;
-        }
-
-        .btn-danger:hover {
-            background-color: #ef4444;
-        }
-
-        .toast {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 15px 20px;
-            border-radius: 8px;
-            color: white;
-            font-size: 14px;
-            font-weight: 500;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-            z-index: 1100;
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-
-        .toast.show {
-            opacity: 1;
-        }
-
-        .toast.success {
-            background-color: var(--success);
-        }
-
-        .toast.error {
-            background-color: var(--danger);
-        }
-
-        .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            border-top-color: white;
-            animation: spin 1s ease-in-out infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .loader-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 200px;
-        }
-
-        .loader {
-            border: 5px solid var(--gray-light);
-            border-top: 5px solid var(--primary);
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            animation: spin 1s linear infinite;
+            font-family: 'Poppins', sans-serif;
+            background-color: #f8fafc;
+        }
+        
+        .sidebar {
+            transition: all 0.3s ease;
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            .sidebar.active {
+                transform: translateX(0);
+            }
+        }
+        
+        .card-shadow {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        
+        .table-row:hover {
+            background-color: #f9fafb;
         }
     </style>
 </head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>User Management Dashboard</h1>
-            <div id="lastUpdated"></div>
-        </div>
-
-        <div class="stats-container">
-            <div class="stat-card primary">
-                <div class="title">Total Users</div>
-                <div class="value" id="totalUsers">0</div>
-                <div class="change"><i class="fas fa-users"></i> All registered users</div>
+<body class="bg-gray-50">
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar -->
+        <div class="sidebar fixed inset-y-0 left-0 bg-white w-64 px-4 py-8 z-50 shadow-lg md:relative md:translate-x-0">
+            <div class="flex items-center space-x-2 mb-10">
+                <div class="w-8 h-8 bg-blue-500 rounded-full"></div>
+                <h1 class="text-xl font-bold text-gray-800">Admin Panel</h1>
             </div>
-            <div class="stat-card success">
-                <div class="title">Active Users</div>
-                <div class="value" id="activeUsers">0</div>
-                <div class="change"><i class="fas fa-user-check"></i> Active this month</div>
-            </div>
-            <div class="stat-card warning">
-                <div class="title">Male Users</div>
-                <div class="value" id="maleUsers">0</div>
-                <div class="change"><i class="fas fa-male"></i> Percentage of total</div>
-            </div>
-            <div class="stat-card danger">
-                <div class="title">Female Users</div>
-                <div class="value" id="femaleUsers">0</div>
-                <div class="change"><i class="fas fa-female"></i> Percentage of total</div>
-            </div>
-        </div>
-
-        <div class="charts-container">
-            <div class="chart-card">
-                <h3>User Distribution by Home Church</h3>
-                <div class="chart-container">
-                    <canvas id="homeChurchChart"></canvas>
-                </div>
-            </div>
-            <div class="chart-card">
-                <h3>User Distribution by Gender</h3>
-                <div class="chart-container">
-                    <canvas id="genderChart"></canvas>
-                </div>
-            </div>
-        </div>
-
-        <div class="chart-card">
-            <h3>User Signups Over Time</h3>
-            <div class="chart-container">
-                <canvas id="signupsChart"></canvas>
-            </div>
-        </div>
-
-        <div class="users-table-container">
-            <div class="table-actions">
-                <h3>User Records</h3>
-                <input type="text" id="searchInput" class="search-box" placeholder="Search users...">
-            </div>
-            <div class="table-responsive">
-                <table id="usersTable">
-                    <thead>
-                        <tr>
-                            <th data-sort="fullName">Full Name</th>
-                            <th data-sort="gender">Gender</th>
-                            <th data-sort="email">Email</th>
-                            <th data-sort="yob">Year of Birth</th>
-                            <th data-sort="homeChurch">Home Church</th>
-                            <th data-sort="createdAt">Joined On</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="usersTableBody">
-                        <tr>
-                            <td colspan="7" class="loader-container">
-                                <div class="loader"></div>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    <!-- Reset Password Modal -->
-    <div id="resetPasswordModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Reset Password</h3>
-                <span class="close">&times;</span>
-            </div>
-            <div class="modal-body">
-                <p>Are you sure you want to reset password for <strong id="resetEmail"></strong>?</p>
-                <p>A password reset link will be sent to the user's email.</p>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary close-btn">Cancel</button>
-                <button class="btn btn-primary" id="confirmReset">Reset Password</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Delete User Modal -->
-    <div id="deleteUserModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Delete User</h3>
-                <span class="close">&times;</span>
-            </div>
-            <div class="modal-body">
-                <p>Are you sure you want to delete user <strong id="deleteUserName"></strong>?</p>
-                <p>This action will permanently delete the user from both Firestore and Authentication.</p>
-                <div class="form-group">
-                    <label for="confirmEmail">Type the user's email to confirm:</label>
-                    <input type="text" id="confirmEmail" class="form-control" placeholder="Enter email to confirm">
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary close-btn">Cancel</button>
-                <button class="btn btn-danger" id="confirmDelete" disabled>Delete User</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Send Email Modal -->
-    <div id="sendEmailModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Send Email</h3>
-                <span class="close">&times;</span>
-            </div>
-            <div class="modal-body">
-                <div class="form-group">
-                    <label>To:</label>
-                    <input type="text" id="emailTo" class="form-control" readonly>
-                </div>
-                <div class="form-group">
-                    <label>Subject:</label>
-                    <input type="text" id="emailSubject" class="form-control" placeholder="Email subject">
-                </div>
-                <div class="form-group">
-                    <label>Message:</label>
-                    <textarea id="emailMessage" class="form-control" rows="5" placeholder="Your message..."></textarea>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary close-btn">Cancel</button>
-                <button class="btn btn-primary" id="sendEmailBtn">Send Email</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Toast Notification -->
-    <div id="toast" class="toast"></div>
-
-   <script type="module">
-    // Initialize Firebase
-    const firebaseConfig = {
-        apiKey: "AIzaSyDJJqxh3UOsTcBPAXLeEWeLoQRmIy_6hNU",
-        authDomain: "web-app-ae5b6.firebaseapp.com",
-        projectId: "web-app-ae5b6",
-        storageBucket: "web-app-ae5b6.appspot.com",
-        messagingSenderId: "921251501161",
-        appId: "1:921251501161:web:316ff3fc4345735762bef8"
-    };
-
-    const app = firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-    const auth = firebase.auth();
-
-    // DOM Elements and state management
-    const elements = {
-        usersTableBody: document.getElementById('usersTableBody'),
-        searchInput: document.getElementById('searchInput'),
-        stats: {
-            totalUsers: document.getElementById('totalUsers'),
-            activeUsers: document.getElementById('activeUsers'),
-            maleUsers: document.getElementById('maleUsers'),
-            femaleUsers: document.getElementById('femaleUsers')
-        },
-        lastUpdated: document.getElementById('lastUpdated'),
-        modals: {
-            resetPassword: document.getElementById('resetPasswordModal'),
-            deleteUser: document.getElementById('deleteUserModal'),
-            sendEmail: document.getElementById('sendEmailModal')
-        },
-        charts: {
-            homeChurch: document.getElementById('homeChurchChart'),
-            gender: document.getElementById('genderChart'),
-            signups: document.getElementById('signupsChart')
-        }
-    };
-
-    let state = {
-        users: [],
-        currentSort: { field: 'createdAt', direction: 'desc' },
-        currentUserAction: null,
-        charts: {}
-    };
-
-    // Initialize the app
-    document.addEventListener('DOMContentLoaded', () => {
-        initializeRealTimeUpdates();
-        setupEventListeners();
-    });
-
-    // Real-time data initialization
-    function initializeRealTimeUpdates() {
-        db.collection('users').orderBy('createdAt', 'desc')
-            .onSnapshot(handleUsersSnapshot, handleError('Error fetching users'));
-    }
-
-    function handleUsersSnapshot(snapshot) {
-        state.users = snapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data(),
-            createdAt: doc.data().createdAt.toDate()
-        }));
-        
-        updateUI();
-    }
-
-    function updateUI() {
-        renderUsersTable();
-        updateStatistics();
-        renderCharts();
-        updateLastUpdated();
-    }
-
-    // Table rendering and sorting
-    function renderUsersTable(filteredUsers = null) {
-        const usersToRender = filteredUsers || state.users;
-        elements.usersTableBody.innerHTML = usersToRender.length > 0 
-            ? generateTableRows(usersToRender)
-            : '<tr><td colspan="7" class="no-users">No users found</td></tr>';
-        
-        updateSortIndicator();
-    }
-
-    function generateTableRows(users) {
-        return users.map(user => `
-            <tr>
-                <td>${user.fullName || 'N/A'}</td>
-                <td><span class="badge ${getGenderBadgeClass(user.gender)}">${user.gender || 'N/A'}</span></td>
-                <td>${user.email || 'N/A'}</td>
-                <td>${user.yob || 'N/A'}</td>
-                <td>${user.homeChurch || 'N/A'}</td>
-                <td>${formatDate(user.createdAt)}</td>
-                <td>
-                    ${generateActionButtons(user)}
-                </td>
-            </tr>
-        `).join('');
-    }
-
-    function generateActionButtons(user) {
-        return `
-            <button class="action-btn email" data-email="${user.email}">
-                <i class="fas fa-envelope"></i>
-            </button>
-            <button class="action-btn reset" data-id="${user.id}" data-email="${user.email}">
-                <i class="fas fa-key"></i>
-            </button>
-            <button class="action-btn delete" data-id="${user.id}" data-email="${user.email}">
-                <i class="fas fa-trash"></i>
-            </button>
-        `;
-    }
-
-    // Statistics and charts
-    function updateStatistics() {
-        elements.stats.totalUsers.textContent = state.users.length;
-        elements.stats.activeUsers.textContent = calculateActiveUsers();
-        updateGenderStatistics();
-    }
-
-    function calculateActiveUsers() {
-        const thirtyDaysAgo = new Date();
-        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-        return state.users.filter(user => user.createdAt >= thirtyDaysAgo).length;
-    }
-
-    function updateGenderStatistics() {
-        const maleCount = state.users.filter(u => u.gender?.toLowerCase() === 'male').length;
-        const femaleCount = state.users.filter(u => u.gender?.toLowerCase() === 'female').length;
-        
-        elements.stats.maleUsers.textContent = `${maleCount} (${calculatePercentage(maleCount)}%)`;
-        elements.stats.femaleUsers.textContent = `${femaleCount} (${calculatePercentage(femaleCount)}%)`;
-    }
-
-    function calculatePercentage(count) {
-        return state.users.length > 0 
-            ? Math.round((count / state.users.length) * 100)
-            : 0;
-    }
-
-    function renderCharts() {
-        destroyExistingCharts();
-        renderDistributionCharts();
-        renderSignupsChart();
-    }
-
-    function destroyExistingCharts() {
-        Object.values(state.charts).forEach(chart => chart.destroy());
-        state.charts = {};
-    }
-
-    function renderDistributionCharts() {
-        state.charts.homeChurch = createChart('homeChurch', 'doughnut', 
-            getDistributionData('homeChurch'), generateColors);
-        
-        state.charts.gender = createChart('gender', 'pie', 
-            getDistributionData('gender'), () => ['#3b82f6', '#ec4899', '#94a3b8']);
-    }
-
-    function renderSignupsChart() {
-        const signupsData = getSignupsOverTime();
-        state.charts.signups = createChart('signups', 'line', {
-            labels: signupsData.labels,
-            datasets: [{
-                label: 'User Signups',
-                data: signupsData.values,
-                backgroundColor: 'rgba(67, 97, 238, 0.2)',
-                borderColor: 'rgba(67, 97, 238, 1)',
-                borderWidth: 2,
-                tension: 0.4,
-                fill: true
-            }]
-        });
-    }
-
-    // Chart utilities
-    function createChart(canvasId, type, data, colorGenerator) {
-        const ctx = elements.charts[canvasId].getContext('2d');
-        return new Chart(ctx, {
-            type,
-            data: Array.isArray(data) ? {
-                labels: data.labels,
-                datasets: [{
-                    data: data.values,
-                    backgroundColor: colorGenerator(data.labels.length),
-                    borderWidth: 1
-                }]
-            } : data,
-            options: getChartOptions(type)
-        });
-    }
-
-    function getChartOptions(type) {
-        const commonOptions = {
-            responsive: true,
-            maintainAspectRatio: false
-        };
-
-        if (type === 'doughnut' || type === 'pie') {
-            return {
-                ...commonOptions,
-                plugins: { legend: { position: 'right' } }
-            };
-        }
-
-        return {
-            ...commonOptions,
-            scales: { y: { beginAtZero: true, ticks: { precision: 0 } }
-        };
-    }
-
-    // Data processing utilities
-    function getDistributionData(field) {
-        const counts = state.users.reduce((acc, user) => {
-            const value = user[field] || 'Unknown';
-            acc[value] = (acc[value] || 0) + 1;
-            return acc;
-        }, {});
-
-        const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
-        return processTopResults(sorted, 5);
-    }
-
-    function processTopResults(data, limit) {
-        if (data.length <= limit) return {
-            labels: data.map(([label]) => label),
-            values: data.map(([, count]) => count)
-        };
-
-        const top = data.slice(0, limit);
-        const others = data.slice(limit).reduce((sum, [, count]) => sum + count, 0);
-        return {
-            labels: [...top.map(([label]) => label), 'Others'],
-            values: [...top.map(([, count]) => count), others]
-        };
-    }
-
-    function getSignupsOverTime() {
-        if (state.users.length === 0) return { labels: [], values: [] };
-
-        const dates = state.users.map(u => u.createdAt);
-        const minDate = new Date(Math.min(...dates));
-        const maxDate = new Date(Math.max(...dates));
-        const months = generateMonthRange(minDate, maxDate);
-
-        const values = new Array(months.length).fill(0);
-        state.users.forEach(user => {
-            const monthKey = getMonthKey(user.createdAt);
-            const index = months.findIndex(m => m.key === monthKey);
-            if (index !== -1) values[index]++;
-        });
-
-        return {
-            labels: months.map(m => m.label),
-            values
-        };
-    }
-
-    function generateMonthRange(start, end) {
-        const months = [];
-        const current = new Date(start);
-        current.setDate(1);
-        
-        while (current <= end) {
-            months.push({
-                key: `${current.getFullYear()}-${current.getMonth()}`,
-                label: `${current.toLocaleString('default', { month: 'short' })} ${current.getFullYear()}`
-            });
-            current.setMonth(current.getMonth() + 1);
-        }
-        return months;
-    }
-
-    function getMonthKey(date) {
-        const d = new Date(date);
-        return `${d.getFullYear()}-${d.getMonth()}`;
-    }
-
-    // Event handling and UI interactions
-    function setupEventListeners() {
-        setupTableSorting();
-        setupSearch();
-        setupActionHandlers();
-        setupModalHandlers();
-    }
-
-    function setupTableSorting() {
-        document.querySelectorAll('th[data-sort]').forEach(th => {
-            th.addEventListener('click', () => handleSort(th.dataset.sort));
-        });
-    }
-
-    function handleSort(field) {
-        if (state.currentSort.field === field) {
-            state.currentSort.direction = state.currentSort.direction === 'asc' ? 'desc' : 'asc';
-        } else {
-            state.currentSort = { field, direction: 'asc' };
-        }
-        
-        sortUsers();
-        renderUsersTable();
-    }
-
-    function sortUsers() {
-        state.users.sort((a, b) => {
-            let valueA = getSortValue(a[state.currentSort.field]);
-            let valueB = getSortValue(b[state.currentSort.field]);
             
-            if (valueA < valueB) return state.currentSort.direction === 'asc' ? -1 : 1;
-            if (valueA > valueB) return state.currentSort.direction === 'asc' ? 1 : -1;
-            return 0;
+            <nav>
+                <ul class="space-y-2">
+                    <li>
+                        <a href="#" class="flex items-center space-x-3 px-4 py-3 text-white bg-blue-500 rounded-lg">
+                            <i class="fas fa-users"></i>
+                            <span>User Management</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="flex items-center space-x-3 px-4 py-3 text-gray-600 hover:bg-gray-100 rounded-lg">
+                            <i class="fas fa-chart-line"></i>
+                            <span>Analytics</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="flex items-center space-x-3 px-4 py-3 text-gray-600 hover:bg-gray-100 rounded-lg">
+                            <i class="fas fa-cog"></i>
+                            <span>Settings</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="flex items-center space-x-3 px-4 py-3 text-gray-600 hover:bg-gray-100 rounded-lg">
+                            <i class="fas fa-sign-out-alt"></i>
+                            <span>Logout</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            
+            <div class="absolute bottom-0 left-0 right-0 p-4">
+                <div class="bg-blue-50 p-4 rounded-lg">
+                    <p class="text-sm text-blue-800">Need help? Contact support</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="flex-1 overflow-auto">
+            <!-- Mobile Header -->
+            <header class="md:hidden bg-white shadow-sm p-4 flex items-center justify-between">
+                <button id="sidebarToggle" class="text-gray-600">
+                    <i class="fas fa-bars text-xl"></i>
+                </button>
+                <h1 class="text-lg font-semibold text-gray-800">User Management</h1>
+                <div class="w-8"></div> <!-- Spacer for alignment -->
+            </header>
+            
+            <!-- Main Content Area -->
+            <main class="p-6">
+                <!-- Header -->
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-800">User Management</h1>
+                        <p class="text-gray-600">Manage all registered users</p>
+                    </div>
+                    <div class="mt-4 md:mt-0">
+                        <div class="relative">
+                            <input type="text" placeholder="Search users..." class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full md:w-64">
+                            <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Stats Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div class="bg-white rounded-xl p-6 shadow-sm border-l-4 border-blue-500">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-500">Total Users</p>
+                                <h3 id="totalUsers" class="text-3xl font-bold text-gray-800">0</h3>
+                            </div>
+                            <div class="bg-blue-100 p-3 rounded-full">
+                                <i class="fas fa-users text-blue-500 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-xl p-6 shadow-sm border-l-4 border-green-500">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-500">Active Today</p>
+                                <h3 class="text-3xl font-bold text-gray-800">0</h3>
+                            </div>
+                            <div class="bg-green-100 p-3 rounded-full">
+                                <i class="fas fa-user-check text-green-500 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-xl p-6 shadow-sm border-l-4 border-purple-500">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-500">New This Week</p>
+                                <h3 class="text-3xl font-bold text-gray-800">0</h3>
+                            </div>
+                            <div class="bg-purple-100 p-3 rounded-full">
+                                <i class="fas fa-user-plus text-purple-500 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Users Table -->
+                <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+                    <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+                        <h3 class="text-lg font-semibold text-gray-800">All Users</h3>
+                        <div class="flex space-x-2">
+                            <button class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition flex items-center space-x-2">
+                                <i class="fas fa-download"></i>
+                                <span>Export</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Full Name</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Gender</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Year of Birth</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Home Church</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created At</th>
+                                    <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="usersTableBody" class="bg-white divide-y divide-gray-200">
+                                <!-- Users will be loaded here -->
+                                <tr>
+                                    <td colspan="7" class="px-6 py-4 text-center text-gray-500">Loading users...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+                        <div class="text-sm text-gray-500">
+                            Showing <span id="showingFrom">1</span> to <span id="showingTo">10</span> of <span id="totalRecords">0</span> entries
+                        </div>
+                        <div class="flex space-x-2">
+                            <button id="prevPage" class="px-3 py-1 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50">
+                                Previous
+                            </button>
+                            <button id="nextPage" class="px-3 py-1 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50">
+                                Next
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-xl p-6 w-full max-w-md">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold text-gray-800">Confirm Deletion</h3>
+                <button id="closeDeleteModal" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <p class="text-gray-600 mb-6">Are you sure you want to delete this user account? This action cannot be undone.</p>
+            <div class="flex justify-end space-x-3">
+                <button id="cancelDelete" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
+                    Cancel
+                </button>
+                <button id="confirmDelete" class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600">
+                    Delete Account
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Reset Password Modal -->
+    <div id="resetPasswordModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-xl p-6 w-full max-w-md">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold text-gray-800">Reset Password</h3>
+                <button id="closeResetModal" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <p id="resetPasswordMessage" class="text-gray-600 mb-6">A password reset link will be sent to the user's email address.</p>
+            <div class="flex justify-end space-x-3">
+                <button id="cancelReset" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
+                    Cancel
+                </button>
+                <button id="confirmReset" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
+                    Send Reset Link
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Email User Modal -->
+    <div id="emailUserModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-xl p-6 w-full max-w-md">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold text-gray-800">Send Email</h3>
+                <button id="closeEmailModal" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-medium mb-2">To:</label>
+                <input id="emailRecipient" type="email" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" readonly>
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-medium mb-2">Subject:</label>
+                <input id="emailSubject" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-medium mb-2">Message:</label>
+                <textarea id="emailMessage" rows="4" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+            </div>
+            <div class="flex justify-end space-x-3">
+                <button id="cancelEmail" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
+                    Cancel
+                </button>
+                <button id="sendEmail" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
+                    Send Email
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Notification Toast -->
+    <div id="notificationToast" class="fixed bottom-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg transform translate-y-16 transition-transform duration-300 hidden">
+        <div class="flex items-center space-x-2">
+            <i class="fas fa-check-circle"></i>
+            <span id="notificationMessage">Operation completed successfully</span>
+        </div>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
+        import { 
+            getFirestore, 
+            collection, 
+            getDocs, 
+            query, 
+            orderBy, 
+            deleteDoc, 
+            doc,
+            getCountFromServer
+        } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
+        import { 
+            getAuth, 
+            deleteUser,
+            sendPasswordResetEmail
+        } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
+
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDJJqxh3UOsTcBPAXLeEWeLoQRmIy_6hNU",
+            authDomain: "web-app-ae5b6.firebaseapp.com",
+            projectId: "web-app-ae5b6",
+            storageBucket: "web-app-ae5b6.firebasestorage.app",
+            messagingSenderId: "921251501161",
+            appId: "1:921251501161:web:316ff3fc4345735762bef8"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        // DOM Elements
+        const usersTableBody = document.getElementById('usersTableBody');
+        const totalUsers = document.getElementById('totalUsers');
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const sidebar = document.querySelector('.sidebar');
+        
+        // Modal Elements
+        const deleteModal = document.getElementById('deleteModal');
+        const closeDeleteModal = document.getElementById('closeDeleteModal');
+        const cancelDelete = document.getElementById('cancelDelete');
+        const confirmDelete = document.getElementById('confirmDelete');
+        
+        const resetPasswordModal = document.getElementById('resetPasswordModal');
+        const closeResetModal = document.getElementById('closeResetModal');
+        const cancelReset = document.getElementById('cancelReset');
+        const confirmReset = document.getElementById('confirmReset');
+        const resetPasswordMessage = document.getElementById('resetPasswordMessage');
+        
+        const emailUserModal = document.getElementById('emailUserModal');
+        const closeEmailModal = document.getElementById('closeEmailModal');
+        const cancelEmail = document.getElementById('cancelEmail');
+        const sendEmail = document.getElementById('sendEmail');
+        const emailRecipient = document.getElementById('emailRecipient');
+        const emailSubject = document.getElementById('emailSubject');
+        const emailMessage = document.getElementById('emailMessage');
+        
+        const notificationToast = document.getElementById('notificationToast');
+        const notificationMessage = document.getElementById('notificationMessage');
+        
+        // State variables
+        let currentPage = 1;
+        const usersPerPage = 10;
+        let allUsers = [];
+        let userToDelete = null;
+        let userToReset = null;
+        let userToEmail = null;
+
+        // Event Listeners
+        sidebarToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('active');
         });
-    }
+        
+        closeDeleteModal.addEventListener('click', () => deleteModal.classList.add('hidden'));
+        cancelDelete.addEventListener('click', () => deleteModal.classList.add('hidden'));
+        
+        closeResetModal.addEventListener('click', () => resetPasswordModal.classList.add('hidden'));
+        cancelReset.addEventListener('click', () => resetPasswordModal.classList.add('hidden'));
+        
+        closeEmailModal.addEventListener('click', () => emailUserModal.classList.add('hidden'));
+        cancelEmail.addEventListener('click', () => emailUserModal.classList.add('hidden'));
+        
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchUsers();
+            fetchTotalUsers();
+        });
 
-    function getSortValue(value) {
-        if (value instanceof Date) return value.getTime();
-        if (typeof value === 'string') return value.toLowerCase();
-        if (typeof value === 'number') return value;
-        return value;
-    }
+        // Fetch all users from Firestore
+        async function fetchUsers() {
+            try {
+                const usersRef = collection(db, 'users');
+                const q = query(usersRef, orderBy('createdAt', 'desc'));
+                const querySnapshot = await getDocs(q);
+                
+                allUsers = querySnapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+                
+                renderUsers();
+            } catch (error) {
+                console.error("Error fetching users: ", error);
+                showNotification('Error fetching users', 'error');
+            }
+        }
 
-    function updateSortIndicator() {
-        document.querySelectorAll('th[data-sort]').forEach(th => {
-            th.classList.remove('sort-asc', 'sort-desc');
-            if (th.dataset.sort === state.currentSort.field) {
-                th.classList.add(`sort-${state.currentSort.direction}`);
+        // Fetch total count of users
+        async function fetchTotalUsers() {
+            try {
+                const usersRef = collection(db, 'users');
+                const snapshot = await getCountFromServer(usersRef);
+                totalUsers.textContent = snapshot.data().count;
+            } catch (error) {
+                console.error("Error counting users: ", error);
+            }
+        }
+
+        // Render users in the table
+        function renderUsers() {
+            const startIndex = (currentPage - 1) * usersPerPage;
+            const endIndex = startIndex + usersPerPage;
+            const usersToDisplay = allUsers.slice(startIndex, endIndex);
+            
+            usersTableBody.innerHTML = '';
+            
+            if (usersToDisplay.length === 0) {
+                usersTableBody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="px-6 py-4 text-center text-gray-500">No users found</td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            usersToDisplay.forEach(user => {
+                const row = document.createElement('tr');
+                row.className = 'table-row hover:bg-gray-50';
+                
+                // Format the createdAt date
+                const createdAt = user.createdAt ? new Date(user.createdAt.seconds * 1000).toLocaleDateString() : 'N/A';
+                
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0 h-10 w-10 bg-blue-100 rounded-full flex items-center justify-center">
+                                <span class="text-blue-600">${user.fullName ? user.fullName.charAt(0).toUpperCase() : 'U'}</span>
+                            </div>
+                            <div class="ml-4">
+                                <div class="text-sm font-medium text-gray-900">${user.fullName || 'N/A'}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">${user.gender || 'N/A'}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">${user.email || 'N/A'}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">${user.yob || 'N/A'}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">${user.homechurch || 'N/A'}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">${createdAt}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <div class="flex justify-end space-x-2">
+                            <button data-email="${user.email}" class="email-btn px-2 py-1 bg-blue-100 text-blue-600 rounded hover:bg-blue-200">
+                                <i class="fas fa-envelope"></i>
+                            </button>
+                            <button data-email="${user.email}" class="reset-btn px-2 py-1 bg-yellow-100 text-yellow-600 rounded hover:bg-yellow-200">
+                                <i class="fas fa-key"></i>
+                            </button>
+                            <button data-id="${user.id}" data-email="${user.email}" class="delete-btn px-2 py-1 bg-red-100 text-red-600 rounded hover:bg-red-200">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                
+                usersTableBody.appendChild(row);
+            });
+            
+            // Update pagination info
+            document.getElementById('showingFrom').textContent = startIndex + 1;
+            document.getElementById('showingTo').textContent = Math.min(endIndex, allUsers.length);
+            document.getElementById('totalRecords').textContent = allUsers.length;
+            
+            // Add event listeners to action buttons
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    userToDelete = {
+                        id: btn.getAttribute('data-id'),
+                        email: btn.getAttribute('data-email')
+                    };
+                    deleteModal.classList.remove('hidden');
+                });
+            });
+            
+            document.querySelectorAll('.reset-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    userToReset = btn.getAttribute('data-email');
+                    resetPasswordMessage.textContent = `A password reset link will be sent to ${userToReset}`;
+                    resetPasswordModal.classList.remove('hidden');
+                });
+            });
+            
+            document.querySelectorAll('.email-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    userToEmail = btn.getAttribute('data-email');
+                    emailRecipient.value = userToEmail;
+                    emailSubject.value = '';
+                    emailMessage.value = '';
+                    emailUserModal.classList.remove('hidden');
+                });
+            });
+        }
+
+        // Delete user account
+        confirmDelete.addEventListener('click', async () => {
+            if (!userToDelete) return;
+            
+            try {
+                // First check if the email matches in Firebase Auth
+                const currentUser = auth.currentUser;
+                if (currentUser && currentUser.email === userToDelete.email) {
+                    // Delete from Firestore
+                    await deleteDoc(doc(db, 'users', userToDelete.id));
+                    
+                    // Delete from Authentication
+                    await deleteUser(currentUser);
+                    
+                    showNotification('User account deleted successfully');
+                    deleteModal.classList.add('hidden');
+                    fetchUsers();
+                    fetchTotalUsers();
+                } else {
+                    showNotification('Cannot delete user at this time. Authentication mismatch.', 'error');
+                }
+            } catch (error) {
+                console.error("Error deleting user: ", error);
+                showNotification('Error deleting user account', 'error');
             }
         });
-    }
 
-    function setupSearch() {
-        elements.searchInput.addEventListener('input', () => {
-            const term = elements.searchInput.value.toLowerCase();
-            const filtered = term 
-                ? state.users.filter(user => 
-                    Object.values(user).some(val => 
-                        String(val).toLowerCase().includes(term)
-                    )
-                )
-                : null;
-            renderUsersTable(filtered);
-        });
-    }
-
-    function setupActionHandlers() {
-        elements.usersTableBody.addEventListener('click', e => {
-            const btn = e.target.closest('button');
-            if (!btn) return;
-
-            const user = state.users.find(u => u.id === btn.dataset.id);
-            if (!user) return;
-
-            if (btn.classList.contains('reset')) handlePasswordReset(user);
-            if (btn.classList.contains('delete')) handleDeleteUser(user);
-            if (btn.classList.contains('email')) handleSendEmail(user.email);
-        });
-    }
-
-    function handlePasswordReset(user) {
-        state.currentUserAction = user;
-        elements.modals.resetPassword.querySelector('#resetEmail').textContent = user.email;
-        showModal('resetPassword');
-    }
-
-    function handleDeleteUser(user) {
-        state.currentUserAction = user;
-        elements.modals.deleteUser.querySelector('#deleteUserName').textContent = user.fullName || user.email;
-        showModal('deleteUser');
-    }
-
-    function handleSendEmail(email) {
-        elements.modals.sendEmail.querySelector('#emailTo').value = email;
-        showModal('sendEmail');
-    }
-
-    function setupModalHandlers() {
-        // Modal close handlers
-        document.querySelectorAll('.modal .close, .close-btn').forEach(btn => {
-            btn.addEventListener('click', () => closeModals());
-        });
-
-        // Password reset confirmation
-        elements.modals.resetPassword.querySelector('#confirmReset')
-            .addEventListener('click', handleConfirmReset);
-
-        // User deletion confirmation
-        const confirmDelete = elements.modals.deleteUser.querySelector('#confirmDelete');
-        elements.modals.deleteUser.querySelector('#confirmEmail')
-            .addEventListener('input', e => {
-                confirmDelete.disabled = e.target.value !== state.currentUserAction?.email;
-            });
-        confirmDelete.addEventListener('click', handleConfirmDelete);
-
-        // Email sending
-        elements.modals.sendEmail.querySelector('#sendEmailBtn')
-            .addEventListener('click', handleSendEmail);
-    }
-
-    async function handleConfirmReset() {
-        const btn = elements.modals.resetPassword.querySelector('#confirmReset');
-        try {
-            btn.disabled = true;
-            btn.innerHTML = '<span class="loading"></span> Sending...';
+        // Reset password
+        confirmReset.addEventListener('click', async () => {
+            if (!userToReset) return;
             
-            await auth.sendPasswordResetEmail(state.currentUserAction.email);
-            showToast('Password reset email sent', 'success');
-            closeModals();
-        } catch (error) {
-            showToast('Error sending reset email', 'error');
-            console.error('Password reset error:', error);
-        } finally {
-            btn.disabled = false;
-            btn.textContent = 'Reset Password';
-        }
-    }
-
-    async function handleConfirmDelete() {
-        const btn = elements.modals.deleteUser.querySelector('#confirmDelete');
-        const emailConfirm = elements.modals.deleteUser.querySelector('#confirmEmail').value;
-        
-        if (emailConfirm !== state.currentUserAction?.email) return;
-
-        try {
-            btn.disabled = true;
-            btn.innerHTML = '<span class="loading"></span> Deleting...';
-            
-            // Delete from both Firestore and Auth
-            await Promise.all([
-                db.collection('users').doc(state.currentUserAction.id).delete(),
-                auth.deleteUser(state.currentUserAction.id)
-            ]);
-            
-            // Update local state
-            state.users = state.users.filter(u => u.id !== state.currentUserAction.id);
-            updateUI();
-            showToast('User deleted successfully', 'success');
-            closeModals();
-        } catch (error) {
-            showToast('Error deleting user', 'error');
-            console.error('Deletion error:', error);
-        } finally {
-            btn.disabled = false;
-            btn.textContent = 'Delete User';
-            state.currentUserAction = null;
-        }
-    }
-
-    function handleSendEmail() {
-        // Implement actual email sending logic here
-        showToast('Email sent successfully', 'success');
-        closeModals();
-    }
-
-    // UI utilities
-    function showModal(type) {
-        elements.modals[type].style.display = 'flex';
-    }
-
-    function closeModals() {
-        Object.values(elements.modals).forEach(modal => {
-            modal.style.display = 'none';
+            try {
+                await sendPasswordResetEmail(auth, userToReset);
+                showNotification('Password reset email sent successfully');
+                resetPasswordModal.classList.add('hidden');
+            } catch (error) {
+                console.error("Error sending password reset email: ", error);
+                showNotification('Error sending password reset email', 'error');
+            }
         });
-        state.currentUserAction = null;
-    }
 
-    function updateLastUpdated() {
-        elements.lastUpdated.textContent = `Last updated: ${new Date().toLocaleString()}`;
-    }
+        // Send email (mock implementation)
+        sendEmail.addEventListener('click', () => {
+            // In a real app, you would connect to an email service or use Firebase Cloud Functions
+            showNotification(`Email to ${userToEmail} would be sent in a real implementation`);
+            emailUserModal.classList.add('hidden');
+        });
 
-    function showToast(message, type) {
-        const toast = document.getElementById('toast');
-        toast.className = `toast ${type} show`;
-        toast.textContent = message;
-        setTimeout(() => toast.classList.remove('show'), 3000);
-    }
-
-    // Helper functions
-    function formatDate(date) {
-        return date?.toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric'
-        }) || 'N/A';
-    }
-
-    function getGenderBadgeClass(gender) {
-        if (!gender) return 'primary';
-        switch (gender.toLowerCase()) {
-            case 'male': return 'primary';
-            case 'female': return 'danger';
-            default: return 'warning';
+        // Show notification toast
+        function showNotification(message, type = 'success') {
+            notificationMessage.textContent = message;
+            
+            // Change color based on type
+            if (type === 'error') {
+                notificationToast.className = notificationToast.className.replace('bg-green-500', 'bg-red-500');
+            } else {
+                notificationToast.className = notificationToast.className.replace('bg-red-500', 'bg-green-500');
+            }
+            
+            notificationToast.classList.remove('hidden');
+            notificationToast.classList.remove('translate-y-16');
+            notificationToast.classList.add('translate-y-0');
+            
+            // Hide after 3 seconds
+            setTimeout(() => {
+                notificationToast.classList.remove('translate-y-0');
+                notificationToast.classList.add('translate-y-16');
+                setTimeout(() => {
+                    notificationToast.classList.add('hidden');
+                }, 300);
+            }, 3000);
         }
-    }
 
-    function generateColors(count) {
-        return Array.from({ length: count }, (_, i) => 
-            `hsl(${(i * 360 / count)}, 70%, 60%)`
-        );
-    }
+        // Pagination controls
+        document.getElementById('prevPage').addEventListener('click', () => {
+            if (currentPage > 1) {
+                currentPage--;
+                renderUsers();
+            }
+        });
 
-    function handleError(context) {
-        return error => {
-            console.error(context, error);
-            showToast(`${context}: ${error.message}`, 'error');
-        };
-    }
-</script>
+        document.getElementById('nextPage').addEventListener('click', () => {
+            const totalPages = Math.ceil(allUsers.length / usersPerPage);
+            if (currentPage < totalPages) {
+                currentPage++;
+                renderUsers();
+            }
+        });
+    </script>
 </body>
 </html>
