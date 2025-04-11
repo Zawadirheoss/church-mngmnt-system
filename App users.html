@@ -584,533 +584,513 @@
     <!-- Toast Notification -->
     <div id="toast" class="toast"></div>
 
-    <script type="module">
-        // Initialize Firebase
-        const firebaseConfig = {
-            apiKey: "AIzaSyDJJqxh3UOsTcBPAXLeEWeLoQRmIy_6hNU",
-            authDomain: "web-app-ae5b6.firebaseapp.com",
-            projectId: "web-app-ae5b6",
-            storageBucket: "web-app-ae5b6.firebasestorage.app",
-            messagingSenderId: "921251501161",
-            appId: "1:921251501161:web:316ff3fc4345735762bef8"
+   <script type="module">
+    // Initialize Firebase
+    const firebaseConfig = {
+        apiKey: "AIzaSyDJJqxh3UOsTcBPAXLeEWeLoQRmIy_6hNU",
+        authDomain: "web-app-ae5b6.firebaseapp.com",
+        projectId: "web-app-ae5b6",
+        storageBucket: "web-app-ae5b6.appspot.com",
+        messagingSenderId: "921251501161",
+        appId: "1:921251501161:web:316ff3fc4345735762bef8"
+    };
+
+    const app = firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const auth = firebase.auth();
+
+    // DOM Elements and state management
+    const elements = {
+        usersTableBody: document.getElementById('usersTableBody'),
+        searchInput: document.getElementById('searchInput'),
+        stats: {
+            totalUsers: document.getElementById('totalUsers'),
+            activeUsers: document.getElementById('activeUsers'),
+            maleUsers: document.getElementById('maleUsers'),
+            femaleUsers: document.getElementById('femaleUsers')
+        },
+        lastUpdated: document.getElementById('lastUpdated'),
+        modals: {
+            resetPassword: document.getElementById('resetPasswordModal'),
+            deleteUser: document.getElementById('deleteUserModal'),
+            sendEmail: document.getElementById('sendEmailModal')
+        },
+        charts: {
+            homeChurch: document.getElementById('homeChurchChart'),
+            gender: document.getElementById('genderChart'),
+            signups: document.getElementById('signupsChart')
+        }
+    };
+
+    let state = {
+        users: [],
+        currentSort: { field: 'createdAt', direction: 'desc' },
+        currentUserAction: null,
+        charts: {}
+    };
+
+    // Initialize the app
+    document.addEventListener('DOMContentLoaded', () => {
+        initializeRealTimeUpdates();
+        setupEventListeners();
+    });
+
+    // Real-time data initialization
+    function initializeRealTimeUpdates() {
+        db.collection('users').orderBy('createdAt', 'desc')
+            .onSnapshot(handleUsersSnapshot, handleError('Error fetching users'));
+    }
+
+    function handleUsersSnapshot(snapshot) {
+        state.users = snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data(),
+            createdAt: doc.data().createdAt.toDate()
+        }));
+        
+        updateUI();
+    }
+
+    function updateUI() {
+        renderUsersTable();
+        updateStatistics();
+        renderCharts();
+        updateLastUpdated();
+    }
+
+    // Table rendering and sorting
+    function renderUsersTable(filteredUsers = null) {
+        const usersToRender = filteredUsers || state.users;
+        elements.usersTableBody.innerHTML = usersToRender.length > 0 
+            ? generateTableRows(usersToRender)
+            : '<tr><td colspan="7" class="no-users">No users found</td></tr>';
+        
+        updateSortIndicator();
+    }
+
+    function generateTableRows(users) {
+        return users.map(user => `
+            <tr>
+                <td>${user.fullName || 'N/A'}</td>
+                <td><span class="badge ${getGenderBadgeClass(user.gender)}">${user.gender || 'N/A'}</span></td>
+                <td>${user.email || 'N/A'}</td>
+                <td>${user.yob || 'N/A'}</td>
+                <td>${user.homeChurch || 'N/A'}</td>
+                <td>${formatDate(user.createdAt)}</td>
+                <td>
+                    ${generateActionButtons(user)}
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    function generateActionButtons(user) {
+        return `
+            <button class="action-btn email" data-email="${user.email}">
+                <i class="fas fa-envelope"></i>
+            </button>
+            <button class="action-btn reset" data-id="${user.id}" data-email="${user.email}">
+                <i class="fas fa-key"></i>
+            </button>
+            <button class="action-btn delete" data-id="${user.id}" data-email="${user.email}">
+                <i class="fas fa-trash"></i>
+            </button>
+        `;
+    }
+
+    // Statistics and charts
+    function updateStatistics() {
+        elements.stats.totalUsers.textContent = state.users.length;
+        elements.stats.activeUsers.textContent = calculateActiveUsers();
+        updateGenderStatistics();
+    }
+
+    function calculateActiveUsers() {
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        return state.users.filter(user => user.createdAt >= thirtyDaysAgo).length;
+    }
+
+    function updateGenderStatistics() {
+        const maleCount = state.users.filter(u => u.gender?.toLowerCase() === 'male').length;
+        const femaleCount = state.users.filter(u => u.gender?.toLowerCase() === 'female').length;
+        
+        elements.stats.maleUsers.textContent = `${maleCount} (${calculatePercentage(maleCount)}%)`;
+        elements.stats.femaleUsers.textContent = `${femaleCount} (${calculatePercentage(femaleCount)}%)`;
+    }
+
+    function calculatePercentage(count) {
+        return state.users.length > 0 
+            ? Math.round((count / state.users.length) * 100)
+            : 0;
+    }
+
+    function renderCharts() {
+        destroyExistingCharts();
+        renderDistributionCharts();
+        renderSignupsChart();
+    }
+
+    function destroyExistingCharts() {
+        Object.values(state.charts).forEach(chart => chart.destroy());
+        state.charts = {};
+    }
+
+    function renderDistributionCharts() {
+        state.charts.homeChurch = createChart('homeChurch', 'doughnut', 
+            getDistributionData('homeChurch'), generateColors);
+        
+        state.charts.gender = createChart('gender', 'pie', 
+            getDistributionData('gender'), () => ['#3b82f6', '#ec4899', '#94a3b8']);
+    }
+
+    function renderSignupsChart() {
+        const signupsData = getSignupsOverTime();
+        state.charts.signups = createChart('signups', 'line', {
+            labels: signupsData.labels,
+            datasets: [{
+                label: 'User Signups',
+                data: signupsData.values,
+                backgroundColor: 'rgba(67, 97, 238, 0.2)',
+                borderColor: 'rgba(67, 97, 238, 1)',
+                borderWidth: 2,
+                tension: 0.4,
+                fill: true
+            }]
+        });
+    }
+
+    // Chart utilities
+    function createChart(canvasId, type, data, colorGenerator) {
+        const ctx = elements.charts[canvasId].getContext('2d');
+        return new Chart(ctx, {
+            type,
+            data: Array.isArray(data) ? {
+                labels: data.labels,
+                datasets: [{
+                    data: data.values,
+                    backgroundColor: colorGenerator(data.labels.length),
+                    borderWidth: 1
+                }]
+            } : data,
+            options: getChartOptions(type)
+        });
+    }
+
+    function getChartOptions(type) {
+        const commonOptions = {
+            responsive: true,
+            maintainAspectRatio: false
         };
 
-        const app = firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
-        const auth = firebase.auth();
-
-        // DOM Elements
-        const usersTableBody = document.getElementById('usersTableBody');
-        const searchInput = document.getElementById('searchInput');
-        const totalUsersEl = document.getElementById('totalUsers');
-        const activeUsersEl = document.getElementById('activeUsers');
-        const maleUsersEl = document.getElementById('maleUsers');
-        const femaleUsersEl = document.getElementById('femaleUsers');
-        const lastUpdatedEl = document.getElementById('lastUpdated');
-        
-        // Modal elements
-        const resetPasswordModal = document.getElementById('resetPasswordModal');
-        const deleteUserModal = document.getElementById('deleteUserModal');
-        const sendEmailModal = document.getElementById('sendEmailModal');
-        const resetEmailEl = document.getElementById('resetEmail');
-        const deleteUserNameEl = document.getElementById('deleteUserName');
-        const confirmEmailEl = document.getElementById('confirmEmail');
-        const confirmDeleteBtn = document.getElementById('confirmDelete');
-        const confirmResetBtn = document.getElementById('confirmReset');
-        const emailToEl = document.getElementById('emailTo');
-        const emailSubjectEl = document.getElementById('emailSubject');
-        const emailMessageEl = document.getElementById('emailMessage');
-        const sendEmailBtn = document.getElementById('sendEmailBtn');
-        const toastEl = document.getElementById('toast');
-
-        // Chart instances
-        let homeChurchChart, genderChart, signupsChart;
-
-        // State
-        let users = [];
-        let currentSortField = 'createdAt';
-        let currentSortDirection = 'desc';
-        let currentUserToReset = null;
-        let currentUserToDelete = null;
-        let currentUserToEmail = null;
-
-        // Initialize the app
-        document.addEventListener('DOMContentLoaded', () => {
-            fetchUsers();
-            setupEventListeners();
-        });
-
-        // Fetch users from Firestore
-        async function fetchUsers() {
-            try {
-                const snapshot = await db.collection('users').orderBy('createdAt', 'desc').get();
-                users = snapshot.docs.map(doc => ({
-                    id: doc.id,
-                    ...doc.data(),
-                    createdAt: doc.data().createdAt.toDate()
-                }));
-                
-                renderUsersTable();
-                updateStats();
-                renderCharts();
-                updateLastUpdated();
-            } catch (error) {
-                console.error('Error fetching users:', error);
-                showToast('Error fetching users', 'error');
-            }
-        }
-
-        // Render users table
-        function renderUsersTable(filteredUsers = null) {
-            const usersToRender = filteredUsers || users;
-            
-            if (usersToRender.length === 0) {
-                usersTableBody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No users found</td></tr>';
-                return;
-            }
-
-            usersTableBody.innerHTML = usersToRender.map(user => `
-                <tr>
-                    <td>${user.fullName || 'N/A'}</td>
-                    <td><span class="badge ${getGenderBadgeClass(user.gender)}">${user.gender || 'N/A'}</span></td>
-                    <td>${user.email || 'N/A'}</td>
-                    <td>${user.yob || 'N/A'}</td>
-                    <td>${user.homeChurch || 'N/A'}</td>
-                    <td>${formatDate(user.createdAt)}</td>
-                    <td>
-                        <button class="action-btn email" data-id="${user.id}" data-email="${user.email}">
-                            <i class="fas fa-envelope"></i>
-                        </button>
-                        <button class="action-btn reset" data-id="${user.id}" data-email="${user.email}">
-                            <i class="fas fa-key"></i>
-                        </button>
-                        <button class="action-btn delete" data-id="${user.id}" data-email="${user.email}" data-name="${user.fullName || user.email}">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </td>
-                </tr>
-            `).join('');
-        }
-
-        // Update statistics cards
-        function updateStats() {
-            totalUsersEl.textContent = users.length;
-            
-            // Calculate active users (last 30 days)
-            const thirtyDaysAgo = new Date();
-            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-            const activeUsers = users.filter(user => user.createdAt >= thirtyDaysAgo);
-            activeUsersEl.textContent = activeUsers.length;
-            
-            // Calculate gender distribution
-            const maleUsers = users.filter(user => user.gender && user.gender.toLowerCase() === 'male').length;
-            const femaleUsers = users.filter(user => user.gender && user.gender.toLowerCase() === 'female').length;
-            
-            maleUsersEl.textContent = `${maleUsers} (${Math.round((maleUsers / users.length) * 100)}%)`;
-            femaleUsersEl.textContent = `${femaleUsers} (${Math.round((femaleUsers / users.length) * 100)}%)`;
-        }
-
-        // Render charts
-        function renderCharts() {
-            // Destroy existing charts if they exist
-            if (homeChurchChart) homeChurchChart.destroy();
-            if (genderChart) genderChart.destroy();
-            if (signupsChart) signupsChart.destroy();
-
-            // Home Church Distribution Chart
-            const homeChurchData = getDistributionData('homeChurch');
-            const homeChurchCtx = document.getElementById('homeChurchChart').getContext('2d');
-            homeChurchChart = new Chart(homeChurchCtx, {
-                type: 'doughnut',
-                data: {
-                    labels: homeChurchData.labels,
-                    datasets: [{
-                        data: homeChurchData.values,
-                        backgroundColor: generateColors(homeChurchData.labels.length),
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'right',
-                        }
-                    }
-                }
-            });
-
-            // Gender Distribution Chart
-            const genderData = getDistributionData('gender');
-            const genderCtx = document.getElementById('genderChart').getContext('2d');
-            genderChart = new Chart(genderCtx, {
-                type: 'pie',
-                data: {
-                    labels: genderData.labels,
-                    datasets: [{
-                        data: genderData.values,
-                        backgroundColor: [
-                            '#3b82f6', // blue for male
-                            '#ec4899', // pink for female
-                            '#94a3b8' // gray for others
-                        ],
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'right',
-                        }
-                    }
-                }
-            });
-
-            // Signups Over Time Chart
-            const signupsData = getSignupsOverTime();
-            const signupsCtx = document.getElementById('signupsChart').getContext('2d');
-            signupsChart = new Chart(signupsCtx, {
-                type: 'line',
-                data: {
-                    labels: signupsData.labels,
-                    datasets: [{
-                        label: 'User Signups',
-                        data: signupsData.values,
-                        backgroundColor: 'rgba(67, 97, 238, 0.2)',
-                        borderColor: 'rgba(67, 97, 238, 1)',
-                        borderWidth: 2,
-                        tension: 0.4,
-                        fill: true
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                precision: 0
-                            }
-                        }
-                    }
-                }
-            });
-        }
-
-        // Helper function to get distribution data for a field
-        function getDistributionData(field) {
-            const counts = {};
-            
-            users.forEach(user => {
-                const value = user[field] || 'Unknown';
-                counts[value] = (counts[value] || 0) + 1;
-            });
-            
-            // Sort by count descending
-            const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
-            
-            // Limit to top 5 and group others
-            if (sorted.length > 5) {
-                const top5 = sorted.slice(0, 5);
-                const othersCount = sorted.slice(5).reduce((sum, [, count]) => sum + count, 0);
-                return {
-                    labels: [...top5.map(([label]) => label), 'Others'],
-                    values: [...top5.map(([, count]) => count), othersCount]
-                };
-            }
-            
+        if (type === 'doughnut' || type === 'pie') {
             return {
-                labels: sorted.map(([label]) => label),
-                values: sorted.map(([, count]) => count)
+                ...commonOptions,
+                plugins: { legend: { position: 'right' } }
             };
         }
 
-        // Helper function to get signups over time data
-        function getSignupsOverTime() {
-            if (users.length === 0) return { labels: [], values: [] };
+        return {
+            ...commonOptions,
+            scales: { y: { beginAtZero: true, ticks: { precision: 0 } }
+        };
+    }
+
+    // Data processing utilities
+    function getDistributionData(field) {
+        const counts = state.users.reduce((acc, user) => {
+            const value = user[field] || 'Unknown';
+            acc[value] = (acc[value] || 0) + 1;
+            return acc;
+        }, {});
+
+        const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+        return processTopResults(sorted, 5);
+    }
+
+    function processTopResults(data, limit) {
+        if (data.length <= limit) return {
+            labels: data.map(([label]) => label),
+            values: data.map(([, count]) => count)
+        };
+
+        const top = data.slice(0, limit);
+        const others = data.slice(limit).reduce((sum, [, count]) => sum + count, 0);
+        return {
+            labels: [...top.map(([label]) => label), 'Others'],
+            values: [...top.map(([, count]) => count), others]
+        };
+    }
+
+    function getSignupsOverTime() {
+        if (state.users.length === 0) return { labels: [], values: [] };
+
+        const dates = state.users.map(u => u.createdAt);
+        const minDate = new Date(Math.min(...dates));
+        const maxDate = new Date(Math.max(...dates));
+        const months = generateMonthRange(minDate, maxDate);
+
+        const values = new Array(months.length).fill(0);
+        state.users.forEach(user => {
+            const monthKey = getMonthKey(user.createdAt);
+            const index = months.findIndex(m => m.key === monthKey);
+            if (index !== -1) values[index]++;
+        });
+
+        return {
+            labels: months.map(m => m.label),
+            values
+        };
+    }
+
+    function generateMonthRange(start, end) {
+        const months = [];
+        const current = new Date(start);
+        current.setDate(1);
+        
+        while (current <= end) {
+            months.push({
+                key: `${current.getFullYear()}-${current.getMonth()}`,
+                label: `${current.toLocaleString('default', { month: 'short' })} ${current.getFullYear()}`
+            });
+            current.setMonth(current.getMonth() + 1);
+        }
+        return months;
+    }
+
+    function getMonthKey(date) {
+        const d = new Date(date);
+        return `${d.getFullYear()}-${d.getMonth()}`;
+    }
+
+    // Event handling and UI interactions
+    function setupEventListeners() {
+        setupTableSorting();
+        setupSearch();
+        setupActionHandlers();
+        setupModalHandlers();
+    }
+
+    function setupTableSorting() {
+        document.querySelectorAll('th[data-sort]').forEach(th => {
+            th.addEventListener('click', () => handleSort(th.dataset.sort));
+        });
+    }
+
+    function handleSort(field) {
+        if (state.currentSort.field === field) {
+            state.currentSort.direction = state.currentSort.direction === 'asc' ? 'desc' : 'asc';
+        } else {
+            state.currentSort = { field, direction: 'asc' };
+        }
+        
+        sortUsers();
+        renderUsersTable();
+    }
+
+    function sortUsers() {
+        state.users.sort((a, b) => {
+            let valueA = getSortValue(a[state.currentSort.field]);
+            let valueB = getSortValue(b[state.currentSort.field]);
             
-            // Get the oldest and newest signup dates
-            const sortedUsers = [...users].sort((a, b) => a.createdAt - b.createdAt);
-            const oldestDate = sortedUsers[0].createdAt;
-            const newestDate = sortedUsers[sortedUsers.length - 1].createdAt;
-            
-            // Calculate months between oldest and newest
-            const monthDiff = monthDifference(oldestDate, newestDate);
-            const labels = [];
-            const values = [];
-            
-            // Initialize data for each month
-            for (let i = 0; i <= monthDiff; i++) {
-                const date = new Date(oldestDate);
-                date.setMonth(date.getMonth() + i);
-                const monthYear = `${date.toLocaleString('default', { month: 'short' })} ${date.getFullYear()}`;
-                labels.push(monthYear);
-                values.push(0);
+            if (valueA < valueB) return state.currentSort.direction === 'asc' ? -1 : 1;
+            if (valueA > valueB) return state.currentSort.direction === 'asc' ? 1 : -1;
+            return 0;
+        });
+    }
+
+    function getSortValue(value) {
+        if (value instanceof Date) return value.getTime();
+        if (typeof value === 'string') return value.toLowerCase();
+        if (typeof value === 'number') return value;
+        return value;
+    }
+
+    function updateSortIndicator() {
+        document.querySelectorAll('th[data-sort]').forEach(th => {
+            th.classList.remove('sort-asc', 'sort-desc');
+            if (th.dataset.sort === state.currentSort.field) {
+                th.classList.add(`sort-${state.currentSort.direction}`);
             }
-            
-            // Count users per month
-            users.forEach(user => {
-                const userMonth = user.createdAt.getMonth();
-                const userYear = user.createdAt.getFullYear();
-                
-                for (let i = 0; i < labels.length; i++) {
-                    const labelDate = new Date(labels[i]);
-                    const labelMonth = labelDate.getMonth();
-                    const labelYear = labelDate.getFullYear();
-                    
-                    if (userMonth === labelMonth && userYear === labelYear) {
-                        values[i]++;
-                        break;
-                    }
-                }
-            });
-            
-            return { labels, values };
-        }
+        });
+    }
 
-        // Helper function to calculate month difference between two dates
-        function monthDifference(date1, date2) {
-            const yearDiff = date2.getFullYear() - date1.getFullYear();
-            return yearDiff * 12 + (date2.getMonth() - date1.getMonth());
-        }
+    function setupSearch() {
+        elements.searchInput.addEventListener('input', () => {
+            const term = elements.searchInput.value.toLowerCase();
+            const filtered = term 
+                ? state.users.filter(user => 
+                    Object.values(user).some(val => 
+                        String(val).toLowerCase().includes(term)
+                    )
+                )
+                : null;
+            renderUsersTable(filtered);
+        });
+    }
 
-        // Setup event listeners
-        function setupEventListeners() {
-            // Table sorting
-            document.querySelectorAll('th[data-sort]').forEach(th => {
-                th.addEventListener('click', () => {
-                    const sortField = th.getAttribute('data-sort');
-                    
-                    // Remove sort indicators from all headers
-                    document.querySelectorAll('th[data-sort]').forEach(header => {
-                        header.classList.remove('sort-asc', 'sort-desc');
-                    });
-                    
-                    // If same field clicked, reverse direction
-                    if (sortField === currentSortField) {
-                        currentSortDirection = currentSortDirection === 'asc' ? 'desc' : 'asc';
-                    } else {
-                        currentSortField = sortField;
-                        currentSortDirection = 'asc';
-                    }
-                    
-                    // Add sort indicator to current header
-                    th.classList.add(`sort-${currentSortDirection}`);
-                    
-                    // Sort users
-                    sortUsers();
-                    renderUsersTable();
-                });
-            });
-            
-            // Search input
-            searchInput.addEventListener('input', () => {
-                const searchTerm = searchInput.value.toLowerCase();
-                if (searchTerm === '') {
-                    renderUsersTable();
-                } else {
-                    const filteredUsers = users.filter(user => 
-                        (user.fullName && user.fullName.toLowerCase().includes(searchTerm)) ||
-                        (user.email && user.email.toLowerCase().includes(searchTerm)) ||
-                        (user.homeChurch && user.homeChurch.toLowerCase().includes(searchTerm))
-                    );
-                    renderUsersTable(filteredUsers);
-                }
-            });
-            
-            // Action buttons (delegated)
-            usersTableBody.addEventListener('click', (e) => {
-                const btn = e.target.closest('button');
-                if (!btn) return;
-                
-                const userId = btn.getAttribute('data-id');
-                const userEmail = btn.getAttribute('data-email');
-                const userName = btn.getAttribute('data-name');
-                
-                if (btn.classList.contains('reset')) {
-                    openResetPasswordModal(userId, userEmail);
-                } else if (btn.classList.contains('delete')) {
-                    openDeleteUserModal(userId, userEmail, userName);
-                } else if (btn.classList.contains('email')) {
-                    openSendEmailModal(userEmail);
-                }
-            });
-            
-            // Modal close buttons
-            document.querySelectorAll('.close, .close-btn').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    resetPasswordModal.style.display = 'none';
-                    deleteUserModal.style.display = 'none';
-                    sendEmailModal.style.display = 'none';
-                });
-            });
-            
-            // Confirm reset password
-            confirmResetBtn.addEventListener('click', async () => {
-                try {
-                    confirmResetBtn.disabled = true;
-                    confirmResetBtn.innerHTML = '<span class="loading"></span> Sending...';
-                    
-                    await auth.sendPasswordResetEmail(currentUserToReset.email);
-                    showToast(`Password reset email sent to ${currentUserToReset.email}`, 'success');
-                    resetPasswordModal.style.display = 'none';
-                } catch (error) {
-                    console.error('Error sending reset email:', error);
-                    showToast('Error sending reset email', 'error');
-                } finally {
-                    confirmResetBtn.disabled = false;
-                    confirmResetBtn.textContent = 'Reset Password';
-                    currentUserToReset = null;
-                }
-            });
-            
-            // Confirm delete user
-            confirmEmailEl.addEventListener('input', () => {
-                confirmDeleteBtn.disabled = confirmEmailEl.value !== currentUserToDelete?.email;
-            });
-            
-            confirmDeleteBtn.addEventListener('click', async () => {
-                try {
-                    if (confirmEmailEl.value !== currentUserToDelete.email) return;
-                    
-                    confirmDeleteBtn.disabled = true;
-                    confirmDeleteBtn.innerHTML = '<span class="loading"></span> Deleting...';
-                    
-                    // Delete from Firestore
-                    await db.collection('users').doc(currentUserToDelete.id).delete();
-                    
-                    // Delete from Authentication (if email matches)
-                    const user = await auth.getUserByEmail(currentUserToDelete.email);
-                    if (user) {
-                        await auth.deleteUser(user.uid);
-                    }
-                    
-                    // Update local state
-                    users = users.filter(u => u.id !== currentUserToDelete.id);
-                    renderUsersTable();
-                    updateStats();
-                    renderCharts();
-                    
-                    showToast(`User ${currentUserToDelete.email} deleted successfully`, 'success');
-                    deleteUserModal.style.display = 'none';
-                } catch (error) {
-                    console.error('Error deleting user:', error);
-                    showToast('Error deleting user', 'error');
-                } finally {
-                    confirmDeleteBtn.disabled = false;
-                    confirmDeleteBtn.textContent = 'Delete User';
-                    currentUserToDelete = null;
-                    confirmEmailEl.value = '';
-                }
-            });
-            
-            // Send email
-            sendEmailBtn.addEventListener('click', () => {
-                // In a real app, you would integrate with an email service here
-                // For demo purposes, we'll just show a success message
-                showToast(`Email sent to ${currentUserToEmail}`, 'success');
-                sendEmailModal.style.display = 'none';
-                emailSubjectEl.value = '';
-                emailMessageEl.value = '';
-            });
-            
-            // Close modals when clicking outside
-            window.addEventListener('click', (e) => {
-                if (e.target === resetPasswordModal) resetPasswordModal.style.display = 'none';
-                if (e.target === deleteUserModal) deleteUserModal.style.display = 'none';
-                if (e.target === sendEmailModal) sendEmailModal.style.display = 'none';
-            });
-        }
+    function setupActionHandlers() {
+        elements.usersTableBody.addEventListener('click', e => {
+            const btn = e.target.closest('button');
+            if (!btn) return;
 
-        // Open reset password modal
-        function openResetPasswordModal(userId, userEmail) {
-            currentUserToReset = { id: userId, email: userEmail };
-            resetEmailEl.textContent = userEmail;
-            resetPasswordModal.style.display = 'flex';
-        }
+            const user = state.users.find(u => u.id === btn.dataset.id);
+            if (!user) return;
 
-        // Open delete user modal
-        function openDeleteUserModal(userId, userEmail, userName) {
-            currentUserToDelete = { id: userId, email: userEmail };
-            deleteUserNameEl.textContent = userName || userEmail;
-            deleteUserModal.style.display = 'flex';
-        }
+            if (btn.classList.contains('reset')) handlePasswordReset(user);
+            if (btn.classList.contains('delete')) handleDeleteUser(user);
+            if (btn.classList.contains('email')) handleSendEmail(user.email);
+        });
+    }
 
-        // Open send email modal
-        function openSendEmailModal(userEmail) {
-            currentUserToEmail = userEmail;
-            emailToEl.value = userEmail;
-            sendEmailModal.style.display = 'flex';
-        }
+    function handlePasswordReset(user) {
+        state.currentUserAction = user;
+        elements.modals.resetPassword.querySelector('#resetEmail').textContent = user.email;
+        showModal('resetPassword');
+    }
 
-        // Sort users
-        function sortUsers() {
-            users.sort((a, b) => {
-                let valueA = a[currentSortField];
-                let valueB = b[currentSortField];
-                
-                // Handle dates
-                if (currentSortField === 'createdAt') {
-                    valueA = valueA.getTime();
-                    valueB = valueB.getTime();
-                }
-                
-                // Handle case insensitive string comparison
-                if (typeof valueA === 'string') valueA = valueA.toLowerCase();
-                if (typeof valueB === 'string') valueB = valueB.toLowerCase();
-                
-                if (valueA < valueB) return currentSortDirection === 'asc' ? -1 : 1;
-                if (valueA > valueB) return currentSortDirection === 'asc' ? 1 : -1;
-                return 0;
+    function handleDeleteUser(user) {
+        state.currentUserAction = user;
+        elements.modals.deleteUser.querySelector('#deleteUserName').textContent = user.fullName || user.email;
+        showModal('deleteUser');
+    }
+
+    function handleSendEmail(email) {
+        elements.modals.sendEmail.querySelector('#emailTo').value = email;
+        showModal('sendEmail');
+    }
+
+    function setupModalHandlers() {
+        // Modal close handlers
+        document.querySelectorAll('.modal .close, .close-btn').forEach(btn => {
+            btn.addEventListener('click', () => closeModals());
+        });
+
+        // Password reset confirmation
+        elements.modals.resetPassword.querySelector('#confirmReset')
+            .addEventListener('click', handleConfirmReset);
+
+        // User deletion confirmation
+        const confirmDelete = elements.modals.deleteUser.querySelector('#confirmDelete');
+        elements.modals.deleteUser.querySelector('#confirmEmail')
+            .addEventListener('input', e => {
+                confirmDelete.disabled = e.target.value !== state.currentUserAction?.email;
             });
-        }
+        confirmDelete.addEventListener('click', handleConfirmDelete);
 
-        // Helper functions
-        function formatDate(date) {
-            if (!date) return 'N/A';
-            return date.toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric'
-            });
-        }
+        // Email sending
+        elements.modals.sendEmail.querySelector('#sendEmailBtn')
+            .addEventListener('click', handleSendEmail);
+    }
 
-        function getGenderBadgeClass(gender) {
-            if (!gender) return 'primary';
-            const lowerGender = gender.toLowerCase();
-            if (lowerGender === 'male') return 'primary';
-            if (lowerGender === 'female') return 'danger';
-            return 'warning';
-        }
-
-        function generateColors(count) {
-            const colors = [];
-            const hueStep = 360 / count;
+    async function handleConfirmReset() {
+        const btn = elements.modals.resetPassword.querySelector('#confirmReset');
+        try {
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading"></span> Sending...';
             
-            for (let i = 0; i < count; i++) {
-                const hue = i * hueStep;
-                colors.push(`hsl(${hue}, 70%, 60%)`);
-            }
-            
-            return colors;
+            await auth.sendPasswordResetEmail(state.currentUserAction.email);
+            showToast('Password reset email sent', 'success');
+            closeModals();
+        } catch (error) {
+            showToast('Error sending reset email', 'error');
+            console.error('Password reset error:', error);
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Reset Password';
         }
+    }
 
-        function updateLastUpdated() {
-            lastUpdatedEl.textContent = `Last updated: ${new Date().toLocaleString()}`;
-        }
+    async function handleConfirmDelete() {
+        const btn = elements.modals.deleteUser.querySelector('#confirmDelete');
+        const emailConfirm = elements.modals.deleteUser.querySelector('#confirmEmail').value;
+        
+        if (emailConfirm !== state.currentUserAction?.email) return;
 
-        function showToast(message, type) {
-            toastEl.textContent = message;
-            toastEl.className = `toast ${type} show`;
+        try {
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading"></span> Deleting...';
             
-            setTimeout(() => {
-                toastEl.classList.remove('show');
-            }, 3000);
+            // Delete from both Firestore and Auth
+            await Promise.all([
+                db.collection('users').doc(state.currentUserAction.id).delete(),
+                auth.deleteUser(state.currentUserAction.id)
+            ]);
+            
+            // Update local state
+            state.users = state.users.filter(u => u.id !== state.currentUserAction.id);
+            updateUI();
+            showToast('User deleted successfully', 'success');
+            closeModals();
+        } catch (error) {
+            showToast('Error deleting user', 'error');
+            console.error('Deletion error:', error);
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Delete User';
+            state.currentUserAction = null;
         }
-    </script>
+    }
+
+    function handleSendEmail() {
+        // Implement actual email sending logic here
+        showToast('Email sent successfully', 'success');
+        closeModals();
+    }
+
+    // UI utilities
+    function showModal(type) {
+        elements.modals[type].style.display = 'flex';
+    }
+
+    function closeModals() {
+        Object.values(elements.modals).forEach(modal => {
+            modal.style.display = 'none';
+        });
+        state.currentUserAction = null;
+    }
+
+    function updateLastUpdated() {
+        elements.lastUpdated.textContent = `Last updated: ${new Date().toLocaleString()}`;
+    }
+
+    function showToast(message, type) {
+        const toast = document.getElementById('toast');
+        toast.className = `toast ${type} show`;
+        toast.textContent = message;
+        setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+
+    // Helper functions
+    function formatDate(date) {
+        return date?.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+        }) || 'N/A';
+    }
+
+    function getGenderBadgeClass(gender) {
+        if (!gender) return 'primary';
+        switch (gender.toLowerCase()) {
+            case 'male': return 'primary';
+            case 'female': return 'danger';
+            default: return 'warning';
+        }
+    }
+
+    function generateColors(count) {
+        return Array.from({ length: count }, (_, i) => 
+            `hsl(${(i * 360 / count)}, 70%, 60%)`
+        );
+    }
+
+    function handleError(context) {
+        return error => {
+            console.error(context, error);
+            showToast(`${context}: ${error.message}`, 'error');
+        };
+    }
+</script>
 </body>
 </html>
