@@ -1,1 +1,758 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ministry Management System</title>
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-analytics.js"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .ministry-card {
+            transition: all 0.3s ease;
+        }
+        .ministry-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .modal {
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        .gender-chart {
+            height: 200px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            gap: 20px;
+            padding-top: 20px;
+        }
+        .gender-bar {
+            width: 40px;
+            transition: height 0.5s ease;
+            position: relative;
+        }
+        .gender-bar-male {
+            background-color: #3b82f6;
+        }
+        .gender-bar-female {
+            background-color: #ec4899;
+        }
+        .gender-label {
+            position: absolute;
+            bottom: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 12px;
+            color: #6b7280;
+        }
+        .gender-value {
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 12px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Firebase Configuration -->
+    <script>
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBG-N0g33c5-xru56dV7Ymi3YuOwPFnd-w",
+            authDomain: "ministries-d4f65.firebaseapp.com",
+            projectId: "ministries-d4f65",
+            storageBucket: "ministries-d4f65.appspot.com",
+            messagingSenderId: "796981416799",
+            appId: "1:796981416799:web:f77774148935d4191c1cea",
+            measurementId: "G-06Y1CP4S7G"
+        };
+
+        // Initialize Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const analytics = firebase.analytics();
+    </script>
+
+    <!-- Header -->
+    <header class="bg-indigo-600 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-6 flex justify-between items-center">
+            <h1 class="text-2xl font-bold">Ministry Management System</h1>
+            <button id="addMinistryBtn" class="bg-white text-indigo-600 px-4 py-2 rounded-lg font-medium hover:bg-indigo-50 transition">
+                <i class="fas fa-plus mr-2"></i>Add Ministry
+            </button>
+        </div>
+    </header>
+
+    <!-- Stats Section -->
+    <section class="container mx-auto px-4 py-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-white rounded-xl shadow-md p-6">
+                <div class="flex items-center">
+                    <div class="p-3 rounded-full bg-indigo-100 text-indigo-600 mr-4">
+                        <i class="fas fa-church text-xl"></i>
+                    </div>
+                    <div>
+                        <p class="text-gray-500 text-sm">Total Ministries</p>
+                        <h3 id="totalMinistries" class="text-2xl font-bold">0</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl shadow-md p-6">
+                <div class="flex items-center">
+                    <div class="p-3 rounded-full bg-green-100 text-green-600 mr-4">
+                        <i class="fas fa-users text-xl"></i>
+                    </div>
+                    <div>
+                        <p class="text-gray-500 text-sm">Total Members</p>
+                        <h3 id="totalMembers" class="text-2xl font-bold">0</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl shadow-md p-6">
+                <p class="text-gray-500 text-sm mb-3">Gender Distribution</p>
+                <div id="genderChart" class="gender-chart">
+                    <!-- Chart will be populated here -->
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-6">
+        <!-- Ministries Table -->
+        <div class="bg-white rounded-xl shadow-md overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h2 class="text-xl font-semibold text-gray-800">All Ministries</h2>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ministry</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Created</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Members</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ministriesTableBody" class="bg-white divide-y divide-gray-200">
+                        <!-- Ministries will be populated here -->
+                        <tr>
+                            <td colspan="5" class="px-6 py-4 text-center text-gray-500">Loading ministries...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- Add Ministry Modal -->
+    <div id="addMinistryModal" class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-md">
+            <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                <h3 class="text-lg font-semibold text-gray-800">Add New Ministry</h3>
+                <button id="closeMinistryModal" class="text-gray-400 hover:text-gray-500">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="p-6">
+                <div class="mb-4">
+                    <label for="ministryTitle" class="block text-sm font-medium text-gray-700 mb-1">Ministry Title</label>
+                    <input type="text" id="ministryTitle" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div class="mb-4">
+                    <label for="ministryDate" class="block text-sm font-medium text-gray-700 mb-1">Date Created</label>
+                    <input type="date" id="ministryDate" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div class="mb-4">
+                    <label for="ministryStatus" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                    <select id="ministryStatus" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <option value="Approved">Approved</option>
+                        <option value="Not Yet" selected>Not Yet</option>
+                    </select>
+                </div>
+            </div>
+            <div class="px-6 py-4 border-t border-gray-200 flex justify-end space-x-3">
+                <button id="cancelMinistryBtn" class="px-4 py-2 text-gray-600 hover:text-gray-800 font-medium">
+                    Cancel
+                </button>
+                <button id="saveMinistryBtn" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 font-medium">
+                    Save Ministry
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Members Modal -->
+    <div id="addMembersModal" class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-md">
+            <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                <h3 id="addMembersModalTitle" class="text-lg font-semibold text-gray-800">Add Members to <span id="ministryNameTitle"></span></h3>
+                <button id="closeMembersModal" class="text-gray-400 hover:text-gray-500">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="p-6">
+                <div class="mb-4">
+                    <label for="memberName" class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                    <input type="text" id="memberName" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div class="mb-4">
+                    <label for="memberGender" class="block text-sm font-medium text-gray-700 mb-1">Gender</label>
+                    <select id="memberGender" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label for="memberPhone" class="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                    <input type="tel" id="memberPhone" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div class="mb-4">
+                    <label for="memberHomeChurch" class="block text-sm font-medium text-gray-700 mb-1">Home Church</label>
+                    <input type="text" id="memberHomeChurch" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div class="mb-4">
+                    <label for="memberYOB" class="block text-sm font-medium text-gray-700 mb-1">Year of Birth</label>
+                    <input type="number" id="memberYOB" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div class="mb-4">
+                    <label for="memberMaritalStatus" class="block text-sm font-medium text-gray-700 mb-1">Marital Status</label>
+                    <select id="memberMaritalStatus" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <option value="Single">Single</option>
+                        <option value="Married">Married</option>
+                        <option value="Divorced">Divorced</option>
+                        <option value="Widowed">Widowed</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label for="memberPosition" class="block text-sm font-medium text-gray-700 mb-1">Position</label>
+                    <select id="memberPosition" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <option value="Leader">Leader</option>
+                        <option value="Member" selected>Member</option>
+                    </select>
+                </div>
+            </div>
+            <div class="px-6 py-4 border-t border-gray-200 flex justify-end space-x-3">
+                <button id="cancelMembersBtn" class="px-4 py-2 text-gray-600 hover:text-gray-800 font-medium">
+                    Cancel
+                </button>
+                <button id="saveMembersBtn" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 font-medium">
+                    Save Member
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- View Members Modal -->
+    <div id="viewMembersModal" class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
+            <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                <h3 id="viewMembersModalTitle" class="text-lg font-semibold text-gray-800">Members of <span id="viewMinistryNameTitle"></span></h3>
+                <div>
+                    <button id="addMemberToMinistryBtn" class="px-3 py-1 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 font-medium text-sm mr-2">
+                        <i class="fas fa-plus mr-1"></i>Add Member
+                    </button>
+                    <button id="closeViewMembersModal" class="text-gray-400 hover:text-gray-500">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="overflow-y-auto flex-1">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50 sticky top-0">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Gender</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phone</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Home Church</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Age</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Position</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="membersTableBody" class="bg-white divide-y divide-gray-200">
+                        <!-- Members will be populated here -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="px-6 py-4 border-t border-gray-200 flex justify-end">
+                <button id="closeViewMembersModalBottom" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 font-medium">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const addMinistryBtn = document.getElementById('addMinistryBtn');
+        const addMinistryModal = document.getElementById('addMinistryModal');
+        const closeMinistryModal = document.getElementById('closeMinistryModal');
+        const cancelMinistryBtn = document.getElementById('cancelMinistryBtn');
+        const saveMinistryBtn = document.getElementById('saveMinistryBtn');
+        const ministryTitleInput = document.getElementById('ministryTitle');
+        const ministryDateInput = document.getElementById('ministryDate');
+        const ministryStatusInput = document.getElementById('ministryStatus');
+        
+        const addMembersModal = document.getElementById('addMembersModal');
+        const addMembersModalTitle = document.getElementById('addMembersModalTitle');
+        const ministryNameTitle = document.getElementById('ministryNameTitle');
+        const closeMembersModal = document.getElementById('closeMembersModal');
+        const cancelMembersBtn = document.getElementById('cancelMembersBtn');
+        const saveMembersBtn = document.getElementById('saveMembersBtn');
+        const memberNameInput = document.getElementById('memberName');
+        const memberGenderInput = document.getElementById('memberGender');
+        const memberPhoneInput = document.getElementById('memberPhone');
+        const memberHomeChurchInput = document.getElementById('memberHomeChurch');
+        const memberYOBInput = document.getElementById('memberYOB');
+        const memberMaritalStatusInput = document.getElementById('memberMaritalStatus');
+        const memberPositionInput = document.getElementById('memberPosition');
+        
+        const viewMembersModal = document.getElementById('viewMembersModal');
+        const viewMembersModalTitle = document.getElementById('viewMembersModalTitle');
+        const viewMinistryNameTitle = document.getElementById('viewMinistryNameTitle');
+        const closeViewMembersModal = document.getElementById('closeViewMembersModal');
+        const closeViewMembersModalBottom = document.getElementById('closeViewMembersModalBottom');
+        const addMemberToMinistryBtn = document.getElementById('addMemberToMinistryBtn');
+        const membersTableBody = document.getElementById('membersTableBody');
+        
+        const ministriesTableBody = document.getElementById('ministriesTableBody');
+        const totalMinistriesElement = document.getElementById('totalMinistries');
+        const totalMembersElement = document.getElementById('totalMembers');
+        const genderChartElement = document.getElementById('genderChart');
+
+        // State
+        let currentMinistry = null;
+        let ministries = [];
+        let members = [];
+        let totalMembersCount = 0;
+        let genderStats = { male: 0, female: 0 };
+
+        // Initialize date picker with today's date
+        ministryDateInput.valueAsDate = new Date();
+        memberYOBInput.value = new Date().getFullYear() - 30; // Default to 30 years old
+
+        // Event Listeners
+        addMinistryBtn.addEventListener('click', () => {
+            ministryTitleInput.value = '';
+            ministryDateInput.valueAsDate = new Date();
+            ministryStatusInput.value = 'Not Yet';
+            addMinistryModal.classList.remove('hidden');
+        });
+
+        [closeMinistryModal, cancelMinistryBtn].forEach(el => {
+            el.addEventListener('click', () => {
+                addMinistryModal.classList.add('hidden');
+            });
+        });
+
+        saveMinistryBtn.addEventListener('click', saveMinistry);
+
+        [closeMembersModal, cancelMembersBtn].forEach(el => {
+            el.addEventListener('click', () => {
+                addMembersModal.classList.add('hidden');
+            });
+        });
+
+        saveMembersBtn.addEventListener('click', saveMember);
+
+        [closeViewMembersModal, closeViewMembersModalBottom].forEach(el => {
+            el.addEventListener('click', () => {
+                viewMembersModal.classList.add('hidden');
+            });
+        });
+
+        addMemberToMinistryBtn.addEventListener('click', () => {
+            addMembersModal.classList.remove('hidden');
+            viewMembersModal.classList.add('hidden');
+        });
+
+        // Functions
+        async function saveMinistry() {
+            const title = ministryTitleInput.value.trim();
+            const date = ministryDateInput.value;
+            const status = ministryStatusInput.value;
+            
+            if (!title || !date) {
+                alert('Please fill in all fields');
+                return;
+            }
+            
+            try {
+                // Check if ministry already exists
+                const snapshot = await db.collection('ministries').where('title', '==', title).get();
+                if (!snapshot.empty) {
+                    alert('Ministry with this title already exists');
+                    return;
+                }
+                
+                // Add ministry to Firestore
+                const docRef = await db.collection('ministries').add({
+                    title: title,
+                    dateCreated: date,
+                    status: status,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                addMinistryModal.classList.add('hidden');
+                
+                // Open add members modal
+                currentMinistry = {
+                    id: docRef.id,
+                    title: title
+                };
+                ministryNameTitle.textContent = title;
+                memberNameInput.value = '';
+                memberGenderInput.value = 'Male';
+                memberPhoneInput.value = '';
+                memberHomeChurchInput.value = '';
+                memberYOBInput.value = new Date().getFullYear() - 30;
+                memberMaritalStatusInput.value = 'Single';
+                memberPositionInput.value = 'Member';
+                addMembersModal.classList.remove('hidden');
+                
+                loadMinistries();
+            } catch (error) {
+                console.error('Error adding ministry: ', error);
+                alert('Error adding ministry');
+            }
+        }
+
+        async function saveMember() {
+            const name = memberNameInput.value.trim();
+            const gender = memberGenderInput.value;
+            const phone = memberPhoneInput.value.trim();
+            const homeChurch = memberHomeChurchInput.value.trim();
+            const yob = memberYOBInput.value;
+            const maritalStatus = memberMaritalStatusInput.value;
+            const position = memberPositionInput.value;
+            
+            if (!name || !phone || !homeChurch || !yob) {
+                alert('Please fill in all required fields');
+                return;
+            }
+            
+            try {
+                await db.collection('ministries').doc(currentMinistry.id).collection('members').add({
+                    name: name,
+                    gender: gender,
+                    phone: phone,
+                    homeChurch: homeChurch,
+                    yearOfBirth: yob,
+                    maritalStatus: maritalStatus,
+                    position: position,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                addMembersModal.classList.add('hidden');
+                
+                // If we came from view members modal, reopen it
+                if (viewMembersModal.classList.contains('hidden')) {
+                    viewMembersModal.classList.remove('hidden');
+                }
+                
+                loadMembers(currentMinistry.id);
+                loadMinistries();
+                loadStats();
+            } catch (error) {
+                console.error('Error adding member: ', error);
+                alert('Error adding member');
+            }
+        }
+
+        async function loadMinistries() {
+            try {
+                const snapshot = await db.collection('ministries').orderBy('createdAt', 'desc').get();
+                ministries = [];
+                snapshot.forEach(doc => {
+                    ministries.push({
+                        id: doc.id,
+                        ...doc.data()
+                    });
+                });
+                
+                renderMinistries();
+                loadStats();
+            } catch (error) {
+                console.error('Error loading ministries: ', error);
+                ministriesTableBody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="px-6 py-4 text-center text-gray-500">Error loading ministries</td>
+                    </tr>
+                `;
+            }
+        }
+
+        async function renderMinistries() {
+            ministriesTableBody.innerHTML = '';
+            
+            if (ministries.length === 0) {
+                ministriesTableBody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="px-6 py-4 text-center text-gray-500">No ministries found</td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            for (const ministry of ministries) {
+                // Get member count for this ministry
+                const membersSnapshot = await db.collection('ministries').doc(ministry.id).collection('members').get();
+                const memberCount = membersSnapshot.size;
+                
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-50';
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm font-medium text-gray-900">${ministry.title}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-500">${ministry.dateCreated}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${ministry.status === 'Approved' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}">
+                            ${ministry.status}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">${memberCount}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <button onclick="viewMinistryMembers('${ministry.id}', '${ministry.title}')" class="text-indigo-600 hover:text-indigo-900 mr-3">
+                            <i class="fas fa-users mr-1"></i>View
+                        </button>
+                        <button onclick="addMemberToMinistry('${ministry.id}', '${ministry.title}')" class="text-blue-600 hover:text-blue-900 mr-3">
+                            <i class="fas fa-user-plus mr-1"></i>Add
+                        </button>
+                        <button onclick="deleteMinistry('${ministry.id}')" class="text-red-600 hover:text-red-900">
+                            <i class="fas fa-trash mr-1"></i>Delete
+                        </button>
+                    </td>
+                `;
+                ministriesTableBody.appendChild(row);
+            }
+        }
+
+        async function loadMembers(ministryId) {
+            try {
+                const snapshot = await db.collection('ministries').doc(ministryId).collection('members').orderBy('createdAt', 'desc').get();
+                members = [];
+                snapshot.forEach(doc => {
+                    members.push({
+                        id: doc.id,
+                        ...doc.data()
+                    });
+                });
+                
+                renderMembers();
+                loadStats();
+            } catch (error) {
+                console.error('Error loading members: ', error);
+                membersTableBody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="px-6 py-4 text-center text-gray-500">Error loading members</td>
+                    </tr>
+                `;
+            }
+        }
+
+        function renderMembers() {
+            membersTableBody.innerHTML = '';
+            
+            if (members.length === 0) {
+                membersTableBody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="px-6 py-4 text-center text-gray-500">No members found in this ministry</td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            const currentYear = new Date().getFullYear();
+            
+            members.forEach(member => {
+                const age = currentYear - member.yearOfBirth;
+                
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-50';
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm font-medium text-gray-900">${member.name}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-500">${member.gender}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">${member.phone}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-500">${member.homeChurch}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">${age}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${member.position === 'Leader' ? 'bg-purple-100 text-purple-800' : 'bg-gray-100 text-gray-800'}">
+                            ${member.position}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <a href="tel:${member.phone}" class="text-green-600 hover:text-green-900 mr-3">
+                            <i class="fas fa-phone mr-1"></i>Call
+                        </a>
+                        <a href="https://wa.me/${member.phone}" target="_blank" class="text-green-600 hover:text-green-900 mr-3">
+                            <i class="fab fa-whatsapp mr-1"></i>WhatsApp
+                        </a>
+                        <button onclick="deleteMember('${member.id}')" class="text-red-600 hover:text-red-900">
+                            <i class="fas fa-trash mr-1"></i>Delete
+                        </button>
+                    </td>
+                `;
+                membersTableBody.appendChild(row);
+            });
+        }
+
+        async function loadStats() {
+            try {
+                // Count total ministries
+                totalMinistriesElement.textContent = ministries.length;
+                
+                // Count total members and gender distribution
+                let totalMembers = 0;
+                genderStats = { male: 0, female: 0 };
+                
+                for (const ministry of ministries) {
+                    const snapshot = await db.collection('ministries').doc(ministry.id).collection('members').get();
+                    totalMembers += snapshot.size;
+                    
+                    snapshot.forEach(doc => {
+                        const member = doc.data();
+                        if (member.gender === 'Male') {
+                            genderStats.male++;
+                        } else if (member.gender === 'Female') {
+                            genderStats.female++;
+                        }
+                    });
+                }
+                
+                totalMembersCount = totalMembers;
+                totalMembersElement.textContent = totalMembers;
+                
+                // Update gender chart
+                updateGenderChart();
+            } catch (error) {
+                console.error('Error loading stats: ', error);
+            }
+        }
+
+        function updateGenderChart() {
+            const total = genderStats.male + genderStats.female;
+            const malePercentage = total > 0 ? Math.round((genderStats.male / total) * 100) : 0;
+            const femalePercentage = total > 0 ? Math.round((genderStats.female / total) * 100) : 0;
+            
+            genderChartElement.innerHTML = `
+                <div class="gender-bar gender-bar-male" style="height: ${malePercentage}%">
+                    <span class="gender-value">${genderStats.male}</span>
+                    <span class="gender-label">Male</span>
+                </div>
+                <div class="gender-bar gender-bar-female" style="height: ${femalePercentage}%">
+                    <span class="gender-value">${genderStats.female}</span>
+                    <span class="gender-label">Female</span>
+                </div>
+            `;
+        }
+
+        function viewMinistryMembers(ministryId, ministryTitle) {
+            currentMinistry = {
+                id: ministryId,
+                title: ministryTitle
+            };
+            viewMinistryNameTitle.textContent = ministryTitle;
+            viewMembersModalTitle.textContent = `Members of ${ministryTitle}`;
+            viewMembersModal.classList.remove('hidden');
+            loadMembers(ministryId);
+        }
+
+        function addMemberToMinistry(ministryId, ministryTitle) {
+            currentMinistry = {
+                id: ministryId,
+                title: ministryTitle
+            };
+            ministryNameTitle.textContent = ministryTitle;
+            memberNameInput.value = '';
+            memberGenderInput.value = 'Male';
+            memberPhoneInput.value = '';
+            memberHomeChurchInput.value = '';
+            memberYOBInput.value = new Date().getFullYear() - 30;
+            memberMaritalStatusInput.value = 'Single';
+            memberPositionInput.value = 'Member';
+            addMembersModal.classList.remove('hidden');
+        }
+
+        async function deleteMinistry(ministryId) {
+            if (!confirm('Are you sure you want to delete this ministry and all its members?')) {
+                return;
+            }
+            
+            try {
+                // First delete all members in the ministry
+                const membersSnapshot = await db.collection('ministries').doc(ministryId).collection('members').get();
+                const batch = db.batch();
+                
+                membersSnapshot.forEach(doc => {
+                    batch.delete(doc.ref);
+                });
+                
+                await batch.commit();
+                
+                // Then delete the ministry itself
+                await db.collection('ministries').doc(ministryId).delete();
+                
+                loadMinistries();
+                
+                if (currentMinistry && currentMinistry.id === ministryId) {
+                    viewMembersModal.classList.add('hidden');
+                }
+            } catch (error) {
+                console.error('Error deleting ministry: ', error);
+                alert('Error deleting ministry');
+            }
+        }
+
+        async function deleteMember(memberId) {
+            if (!confirm('Are you sure you want to delete this member?')) {
+                return;
+            }
+            
+            try {
+                await db.collection('ministries').doc(currentMinistry.id).collection('members').doc(memberId).delete();
+                loadMembers(currentMinistry.id);
+                loadMinistries();
+            } catch (error) {
+                console.error('Error deleting member: ', error);
+                alert('Error deleting member');
+            }
+        }
+
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', () => {
+            loadMinistries();
+        });
+
+        // Make functions available globally for onclick attributes
+        window.viewMinistryMembers = viewMinistryMembers;
+        window.addMemberToMinistry = addMemberToMinistry;
+        window.deleteMinistry = deleteMinistry;
+        window.deleteMember = deleteMember;
+    </script>
+</body>
+</html>
