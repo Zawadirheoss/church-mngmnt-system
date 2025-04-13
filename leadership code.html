@@ -1,1 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gospel Springs Mission - Leadership Code</title>
+    <style>
+        :root {
+            --primary-color: #1a5276;
+            --secondary-color: #2980b9;
+            --accent-color: #e74c3c;
+            --text-color: #333;
+            --light-gray: #f5f5f5;
+            --medium-gray: #ddd;
+            --dark-gray: #777;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 0;
+            margin: 0;
+            background-color: #f9f9f9;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background-color: white;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            position: relative;
+            padding-bottom: 100px;
+        }
+        
+        header {
+            padding: 30px 40px 20px;
+            border-bottom: 2px solid var(--medium-gray);
+            position: relative;
+        }
+        
+        .logo-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .logo {
+            width: 60px;
+            height: 60px;
+            margin-right: 20px;
+            object-fit: contain;
+        }
+        
+        .header-title {
+            color: var(--primary-color);
+            font-size: 28px;
+            font-weight: 700;
+        }
+        
+        .church-info {
+            font-size: 14px;
+            color: var(--dark-gray);
+            margin-top: 5px;
+        }
+        
+        .print-btn {
+            position: absolute;
+            top: 30px;
+            right: 40px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+        
+        .print-btn:hover {
+            background-color: var(--secondary-color);
+        }
+        
+        hr {
+            border: none;
+            height: 1px;
+            background-color: var(--medium-gray);
+            margin: 20px 0;
+        }
+        
+        .content {
+            padding: 0 40px 40px;
+        }
+        
+        h1 {
+            color: var(--primary-color);
+            font-size: 24px;
+            margin: 30px 0 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--medium-gray);
+        }
+        
+        h2 {
+            color: var(--secondary-color);
+            font-size: 20px;
+            margin: 25px 0 10px;
+        }
+        
+        h3 {
+            color: var(--primary-color);
+            font-size: 18px;
+            margin: 20px 0 10px;
+        }
+        
+        p {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+        
+        ul, ol {
+            margin-bottom: 15px;
+            padding-left: 30px;
+        }
+        
+        li {
+            margin-bottom: 8px;
+        }
+        
+        .section {
+            margin-bottom: 30px;
+            page-break-inside: avoid;
+        }
+        
+        .code-item {
+            margin-bottom: 25px;
+        }
+        
+        .code-title {
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 5px;
+        }
+        
+        .scripture-ref {
+            font-style: italic;
+            color: var(--dark-gray);
+            font-size: 0.9em;
+        }
+        
+        .signature {
+            margin-top: 50px;
+            text-align: right;
+        }
+        
+        .signature-line {
+            display: inline-block;
+            width: 300px;
+            border-top: 1px solid var(--text-color);
+            margin-top: 40px;
+            padding-top: 5px;
+        }
+        
+        .footer {
+            text-align: center;
+            font-size: 12px;
+            color: var(--dark-gray);
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid var(--medium-gray);
+        }
+        
+        .page-number {
+            position: absolute;
+            bottom: 30px;
+            right: 40px;
+            font-size: 12px;
+            color: var(--dark-gray);
+        }
+        
+        /* Cover Page Styles */
+        .cover-page {
+            text-align: center;
+            padding: 60px 40px;
+            page-break-after: always;
+            position: relative;
+        }
+        
+        .cover-logo {
+            width: 300px;
+            height: 300px;
+            object-fit: contain;
+            border-radius: 50%;
+            margin: 0 auto 30px;
+            border: 5px solid var(--primary-color);
+        }
+        
+        .cover-title {
+            color: var(--primary-color);
+            font-size: 42px;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+        
+        .cover-subtitle {
+            font-size: 24px;
+            color: var(--secondary-color);
+            margin-bottom: 40px;
+        }
+        
+        .cover-history {
+            max-width: 600px;
+            margin: 40px auto;
+            font-size: 18px;
+            line-height: 1.8;
+        }
+        
+        .cover-footer {
+            position: absolute;
+            bottom: 40px;
+            left: 0;
+            right: 0;
+            font-size: 16px;
+        }
+        
+        /* Watermark Styles */
+        .watermark {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 0.1;
+            z-index: -1;
+            pointer-events: none;
+        }
+        
+        .watermark img {
+            width: 400px;
+            height: 400px;
+            object-fit: contain;
+        }
+        
+        @media print {
+            body {
+                background-color: white;
+            }
+            
+            .container {
+                box-shadow: none;
+                max-width: 100%;
+                padding-bottom: 0;
+            }
+            
+            .print-btn {
+                display: none;
+            }
+            
+            header, .content {
+                padding: 20px;
+            }
+            
+            .page-number {
+                position: fixed;
+            }
+            
+            .cover-page {
+                height: 100vh;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                padding: 0;
+            }
+            
+            .watermark {
+                display: block;
+            }
+        }
+        
+        @page {
+            size: A4;
+            margin: 20mm;
+            
+            @top-center {
+                content: "Gospel Springs Mission Leadership Code";
+                font-size: 14px;
+                color: var(--dark-gray);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Watermark for all pages -->
+        <div class="watermark">
+            <img src="Gospel springs logo.jpg" alt="Watermark">
+        </div>
+        
+        <!-- Cover Page -->
+        <div class="cover-page">
+            <img src="Gospel springs logo.jpg" alt="Gospel Springs Mission Logo" class="cover-logo">
+            <h1 class="cover-title">Gospel Springs Mission</h1>
+            <h2 class="cover-subtitle">Leadership Code</h2>
+            
+            <div class="cover-history">
+                <p>Founded in 1996 by Bishop William Laktari, Gospel Springs Mission maintains high standards for spiritual leadership. This Leadership Code, adopted in 1998, establishes biblical qualifications and expectations for all church leaders.</p>
+            </div>
+            
+            <div class="cover-footer">
+                <p>In Isongo, along Isongo Ingoste Road, Navakholo Subcounty, Kakamega County</p>
+                <p>Date of Adoption: 1998 | Last Amended: 1998</p>
+            </div>
+        </div>
+        
+        <header>
+            <div class="logo-header">
+                <img src="Gospel springs logo.jpg" alt="Gospel Springs Mission Logo" class="logo">
+                <div>
+                    <div class="header-title">Gospel Springs Mission</div>
+                    <div class="church-info">In Isongo, along Isongo Ingoste Road, Navakholo Subcounty, Kakamega County</div>
+                </div>
+            </div>
+            <h1>Leadership Code</h1>
+            <button class="print-btn" onclick="printDocument()">Print Leadership Code</button>
+        </header>
+        
+        <div class="content">
+            <div class="section">
+                <p><strong>Date of Adoption:</strong> 1998</p>
+                <p><strong>Last Amended:</strong> 1998</p>
+            </div>
+            
+            <div class="section">
+                <p>All leaders of Gospel Springs Mission shall meet the biblical qualifications for their office and commit to the following standards of conduct and ministry philosophy.</p>
+            </div>
+            
+            <div class="section">
+                <h2>I. Biblical Qualifications</h2>
+                
+                <div class="code-item">
+                    <div class="code-title">1. Elders/Pastors (1 Timothy 3:1-7; Titus 1:5-9)</div>
+                    <ol>
+                        <li>Above reproach in character and reputation</li>
+                        <li>Husband of one wife (if married)</li>
+                        <li>Temperate, self-controlled, and respectable</li>
+                        <li>Hospitable and able to teach</li>
+                        <li>Not given to drunkenness or violence</li>
+                        <li>Gentle, not quarrelsome</li>
+                        <li>Not a lover of money</li>
+                        <li>Manages his own household well</li>
+                        <li>Not a recent convert</li>
+                        <li>Good reputation with outsiders</li>
+                    </ol>
+                </div>
+                
+                <div class="code-item">
+                    <div class="code-title">2. Deacons (1 Timothy 3:8-13)</div>
+                    <ol>
+                        <li>Worthy of respect</li>
+                        <li>Sincere, not double-tongued</li>
+                        <li>Not indulging in much wine</li>
+                        <li>Not pursuing dishonest gain</li>
+                        <li>Holding to the faith with clear conscience</li>
+                        <li>Tested and proved blameless</li>
+                        <li>Husband of one wife (if married)</li>
+                        <li>Managing children and household well</li>
+                    </ol>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>II. Character Commitments</h2>
+                
+                <div class="code-item">
+                    <div class="code-title">1. Spiritual Vitality</div>
+                    <p>Leaders will maintain a vibrant personal relationship with Christ through regular Bible study, prayer, and spiritual disciplines.</p>
+                    <div class="scripture-ref">John 15:5; Colossians 3:16</div>
+                </div>
+                
+                <div class="code-item">
+                    <div class="code-title">2. Moral Purity</div>
+                    <p>Leaders will maintain sexual purity in thought, word, and deed, avoiding all forms of sexual immorality and inappropriate relationships.</p>
+                    <div class="scripture-ref">1 Thessalonians 4:3-5; Ephesians 5:3</div>
+                </div>
+                
+                <div class="code-item">
+                    <div class="code-title">3. Financial Integrity</div>
+                    <p>Leaders will manage personal and church finances with complete integrity, avoiding conflicts of interest and maintaining transparency.</p>
+                    <div class="scripture-ref">Proverbs 11:1; Romans 12:17</div>
+                </div>
+                
+                <div class="code-item">
+                    <div class="code-title">4. Family Priorities</div>
+                    <p>Leaders will give proper priority to family relationships, ensuring their ministry does not come at the expense of spouse or children (if applicable).</p>
+                    <div class="scripture-ref">1 Timothy 3:4-5; Ephesians 5:25</div>
+                </div>
+                
+                <div class="code-item">
+                    <div class="code-title">5. Emotional Health</div>
+                    <p>Leaders will cultivate emotional maturity, dealing with stress, anger, and conflict in biblical ways.</p>
+                    <div class="scripture-ref">Proverbs 16:32; Ephesians 4:26-27</div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>III. Ministry Standards</h2>
+                
+                <div class="code-item">
+                    <div class="code-title">1. Servant Leadership</div>
+                    <p>Leaders will follow Christ's example of servant leadership, avoiding authoritarianism or lording over those in their care.</p>
+                    <div class="scripture-ref">Mark 10:42-45; 1 Peter 5:2-3</div>
+                </div>
+                
+                <div class="code-item">
+                    <div class="code-title">2. Team Ministry</div>
+                    <p>Leaders will work cooperatively with other leaders, valuing plurality in decision-making and mutual accountability.</p>
+                    <div class="scripture-ref">Proverbs 11:14; Ecclesiastes 4:9-12</div>
+                </div>
+                
+                <div class="code-item">
+                    <div class="code-title">3. Doctrinal Fidelity</div>
+                    <p>Leaders will teach and model sound doctrine, refuting false teachings and protecting the church from error.</p>
+                    <div class="scripture-ref">Titus 1:9; 2 Timothy 4:2-3</div>
+                </div>
+                
+                <div class="code-item">
+                    <div class="code-title">4. Pastoral Care</div>
+                    <p>Leaders will shepherd God's flock with compassion, being available to counsel, pray for, and encourage members.</p>
+                    <div class="scripture-ref">1 Peter 5:2-4; Acts 20:28</div>
+                </div>
+                
+                <div class="code-item">
+                    <div class="code-title">5. Continual Growth</div>
+                    <p>Leaders will pursue ongoing spiritual, theological, and leadership development through study, training, and mentorship.</p>
+                    <div class="scripture-ref">Proverbs 1:5; 2 Peter 3:18</div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>IV. Accountability</h2>
+                
+                <div class="code-item">
+                    <div class="code-title">1. Peer Accountability</div>
+                    <p>Leaders submit to regular evaluation by fellow leaders regarding their ministry effectiveness and personal walk with Christ.</p>
+                    <div class="scripture-ref">Galatians 6:1-2; James 5:16</div>
+                </div>
+                
+                <div class="code-item">
+                    <div class="code-title">2. Congregational Oversight</div>
+                    <p>Leaders remain accountable to the congregation they serve, being open to loving correction when needed.</p>
+                    <div class="scripture-ref">1 Timothy 5:19-20; Hebrews 13:17</div>
+                </div>
+                
+                <div class="code-item">
+                    <div class="code-title">3. Restoration Process</div>
+                    <p>Leaders who fall into sin but demonstrate genuine repentance will be restored according to biblical principles, though some restrictions may apply.</p>
+                    <div class="scripture-ref">Galatians 6:1; 2 Corinthians 2:5-8</div>
+                </div>
+                
+                <div class="code-item">
+                    <div class="code-title">4. Removal from Office</div>
+                    <p>Leaders who persist in unrepentant sin, false teaching, or who no longer meet biblical qualifications must be removed from leadership.</p>
+                    <div class="scripture-ref">1 Timothy 5:20; Titus 3:10-11</div>
+                </div>
+            </div>
+            
+            <div class="signature">
+                <div class="signature-line">Senior Pastor: ___________________________________</div>
+                <div class="signature-line">Elder Board Chair: ___________________________________</div>
+                <div class="signature-line">Date: ___________________________________</div>
+            </div>
+            
+            <div class="footer">
+                Gospel Springs Mission - In Isongo, along Isongo Ingoste Road, Navakholo Subcounty, Kakamega County
+            </div>
+            
+            <div class="page-number">Page 2</div>
+        </div>
+    </div>
 
+    <script>
+        function printDocument() {
+            // Add page numbers before printing
+            addPageNumbers();
+            window.print();
+        }
+        
+        function addPageNumbers() {
+            const sections = document.querySelectorAll('.code-item');
+            let pageCount = 2; // Starting from page 2 (cover is page 1)
+            
+            // Remove existing page numbers
+            document.querySelectorAll('.page-number').forEach(el => el.remove());
+            
+            // Add page numbers after every few sections
+            sections.forEach((section, index) => {
+                if (index > 0 && index % 4 === 0) {
+                    const pageNum = document.createElement('div');
+                    pageNum.className = 'page-number';
+                    pageNum.textContent = `Page ${pageCount}`;
+                    section.parentNode.insertBefore(pageNum, section);
+                    pageCount++;
+                }
+            });
+            
+            // Add final page number
+            const lastPageNum = document.createElement('div');
+            lastPageNum.className = 'page-number';
+            lastPageNum.textContent = `Page ${pageCount}`;
+            document.querySelector('.footer').after(lastPageNum);
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize page numbers
+            addPageNumbers();
+        });
+    </script>
+</body>
+</html>
