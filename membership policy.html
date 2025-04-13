@@ -1,1 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gospel Springs Mission - Membership Policy</title>
+    <style>
+        :root {
+            --primary-color: #1a5276;
+            --secondary-color: #2980b9;
+            --accent-color: #e74c3c;
+            --text-color: #333;
+            --light-gray: #f5f5f5;
+            --medium-gray: #ddd;
+            --dark-gray: #777;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 0;
+            margin: 0;
+            background-color: #f9f9f9;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background-color: white;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            position: relative;
+            padding-bottom: 100px;
+        }
+        
+        header {
+            padding: 30px 40px 20px;
+            border-bottom: 2px solid var(--medium-gray);
+            position: relative;
+        }
+        
+        .logo-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .logo {
+            width: 60px;
+            height: 60px;
+            margin-right: 20px;
+            object-fit: contain;
+        }
+        
+        .header-title {
+            color: var(--primary-color);
+            font-size: 28px;
+            font-weight: 700;
+        }
+        
+        .church-info {
+            font-size: 14px;
+            color: var(--dark-gray);
+            margin-top: 5px;
+        }
+        
+        .print-btn {
+            position: absolute;
+            top: 30px;
+            right: 40px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+        
+        .print-btn:hover {
+            background-color: var(--secondary-color);
+        }
+        
+        hr {
+            border: none;
+            height: 1px;
+            background-color: var(--medium-gray);
+            margin: 20px 0;
+        }
+        
+        .content {
+            padding: 0 40px 40px;
+        }
+        
+        h1 {
+            color: var(--primary-color);
+            font-size: 24px;
+            margin: 30px 0 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--medium-gray);
+        }
+        
+        h2 {
+            color: var(--secondary-color);
+            font-size: 20px;
+            margin: 25px 0 10px;
+        }
+        
+        h3 {
+            color: var(--primary-color);
+            font-size: 18px;
+            margin: 20px 0 10px;
+        }
+        
+        p {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+        
+        ul, ol {
+            margin-bottom: 15px;
+            padding-left: 30px;
+        }
+        
+        li {
+            margin-bottom: 8px;
+        }
+        
+        .section {
+            margin-bottom: 30px;
+            page-break-inside: avoid;
+        }
+        
+        .policy-item {
+            margin-bottom: 25px;
+        }
+        
+        .policy-title {
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 5px;
+        }
+        
+        .scripture-ref {
+            font-style: italic;
+            color: var(--dark-gray);
+            font-size: 0.9em;
+        }
+        
+        .signature {
+            margin-top: 50px;
+            text-align: right;
+        }
+        
+        .signature-line {
+            display: inline-block;
+            width: 300px;
+            border-top: 1px solid var(--text-color);
+            margin-top: 40px;
+            padding-top: 5px;
+        }
+        
+        .footer {
+            text-align: center;
+            font-size: 12px;
+            color: var(--dark-gray);
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid var(--medium-gray);
+        }
+        
+        .page-number {
+            position: absolute;
+            bottom: 30px;
+            right: 40px;
+            font-size: 12px;
+            color: var(--dark-gray);
+        }
+        
+        /* Cover Page Styles */
+        .cover-page {
+            text-align: center;
+            padding: 60px 40px;
+            page-break-after: always;
+            position: relative;
+        }
+        
+        .cover-logo {
+            width: 300px;
+            height: 300px;
+            object-fit: contain;
+            border-radius: 50%;
+            margin: 0 auto 30px;
+            border: 5px solid var(--primary-color);
+        }
+        
+        .cover-title {
+            color: var(--primary-color);
+            font-size: 42px;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+        
+        .cover-subtitle {
+            font-size: 24px;
+            color: var(--secondary-color);
+            margin-bottom: 40px;
+        }
+        
+        .cover-history {
+            max-width: 600px;
+            margin: 40px auto;
+            font-size: 18px;
+            line-height: 1.8;
+        }
+        
+        .cover-footer {
+            position: absolute;
+            bottom: 40px;
+            left: 0;
+            right: 0;
+            font-size: 16px;
+        }
+        
+        /* Watermark Styles */
+        .watermark {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 0.1;
+            z-index: -1;
+            pointer-events: none;
+        }
+        
+        .watermark img {
+            width: 400px;
+            height: 400px;
+            object-fit: contain;
+        }
+        
+        @media print {
+            body {
+                background-color: white;
+            }
+            
+            .container {
+                box-shadow: none;
+                max-width: 100%;
+                padding-bottom: 0;
+            }
+            
+            .print-btn {
+                display: none;
+            }
+            
+            header, .content {
+                padding: 20px;
+            }
+            
+            .page-number {
+                position: fixed;
+            }
+            
+            .cover-page {
+                height: 100vh;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                padding: 0;
+            }
+            
+            .watermark {
+                display: block;
+            }
+        }
+        
+        @page {
+            size: A4;
+            margin: 20mm;
+            
+            @top-center {
+                content: "Gospel Springs Mission Membership Policy";
+                font-size: 14px;
+                color: var(--dark-gray);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Watermark for all pages -->
+        <div class="watermark">
+            <img src="Gospel springs logo.jpg" alt="Watermark">
+        </div>
+        
+        <!-- Cover Page -->
+        <div class="cover-page">
+            <img src="Gospel springs logo.jpg" alt="Gospel Springs Mission Logo" class="cover-logo">
+            <h1 class="cover-title">Gospel Springs Mission</h1>
+            <h2 class="cover-subtitle">Membership Policy</h2>
+            
+            <div class="cover-history">
+                <p>Founded in 1996 by Bishop William Laktari, Gospel Springs Mission maintains this membership policy to ensure biblical fellowship and accountability. Adopted in 1998, these guidelines define our expectations for church membership.</p>
+            </div>
+            
+            <div class="cover-footer">
+                <p>In Isongo, along Isongo Ingoste Road, Navakholo Subcounty, Kakamega County</p>
+                <p>Date of Adoption: 1998 | Last Amended: 1998</p>
+            </div>
+        </div>
+        
+        <header>
+            <div class="logo-header">
+                <img src="Gospel springs logo.jpg" alt="Gospel Springs Mission Logo" class="logo">
+                <div>
+                    <div class="header-title">Gospel Springs Mission</div>
+                    <div class="church-info">In Isongo, along Isongo Ingoste Road, Navakholo Subcounty, Kakamega County</div>
+                </div>
+            </div>
+            <h1>Membership Policy</h1>
+            <button class="print-btn" onclick="printDocument()">Print Policy</button>
+        </header>
+        
+        <div class="content">
+            <div class="section">
+                <p><strong>Date of Adoption:</strong> 1998</p>
+                <p><strong>Last Amended:</strong> 1998</p>
+            </div>
+            
+            <div class="section">
+                <p>Membership in Gospel Springs Mission represents a covenant relationship between believers who agree to walk together in Christian fellowship under the lordship of Jesus Christ and the authority of Scripture.</p>
+            </div>
+            
+            <div class="section">
+                <h2>I. Membership Requirements</h2>
+                
+                <div class="policy-item">
+                    <div class="policy-title">1. Profession of Faith</div>
+                    <p>Individuals must profess faith in Jesus Christ as Lord and Savior, demonstrating evidence of regeneration through changed life and attitudes.</p>
+                    <div class="scripture-ref">Romans 10:9-10; 2 Corinthians 5:17</div>
+                </div>
+                
+                <div class="policy-item">
+                    <div class="policy-title">2. Believer's Baptism</div>
+                    <p>Members must have been baptized by immersion as believers, in obedience to Christ's command, following their conversion.</p>
+                    <div class="scripture-ref">Matthew 28:19; Acts 2:41</div>
+                </div>
+                
+                <div class="policy-item">
+                    <div class="policy-title">3. Orientation</div>
+                    <p>Prospective members must complete the membership orientation classes covering our Statement of Faith, Church Covenant, and ministry philosophy.</p>
+                </div>
+                
+                <div class="policy-item">
+                    <div class="policy-title">4. Agreement</div>
+                    <p>Members must affirm agreement with our Statement of Faith and commit to abide by the Church Covenant.</p>
+                </div>
+                
+                <div class="policy-item">
+                    <div class="policy-title">5. Elder Approval</div>
+                    <p>Final approval for membership rests with the elders after personal interview and affirmation by the congregation.</p>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>II. Membership Responsibilities</h2>
+                
+                <div class="policy-item">
+                    <div class="policy-title">1. Regular Attendance</div>
+                    <p>Members commit to regular participation in Sunday worship services and other church gatherings unless providentially hindered.</p>
+                    <div class="scripture-ref">Hebrews 10:24-25</div>
+                </div>
+                
+                <div class="policy-item">
+                    <div class="policy-title">2. Spiritual Growth</div>
+                    <p>Members will pursue spiritual maturity through personal Bible study, prayer, and participation in discipleship opportunities.</p>
+                    <div class="scripture-ref">2 Peter 3:18; Ephesians 4:15</div>
+                </div>
+                
+                <div class="policy-item">
+                    <div class="policy-title">3. Financial Support</div>
+                    <p>Members commit to regular, proportionate giving as God prospers them, supporting the ministry and mission of the church.</p>
+                    <div class="scripture-ref">1 Corinthians 16:2; 2 Corinthians 9:7</div>
+                </div>
+                
+                <div class="policy-item">
+                    <div class="policy-title">4. Service</div>
+                    <p>Members will use their spiritual gifts to serve in the ministries of the church according to their abilities and opportunities.</p>
+                    <div class="scripture-ref">1 Peter 4:10; Romans 12:6-8</div>
+                </div>
+                
+                <div class="policy-item">
+                    <div class="policy-title">5. Biblical Living</div>
+                    <p>Members agree to live according to biblical standards, maintaining a good reputation both within and outside the church.</p>
+                    <div class="scripture-ref">Colossians 1:10; 1 Thessalonians 4:1</div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>III. Membership Termination</h2>
+                
+                <div class="policy-item">
+                    <div class="policy-title">1. Voluntary Withdrawal</div>
+                    <p>Members may request withdrawal from membership for personal reasons or when transferring to another church.</p>
+                </div>
+                
+                <div class="policy-item">
+                    <div class="policy-title">2. Automatic Removal</div>
+                    <p>Membership terminates automatically upon death or prolonged (over one year) unexplained absence from church life.</p>
+                </div>
+                
+                <div class="policy-item">
+                    <div class="policy-title">3. Church Discipline</div>
+                    <p>Members may be removed through church discipline for unrepentant sin or doctrinal deviation after following the process outlined in Matthew 18:15-17.</p>
+                    <div class="scripture-ref">Matthew 18:15-17; 1 Corinthians 5:1-5</div>
+                </div>
+                
+                <div class="policy-item">
+                    <div class="policy-title">4. Restoration</div>
+                    <p>Former members under discipline may be restored upon evidence of repentance and reconciliation.</p>
+                    <div class="scripture-ref">2 Corinthians 2:6-8; Galatians 6:1</div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>IV. Membership Privileges</h2>
+                
+                <div class="policy-item">
+                    <div class="policy-title">1. Voting Rights</div>
+                    <p>Members in good standing may vote in church business meetings on matters of budget, leadership selection, and other major decisions.</p>
+                </div>
+                
+                <div class="policy-item">
+                    <div class="policy-title">2. Leadership Eligibility</div>
+                    <p>Only members may serve in teaching or leadership positions within the church.</p>
+                </div>
+                
+                <div class="policy-item">
+                    <div class="policy-title">3. Pastoral Care</div>
+                    <p>Members receive priority in pastoral care, counseling, and support during life events (weddings, funerals, etc.).</p>
+                </div>
+            </div>
+            
+            <div class="signature">
+                <div class="signature-line">Pastor/Chairman: ___________________________________</div>
+                <div class="signature-line">Membership Secretary: ___________________________________</div>
+                <div class="signature-line">Date: ___________________________________</div>
+            </div>
+            
+            <div class="footer">
+                Gospel Springs Mission - In Isongo, along Isongo Ingoste Road, Navakholo Subcounty, Kakamega County
+            </div>
+            
+            <div class="page-number">Page 2</div>
+        </div>
+    </div>
 
+    <script>
+        function printDocument() {
+            // Add page numbers before printing
+            addPageNumbers();
+            window.print();
+        }
+        
+        function addPageNumbers() {
+            const sections = document.querySelectorAll('.policy-item');
+            let pageCount = 2; // Starting from page 2 (cover is page 1)
+            
+            // Remove existing page numbers
+            document.querySelectorAll('.page-number').forEach(el => el.remove());
+            
+            // Add page numbers after every few sections
+            sections.forEach((section, index) => {
+                if (index > 0 && index % 5 === 0) {
+                    const pageNum = document.createElement('div');
+                    pageNum.className = 'page-number';
+                    pageNum.textContent = `Page ${pageCount}`;
+                    section.parentNode.insertBefore(pageNum, section);
+                    pageCount++;
+                }
+            });
+            
+            // Add final page number
+            const lastPageNum = document.createElement('div');
+            lastPageNum.className = 'page-number';
+            lastPageNum.textContent = `Page ${pageCount}`;
+            document.querySelector('.footer').after(lastPageNum);
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize page numbers
+            addPageNumbers();
+        });
+    </script>
+</body>
+</html>
