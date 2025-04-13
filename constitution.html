@@ -4,311 +4,437 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gospel Springs Mission - Church Constitution</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         :root {
-            --primary-color: #2c3e50;
-            --secondary-color: #3498db;
-            --accent-color: #8e44ad;
+            --primary-color: #1a5276;
+            --secondary-color: #2980b9;
+            --accent-color: #e74c3c;
             --text-color: #333;
             --light-gray: #f5f5f5;
+            --medium-gray: #ddd;
+            --dark-gray: #777;
         }
-
-        body {
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
+        }
+        
+        body {
             color: var(--text-color);
+            line-height: 1.6;
+            padding: 0;
+            margin: 0;
+            background-color: #f9f9f9;
+        }
+        
+        .container {
             max-width: 900px;
             margin: 0 auto;
-            padding: 20px;
             background-color: white;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            position: relative;
+            padding-bottom: 100px;
         }
-
-        .letterhead {
+        
+        header {
+            padding: 30px 40px 20px;
+            border-bottom: 2px solid var(--medium-gray);
+            position: relative;
+        }
+        
+        .logo-header {
             display: flex;
             align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid var(--primary-color);
+            margin-bottom: 15px;
         }
-
+        
         .logo {
             width: 60px;
-            height: auto;
+            height: 60px;
             margin-right: 20px;
+            object-fit: contain;
         }
-
-        .header-text {
-            flex-grow: 1;
+        
+        .header-title {
+            color: var(--primary-color);
+            font-size: 28px;
+            font-weight: 700;
         }
-
+        
+        .church-info {
+            font-size: 14px;
+            color: var(--dark-gray);
+            margin-top: 5px;
+        }
+        
+        .print-btn {
+            position: absolute;
+            top: 30px;
+            right: 40px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+        
+        .print-btn:hover {
+            background-color: var(--secondary-color);
+        }
+        
+        hr {
+            border: none;
+            height: 1px;
+            background-color: var(--medium-gray);
+            margin: 20px 0;
+        }
+        
+        .content {
+            padding: 0 40px 40px;
+        }
+        
         h1 {
             color: var(--primary-color);
             font-size: 24px;
-            margin: 0;
+            margin: 30px 0 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--medium-gray);
         }
-
-        .subtitle {
-            font-style: italic;
-            color: #666;
-        }
-
-        hr {
-            border: 0;
-            height: 1px;
-            background: linear-gradient(to right, transparent, var(--primary-color), transparent);
-            margin: 20px 0;
-        }
-
-        .document-body {
-            position: relative;
-            padding: 20px;
-            background-color: white;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        }
-
+        
         h2 {
-            color: var(--accent-color);
-            font-size: 20px;
-            margin-top: 30px;
-            padding-bottom: 5px;
-            border-bottom: 1px solid var(--light-gray);
-        }
-
-        h3 {
             color: var(--secondary-color);
-            font-size: 16px;
-            margin-top: 20px;
+            font-size: 20px;
+            margin: 25px 0 10px;
         }
-
-        p, ul, ol {
+        
+        h3 {
+            color: var(--primary-color);
+            font-size: 18px;
+            margin: 20px 0 10px;
+        }
+        
+        p {
             margin-bottom: 15px;
+            text-align: justify;
         }
-
+        
         ul, ol {
-            padding-left: 20px;
+            margin-bottom: 15px;
+            padding-left: 30px;
         }
-
+        
         li {
             margin-bottom: 8px;
         }
-
-        .signature-block {
+        
+        .section {
+            margin-bottom: 30px;
+            page-break-inside: avoid;
+        }
+        
+        .signature {
             margin-top: 50px;
             text-align: right;
         }
-
+        
         .signature-line {
             display: inline-block;
-            width: 250px;
-            border-bottom: 1px solid #000;
-            margin-bottom: 5px;
+            width: 300px;
+            border-top: 1px solid var(--text-color);
+            margin-top: 40px;
+            padding-top: 5px;
         }
-
-        .signature-label {
-            font-style: italic;
-            color: #666;
+        
+        .footer {
+            text-align: center;
+            font-size: 12px;
+            color: var(--dark-gray);
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid var(--medium-gray);
         }
-
-        .print-btn {
-            background-color: var(--secondary-color);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-            margin: 20px 0;
-            transition: background-color 0.3s;
+        
+        .page-number {
+            position: absolute;
+            bottom: 30px;
+            right: 40px;
+            font-size: 12px;
+            color: var(--dark-gray);
         }
-
-        .print-btn:hover {
-            background-color: #2980b9;
-        }
-
+        
         @media print {
             body {
-                padding: 0;
-                background: white;
+                background-color: white;
             }
+            
+            .container {
+                box-shadow: none;
+                max-width: 100%;
+                padding-bottom: 0;
+            }
+            
             .print-btn {
                 display: none;
             }
-            .document-body {
-                box-shadow: none;
+            
+            header, .content {
+                padding: 20px;
+            }
+            
+            .page-number {
+                position: fixed;
             }
         }
-
-        .section {
-            margin-bottom: 30px;
+        
+        @page {
+            size: A4;
+            margin: 20mm;
         }
     </style>
 </head>
 <body>
-    <div class="letterhead">
-        <img src="Gospel springs logo.jpg" alt="Gospel Springs Mission Logo" class="logo">
-        <div class="header-text">
-            <h1>GOSPEL SPRINGS MISSION</h1>
-            <p class="subtitle">Church Constitution</p>
+    <div class="container">
+        <header>
+            <div class="logo-header">
+                <img src="Gospel springs logo.jpg" alt="Gospel Springs Mission Logo" class="logo">
+                <div>
+                    <div class="header-title">Gospel Springs Mission</div>
+                    <div class="church-info">In Isongo, along Isongo Ingoste Road, Navakholo Subcounty, Kakamega County</div>
+                </div>
+            </div>
+            <h1>Church Constitution</h1>
+            <button class="print-btn" onclick="printDocument()">Print Constitution</button>
+        </header>
+        
+        <div class="content">
+            <div class="section">
+                <p><strong>Date of Adoption:</strong> 1998</p>
+                <p><strong>Last Amended:</strong> 1998</p>
+            </div>
+            
+            <div class="section">
+                <h2>Full Constitution</h2>
+                <p>We, the members of Gospel Springs Mission, in order to carry out more effectively the mission of our Lord Jesus Christ, do hereby adopt this constitution as our articles of governance, to be interpreted at all times to reflect the character of and bring glory to Jesus Christ, as revealed in the Holy Bible and articulated in the standards of our faith.</p>
+                
+                <h3>Article I: Name</h3>
+                <p>The name of this organization shall be Gospel Springs Mission, located in Isongo, along Isongo Ingoste Road, Navakholo Subcounty, Kakamega County.</p>
+                
+                <h3>Article II: Purpose</h3>
+                <p>The purpose of Gospel Springs Mission is to glorify God by:</p>
+                <ol>
+                    <li>Worshipping Him in spirit and truth</li>
+                    <li>Proclaiming the gospel of Jesus Christ through evangelism and discipleship</li>
+                    <li>Building up believers through biblical teaching and fellowship</li>
+                    <li>Serving our community through acts of love and compassion</li>
+                    <li>Planting and supporting other like-minded churches</li>
+                </ol>
+                
+                <h3>Article III: Affiliation</h3>
+                <p>Gospel Springs Mission is an autonomous local church that may voluntarily associate with other churches, denominations, or networks that hold to similar biblical convictions.</p>
+            </div>
+            
+            <div class="section">
+                <h2>Church Bylaws</h2>
+                
+                <h3>Article I: Membership</h3>
+                <p>Membership in Gospel Springs Mission is open to all who profess faith in Jesus Christ as Lord and Savior, have been baptized by immersion, and agree to abide by the church covenant.</p>
+                
+                <h3>Article II: Church Officers</h3>
+                <p>The officers of the church shall be pastors/elders and deacons, whose qualifications and responsibilities are defined in Scripture (1 Timothy 3:1-13; Titus 1:5-9; 1 Peter 5:1-4).</p>
+                
+                <h3>Article III: Meetings</h3>
+                <p>The church shall hold regular worship services on Sundays and may hold other meetings as needed for worship, prayer, fellowship, and business.</p>
+                
+                <h3>Article IV: Amendments</h3>
+                <p>These bylaws may be amended by a two-thirds vote of members present at a duly called business meeting, provided the amendment has been announced at least two weeks in advance.</p>
+            </div>
+            
+            <div class="section">
+                <h2>Statement of Faith</h2>
+                <p>We believe in:</p>
+                <ol>
+                    <li>The verbal inspiration and authority of the Scriptures (2 Timothy 3:16-17)</li>
+                    <li>The one true God existing eternally in three persons: Father, Son, and Holy Spirit (Matthew 28:19)</li>
+                    <li>The virgin birth, sinless life, atoning death, bodily resurrection, and imminent return of Jesus Christ (1 Corinthians 15:3-4)</li>
+                    <li>The total depravity of man and salvation by grace through faith in Christ alone (Ephesians 2:8-9)</li>
+                    <li>The present ministry of the Holy Spirit in regeneration, sanctification, and empowerment (John 16:8-11)</li>
+                    <li>The resurrection of both the saved and the lost—the saved to eternal life and the lost to eternal punishment (Revelation 20:11-15)</li>
+                    <li>The spiritual unity of all believers in the Lord Jesus Christ (Ephesians 4:3-6)</li>
+                    <li>The local church as God's primary instrument for accomplishing His work in this age (Matthew 16:18)</li>
+                </ol>
+            </div>
+            
+            <div class="section">
+                <h2>Policies & Procedures</h2>
+                
+                <h3>Worship Services</h3>
+                <p>Our worship services shall be conducted in a manner that glorifies God, edifies believers, and communicates the gospel clearly. The preaching of God's Word shall be central to our gatherings.</p>
+                
+                <h3>Ordinances</h3>
+                <p>We observe two ordinances: believer's baptism by immersion and the Lord's Supper, which shall be administered regularly as acts of obedience and remembrance.</p>
+                
+                <h3>Child Dedication</h3>
+                <p>Parents may present their children before the church for dedication, committing to raise them in the nurture and admonition of the Lord.</p>
+                
+                <h3>Facility Use</h3>
+                <p>The church facilities are to be used primarily for church activities. Outside groups may use the facilities with prior approval, provided their use aligns with our values.</p>
+            </div>
+            
+            <div class="section">
+                <h2>Membership Policy</h2>
+                <p>Membership in Gospel Springs Mission is open to all who:</p>
+                <ol>
+                    <li>Profess faith in Jesus Christ as personal Lord and Savior</li>
+                    <li>Have been baptized by immersion as a believer</li>
+                    <li>Complete the membership orientation</li>
+                    <li>Agree to abide by the church covenant</li>
+                    <li>Are approved by the elders</li>
+                </ol>
+                
+                <h3>Membership Responsibilities</h3>
+                <p>Members are expected to:</p>
+                <ul>
+                    <li>Attend worship services regularly</li>
+                    <li>Participate in the life and ministry of the church</li>
+                    <li>Give financially as the Lord prospers</li>
+                    <li>Submit to the spiritual leadership of the church</li>
+                    <li>Live in accordance with biblical standards</li>
+                </ul>
+                
+                <h3>Membership Termination</h3>
+                <p>Membership may be terminated by:</p>
+                <ol>
+                    <li>Request of the member</li>
+                    <li>Death</li>
+                    <li>Transfer to another church</li>
+                    <li>Church discipline (Matthew 18:15-17)</li>
+                </ol>
+            </div>
+            
+            <div class="section">
+                <h2>Leadership Code</h2>
+                <p>All leaders of Gospel Springs Mission shall:</p>
+                <ol>
+                    <li>Meet the biblical qualifications for their office (1 Timothy 3; Titus 1)</li>
+                    <li>Serve with humility, integrity, and diligence (1 Peter 5:1-4)</li>
+                    <li>Be accountable to one another and the congregation</li>
+                    <li>Make decisions prayerfully, seeking God's will through Scripture and the Holy Spirit</li>
+                    <li>Model Christian character in their personal, family, and professional lives</li>
+                    <li>Continually grow in their knowledge of God and His Word</li>
+                    <li>Refrain from any behavior that would bring reproach on Christ's church</li>
+                </ol>
+                
+                <h3>Pastors/Elders</h3>
+                <p>The pastors/elders are responsible for spiritual oversight, teaching, shepherding, and overall direction of the church.</p>
+                
+                <h3>Deacons</h3>
+                <p>The deacons assist the elders by serving practical needs, managing resources, and facilitating ministry operations.</p>
+            </div>
+            
+            <div class="section">
+                <h2>Dispute Resolution</h2>
+                <p>In accordance with Matthew 18:15-17 and 1 Corinthians 6:1-8, members of Gospel Springs Mission agree to resolve conflicts according to the following principles:</p>
+                <ol>
+                    <li>First attempt private reconciliation between the parties involved</li>
+                    <li>If unsuccessful, seek mediation with one or two spiritually mature members</li>
+                    <li>If still unresolved, bring the matter before the church elders for resolution</li>
+                    <li>Refrain from lawsuits against other members, choosing Christian mediation instead</li>
+                </ol>
+                
+                <h3>Church Discipline</h3>
+                <p>The purpose of church discipline is restoration, not punishment. The process may include private admonition, public rebuke, or removal from membership in cases of unrepentant sin.</p>
+            </div>
+            
+            <div class="section">
+                <h2>Amendments</h2>
+                <p>This constitution may be amended by the following process:</p>
+                <ol>
+                    <li>Proposed amendments must be submitted in writing to the elders</li>
+                    <li>The elders will review the proposal for biblical consistency</li>
+                    <li>If approved by the elders, the amendment will be presented to the congregation</li>
+                    <li>The amendment must be announced at two consecutive Sunday services</li>
+                    <li>A special business meeting will be called to vote on the amendment</li>
+                    <li>A two-thirds majority of members present is required for adoption</li>
+                </ol>
+            </div>
+            
+            <div class="section">
+                <h2>Finances</h2>
+                <p>Gospel Springs Mission shall be supported through the tithes and offerings of its members and attendees. All funds shall be managed with integrity and transparency.</p>
+                
+                <h3>Financial Policies</h3>
+                <ol>
+                    <li>The annual budget shall be prepared by the finance team and approved by the elders</li>
+                    <li>All expenditures shall follow the approved budget or receive special approval</li>
+                    <li>Two authorized signers shall be required for all checks</li>
+                    <li>Financial records shall be reviewed annually by an independent party</li>
+                    <li>Detailed financial reports shall be presented to the congregation quarterly</li>
+                </ol>
+            </div>
+            
+            <div class="section">
+                <h2>Meetings</h2>
+                
+                <h3>Regular Meetings</h3>
+                <p>The church shall hold weekly worship services on Sunday mornings and may schedule other regular meetings for prayer, Bible study, and fellowship.</p>
+                
+                <h3>Business Meetings</h3>
+                <p>An annual business meeting shall be held to:</p>
+                <ol>
+                    <li>Review the previous year's ministry</li>
+                    <li>Present and approve the annual budget</li>
+                    <li>Elect officers as needed</li>
+                    <li>Address other important matters</li>
+                </ol>
+                
+                <h3>Special Meetings</h3>
+                <p>Special business meetings may be called by the elders with at least two weeks' notice, except in emergencies.</p>
+                
+                <h3>Quorum</h3>
+                <p>For official business, a quorum shall consist of at least one-third of the voting membership.</p>
+            </div>
+            
+            <div class="signature">
+                <div class="signature-line">Pastor/Chairman: ___________________________________</div>
+                <div class="signature-line">Secretary: ___________________________________</div>
+                <div class="signature-line">Date: ___________________________________</div>
+            </div>
+            
+            <div class="footer">
+                Gospel Springs Mission - In Isongo, along Isongo Ingoste Road, Navakholo Subcounty, Kakamega County
+            </div>
+            
+            <div class="page-number">Page 1</div>
         </div>
     </div>
-
-    <hr>
-
-    <div class="document-body" id="content-to-print">
-        <div class="letter-meta">
-            <p><strong>Date of Adoption:</strong> <span id="adoption-date">January 1, 2023</span></p>
-            <p><strong>Last Amended:</strong> <span id="amendment-date">June 15, 2024</span></p>
-        </div>
-
-        <div class="section">
-            <h2>FULL CONSTITUTION</h2>
-            <h3>Article I: Name</h3>
-            <p>The name of this organization shall be Gospel Springs Mission, located in [City, State].</p>
-            
-            <h3>Article II: Purpose</h3>
-            <p>Gospel Springs Mission exists to glorify God by:</p>
-            <ul>
-                <li>Proclaiming the Gospel of Jesus Christ</li>
-                <li>Making disciples through biblical teaching</li>
-                <li>Fostering Christian fellowship</li>
-                <li>Serving our community</li>
-                <li>Supporting global missions</li>
-            </ul>
-        </div>
-
-        <div class="section">
-            <h2>CHURCH BYLAWS</h2>
-            <h3>Article I: Governance</h3>
-            <p>The church shall be governed by the Board of Elders in accordance with Scripture.</p>
-            
-            <h3>Article II: Membership</h3>
-            <p>See Membership Policy section for details.</p>
-        </div>
-
-        <div class="section">
-            <h2>STATEMENT OF FAITH</h2>
-            <h3>1. The Scriptures</h3>
-            <p>We believe the Bible is the inspired, inerrant Word of God (2 Timothy 3:16-17).</p>
-            
-            <h3>2. The Trinity</h3>
-            <p>We believe in one God eternally existing in three persons: Father, Son, and Holy Spirit.</p>
-        </div>
-
-        <div class="section">
-            <h2>POLICIES & PROCEDURES</h2>
-            <h3>1. Child Protection</h3>
-            <p>All children's workers must pass background checks and complete training.</p>
-            
-            <h3>2. Facility Use</h3>
-            <p>Church facilities may be reserved by members for approved events.</p>
-        </div>
-
-        <div class="section">
-            <h2>MEMBERSHIP POLICY</h2>
-            <h3>1. Requirements</h3>
-            <p>Members must profess faith in Christ, be baptized, and complete membership classes.</p>
-            
-            <h3>2. Responsibilities</h3>
-            <p>Members commit to regular attendance, financial support, and service.</p>
-        </div>
-
-        <div class="section">
-            <h2>LEADERSHIP CODE</h2>
-            <h3>1. Qualifications</h3>
-            <p>Leaders must meet biblical standards (1 Timothy 3:1-7, Titus 1:5-9).</p>
-            
-            <h3>2. Selection</h3>
-            <p>Pastors are called by congregational vote. Elders are appointed by existing leadership.</p>
-        </div>
-
-        <div class="section">
-            <h2>DISPUTE RESOLUTION</h2>
-            <p>Conflicts shall be resolved according to Matthew 18:15-17 principles:</p>
-            <ol>
-                <li>Private discussion between parties</li>
-                <li>Mediation with church leaders</li>
-                <li>Final determination by elder board</li>
-            </ol>
-        </div>
-
-        <div class="section">
-            <h2>AMENDMENTS</h2>
-            <p>This constitution may be amended by:</p>
-            <ol>
-                <li>Proposal from leadership or 20% of members</li>
-                <li>Review by constitutional committee</li>
-                <li>Two-thirds majority vote at members' meeting</li>
-            </ol>
-        </div>
-
-        <div class="section">
-            <h2>FINANCES</h2>
-            <h3>1. Budget</h3>
-            <p>The annual budget shall be proposed by leadership and approved by members.</p>
-            
-            <h3>2. Accounting</h3>
-            <p>Financial records will be maintained according to standard accounting practices.</p>
-        </div>
-
-        <div class="section">
-            <h2>MEETINGS</h2>
-            <h3>1. Worship Services</h3>
-            <p>Sunday services at 9:00am and 11:00am, Wednesday Bible study at 7:00pm.</p>
-            
-            <h3>2. Business Meetings</h3>
-            <p>Quarterly meetings on the second Sunday of March, June, September, and December.</p>
-        </div>
-
-        <div class="signature-block">
-            <div class="signature-line"></div>
-            <div class="signature-label">Senior Pastor</div>
-        </div>
-
-        <div class="signature-block">
-            <div class="signature-line"></div>
-            <div class="signature-label">Board Chairman</div>
-        </div>
-
-        <div class="signature-block">
-            <div class="signature-line"></div>
-            <div class="signature-label">Date</div>
-        </div>
-    </div>
-
-    <button class="print-btn" id="generate-pdf">Generate PDF</button>
 
     <script>
-        // Set current dates
-        document.getElementById('adoption-date').textContent = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+        function printDocument() {
+            window.print();
+        }
         
-        // PDF Generation
-        document.getElementById('generate-pdf').addEventListener('click', function() {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF('p', 'pt', 'letter');
-            const element = document.getElementById('content-to-print');
+        // Add page numbers dynamically
+        document.addEventListener('DOMContentLoaded', function() {
+            const sections = document.querySelectorAll('.section');
+            let pageCount = 1;
             
-            html2canvas(element, {
-                scale: 2,
-                logging: false,
-                useCORS: true,
-                allowTaint: true
-            }).then(canvas => {
-                const imgData = canvas.toDataURL('image/png');
-                const imgWidth = doc.internal.pageSize.getWidth() - 40;
-                const imgHeight = (canvas.height * imgWidth) / canvas.width;
-                
-                doc.addImage(imgData, 'PNG', 20, 20, imgWidth, imgHeight);
-                doc.save('Gospel_Springs_Mission_Constitution.pdf');
+            // This is a simplified approach - in a real implementation, you would need
+            // to calculate page breaks more precisely, possibly using a library
+            sections.forEach((section, index) => {
+                if (index > 0 && index % 3 === 0) {
+                    pageCount++;
+                    const pageNum = document.createElement('div');
+                    pageNum.className = 'page-number';
+                    pageNum.textContent = `Page ${pageCount}`;
+                    section.parentNode.insertBefore(pageNum, section);
+                }
             });
-        });
-
-        // Set amendment date to current date (for demo)
-        document.getElementById('amendment-date').textContent = new Date().toLocaleDateString('en-US', { 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric' 
         });
     </script>
 </body>
