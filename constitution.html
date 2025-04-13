@@ -1,1 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gospel Springs Mission - Church Constitution</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #8e44ad;
+            --text-color: #333;
+            --light-gray: #f5f5f5;
+        }
 
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: white;
+        }
+
+        .letterhead {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--primary-color);
+        }
+
+        .logo {
+            width: 60px;
+            height: auto;
+            margin-right: 20px;
+        }
+
+        .header-text {
+            flex-grow: 1;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            font-size: 24px;
+            margin: 0;
+        }
+
+        .subtitle {
+            font-style: italic;
+            color: #666;
+        }
+
+        hr {
+            border: 0;
+            height: 1px;
+            background: linear-gradient(to right, transparent, var(--primary-color), transparent);
+            margin: 20px 0;
+        }
+
+        .document-body {
+            position: relative;
+            padding: 20px;
+            background-color: white;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+            color: var(--accent-color);
+            font-size: 20px;
+            margin-top: 30px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid var(--light-gray);
+        }
+
+        h3 {
+            color: var(--secondary-color);
+            font-size: 16px;
+            margin-top: 20px;
+        }
+
+        p, ul, ol {
+            margin-bottom: 15px;
+        }
+
+        ul, ol {
+            padding-left: 20px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        .signature-block {
+            margin-top: 50px;
+            text-align: right;
+        }
+
+        .signature-line {
+            display: inline-block;
+            width: 250px;
+            border-bottom: 1px solid #000;
+            margin-bottom: 5px;
+        }
+
+        .signature-label {
+            font-style: italic;
+            color: #666;
+        }
+
+        .print-btn {
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 20px 0;
+            transition: background-color 0.3s;
+        }
+
+        .print-btn:hover {
+            background-color: #2980b9;
+        }
+
+        @media print {
+            body {
+                padding: 0;
+                background: white;
+            }
+            .print-btn {
+                display: none;
+            }
+            .document-body {
+                box-shadow: none;
+            }
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="letterhead">
+        <img src="Gospel springs logo.jpg" alt="Gospel Springs Mission Logo" class="logo">
+        <div class="header-text">
+            <h1>GOSPEL SPRINGS MISSION</h1>
+            <p class="subtitle">Church Constitution</p>
+        </div>
+    </div>
+
+    <hr>
+
+    <div class="document-body" id="content-to-print">
+        <div class="letter-meta">
+            <p><strong>Date of Adoption:</strong> <span id="adoption-date">January 1, 2023</span></p>
+            <p><strong>Last Amended:</strong> <span id="amendment-date">June 15, 2024</span></p>
+        </div>
+
+        <div class="section">
+            <h2>FULL CONSTITUTION</h2>
+            <h3>Article I: Name</h3>
+            <p>The name of this organization shall be Gospel Springs Mission, located in [City, State].</p>
+            
+            <h3>Article II: Purpose</h3>
+            <p>Gospel Springs Mission exists to glorify God by:</p>
+            <ul>
+                <li>Proclaiming the Gospel of Jesus Christ</li>
+                <li>Making disciples through biblical teaching</li>
+                <li>Fostering Christian fellowship</li>
+                <li>Serving our community</li>
+                <li>Supporting global missions</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2>CHURCH BYLAWS</h2>
+            <h3>Article I: Governance</h3>
+            <p>The church shall be governed by the Board of Elders in accordance with Scripture.</p>
+            
+            <h3>Article II: Membership</h3>
+            <p>See Membership Policy section for details.</p>
+        </div>
+
+        <div class="section">
+            <h2>STATEMENT OF FAITH</h2>
+            <h3>1. The Scriptures</h3>
+            <p>We believe the Bible is the inspired, inerrant Word of God (2 Timothy 3:16-17).</p>
+            
+            <h3>2. The Trinity</h3>
+            <p>We believe in one God eternally existing in three persons: Father, Son, and Holy Spirit.</p>
+        </div>
+
+        <div class="section">
+            <h2>POLICIES & PROCEDURES</h2>
+            <h3>1. Child Protection</h3>
+            <p>All children's workers must pass background checks and complete training.</p>
+            
+            <h3>2. Facility Use</h3>
+            <p>Church facilities may be reserved by members for approved events.</p>
+        </div>
+
+        <div class="section">
+            <h2>MEMBERSHIP POLICY</h2>
+            <h3>1. Requirements</h3>
+            <p>Members must profess faith in Christ, be baptized, and complete membership classes.</p>
+            
+            <h3>2. Responsibilities</h3>
+            <p>Members commit to regular attendance, financial support, and service.</p>
+        </div>
+
+        <div class="section">
+            <h2>LEADERSHIP CODE</h2>
+            <h3>1. Qualifications</h3>
+            <p>Leaders must meet biblical standards (1 Timothy 3:1-7, Titus 1:5-9).</p>
+            
+            <h3>2. Selection</h3>
+            <p>Pastors are called by congregational vote. Elders are appointed by existing leadership.</p>
+        </div>
+
+        <div class="section">
+            <h2>DISPUTE RESOLUTION</h2>
+            <p>Conflicts shall be resolved according to Matthew 18:15-17 principles:</p>
+            <ol>
+                <li>Private discussion between parties</li>
+                <li>Mediation with church leaders</li>
+                <li>Final determination by elder board</li>
+            </ol>
+        </div>
+
+        <div class="section">
+            <h2>AMENDMENTS</h2>
+            <p>This constitution may be amended by:</p>
+            <ol>
+                <li>Proposal from leadership or 20% of members</li>
+                <li>Review by constitutional committee</li>
+                <li>Two-thirds majority vote at members' meeting</li>
+            </ol>
+        </div>
+
+        <div class="section">
+            <h2>FINANCES</h2>
+            <h3>1. Budget</h3>
+            <p>The annual budget shall be proposed by leadership and approved by members.</p>
+            
+            <h3>2. Accounting</h3>
+            <p>Financial records will be maintained according to standard accounting practices.</p>
+        </div>
+
+        <div class="section">
+            <h2>MEETINGS</h2>
+            <h3>1. Worship Services</h3>
+            <p>Sunday services at 9:00am and 11:00am, Wednesday Bible study at 7:00pm.</p>
+            
+            <h3>2. Business Meetings</h3>
+            <p>Quarterly meetings on the second Sunday of March, June, September, and December.</p>
+        </div>
+
+        <div class="signature-block">
+            <div class="signature-line"></div>
+            <div class="signature-label">Senior Pastor</div>
+        </div>
+
+        <div class="signature-block">
+            <div class="signature-line"></div>
+            <div class="signature-label">Board Chairman</div>
+        </div>
+
+        <div class="signature-block">
+            <div class="signature-line"></div>
+            <div class="signature-label">Date</div>
+        </div>
+    </div>
+
+    <button class="print-btn" id="generate-pdf">Generate PDF</button>
+
+    <script>
+        // Set current dates
+        document.getElementById('adoption-date').textContent = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+        
+        // PDF Generation
+        document.getElementById('generate-pdf').addEventListener('click', function() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('p', 'pt', 'letter');
+            const element = document.getElementById('content-to-print');
+            
+            html2canvas(element, {
+                scale: 2,
+                logging: false,
+                useCORS: true,
+                allowTaint: true
+            }).then(canvas => {
+                const imgData = canvas.toDataURL('image/png');
+                const imgWidth = doc.internal.pageSize.getWidth() - 40;
+                const imgHeight = (canvas.height * imgWidth) / canvas.width;
+                
+                doc.addImage(imgData, 'PNG', 20, 20, imgWidth, imgHeight);
+                doc.save('Gospel_Springs_Mission_Constitution.pdf');
+            });
+        });
+
+        // Set amendment date to current date (for demo)
+        document.getElementById('amendment-date').textContent = new Date().toLocaleDateString('en-US', { 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+        });
+    </script>
+</body>
+</html>
