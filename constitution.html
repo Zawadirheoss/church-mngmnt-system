@@ -168,6 +168,68 @@
             color: var(--dark-gray);
         }
         
+        /* Cover Page Styles */
+        .cover-page {
+            text-align: center;
+            padding: 60px 40px;
+            page-break-after: always;
+            position: relative;
+        }
+        
+        .cover-logo {
+            width: 300px;
+            height: 300px;
+            object-fit: contain;
+            border-radius: 50%;
+            margin: 0 auto 30px;
+            border: 5px solid var(--primary-color);
+        }
+        
+        .cover-title {
+            color: var(--primary-color);
+            font-size: 42px;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+        
+        .cover-subtitle {
+            font-size: 24px;
+            color: var(--secondary-color);
+            margin-bottom: 40px;
+        }
+        
+        .cover-history {
+            max-width: 600px;
+            margin: 40px auto;
+            font-size: 18px;
+            line-height: 1.8;
+        }
+        
+        .cover-footer {
+            position: absolute;
+            bottom: 40px;
+            left: 0;
+            right: 0;
+            font-size: 16px;
+        }
+        
+        /* Watermark Styles */
+        .watermark {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 0.1;
+            z-index: -1;
+            pointer-events: none;
+        }
+        
+        .watermark img {
+            width: 400px;
+            height: 400px;
+            object-fit: contain;
+        }
+        
         @media print {
             body {
                 background-color: white;
@@ -190,16 +252,56 @@
             .page-number {
                 position: fixed;
             }
+            
+            .cover-page {
+                height: 100vh;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                padding: 0;
+            }
+            
+            .watermark {
+                display: block;
+            }
         }
         
         @page {
             size: A4;
             margin: 20mm;
+            
+            @top-center {
+                content: "Gospel Springs Mission Church Constitution";
+                font-size: 14px;
+                color: var(--dark-gray);
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
+        <!-- Watermark for all pages -->
+        <div class="watermark">
+            <img src="Gospel springs logo.jpg" alt="Watermark">
+        </div>
+        
+        <!-- Cover Page -->
+        <div class="cover-page">
+            <img src="Gospel springs logo.jpg" alt="Gospel Springs Mission Logo" class="cover-logo">
+            <h1 class="cover-title">Gospel Springs Mission</h1>
+            <h2 class="cover-subtitle">Church Constitution</h2>
+            
+            <div class="cover-history">
+                <p>Founded in 1996 by Bishop William Laktari, Gospel Springs Mission began as a small gathering of believers in Isongo, Kakamega County. Through years of faithful ministry, the church has grown to become a beacon of hope in the community, dedicated to spreading the Gospel and serving those in need.</p>
+                <p>This constitution, first adopted in 1998, establishes our beliefs, governance, and practices as we continue our mission to make disciples of Jesus Christ.</p>
+            </div>
+            
+            <div class="cover-footer">
+                <p>In Isongo, along Isongo Ingoste Road, Navakholo Subcounty, Kakamega County</p>
+                <p>Date of Adoption: 1998 | Last Amended: 1998</p>
+            </div>
+        </div>
+        
         <header>
             <div class="logo-header">
                 <img src="Gospel springs logo.jpg" alt="Gospel Springs Mission Logo" class="logo">
@@ -410,31 +512,45 @@
                 Gospel Springs Mission - In Isongo, along Isongo Ingoste Road, Navakholo Subcounty, Kakamega County
             </div>
             
-            <div class="page-number">Page 1</div>
+            <div class="page-number">Page 2</div>
         </div>
     </div>
 
     <script>
         function printDocument() {
+            // Add page numbers before printing
+            addPageNumbers();
             window.print();
         }
         
-        // Add page numbers dynamically
-        document.addEventListener('DOMContentLoaded', function() {
+        function addPageNumbers() {
             const sections = document.querySelectorAll('.section');
-            let pageCount = 1;
+            let pageCount = 2; // Starting from page 2 (cover is page 1)
             
-            // This is a simplified approach - in a real implementation, you would need
-            // to calculate page breaks more precisely, possibly using a library
+            // Remove existing page numbers
+            document.querySelectorAll('.page-number').forEach(el => el.remove());
+            
+            // Add page numbers after every few sections
             sections.forEach((section, index) => {
                 if (index > 0 && index % 3 === 0) {
-                    pageCount++;
                     const pageNum = document.createElement('div');
                     pageNum.className = 'page-number';
                     pageNum.textContent = `Page ${pageCount}`;
                     section.parentNode.insertBefore(pageNum, section);
+                    pageCount++;
                 }
             });
+            
+            // Add final page number
+            const lastPageNum = document.createElement('div');
+            lastPageNum.className = 'page-number';
+            lastPageNum.textContent = `Page ${pageCount}`;
+            document.querySelector('.footer').after(lastPageNum);
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize page numbers
+            addPageNumbers();
         });
     </script>
 </body>
