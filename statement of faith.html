@@ -1,1 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gospel Springs Mission - Statement of Faith</title>
+    <style>
+        :root {
+            --primary-color: #1a5276;
+            --secondary-color: #2980b9;
+            --accent-color: #e74c3c;
+            --text-color: #333;
+            --light-gray: #f5f5f5;
+            --medium-gray: #ddd;
+            --dark-gray: #777;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 0;
+            margin: 0;
+            background-color: #f9f9f9;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background-color: white;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            position: relative;
+            padding-bottom: 100px;
+        }
+        
+        header {
+            padding: 30px 40px 20px;
+            border-bottom: 2px solid var(--medium-gray);
+            position: relative;
+        }
+        
+        .logo-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .logo {
+            width: 60px;
+            height: 60px;
+            margin-right: 20px;
+            object-fit: contain;
+        }
+        
+        .header-title {
+            color: var(--primary-color);
+            font-size: 28px;
+            font-weight: 700;
+        }
+        
+        .church-info {
+            font-size: 14px;
+            color: var(--dark-gray);
+            margin-top: 5px;
+        }
+        
+        .print-btn {
+            position: absolute;
+            top: 30px;
+            right: 40px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+        
+        .print-btn:hover {
+            background-color: var(--secondary-color);
+        }
+        
+        hr {
+            border: none;
+            height: 1px;
+            background-color: var(--medium-gray);
+            margin: 20px 0;
+        }
+        
+        .content {
+            padding: 0 40px 40px;
+        }
+        
+        h1 {
+            color: var(--primary-color);
+            font-size: 24px;
+            margin: 30px 0 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--medium-gray);
+        }
+        
+        h2 {
+            color: var(--secondary-color);
+            font-size: 20px;
+            margin: 25px 0 10px;
+        }
+        
+        h3 {
+            color: var(--primary-color);
+            font-size: 18px;
+            margin: 20px 0 10px;
+        }
+        
+        p {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+        
+        ul, ol {
+            margin-bottom: 15px;
+            padding-left: 30px;
+        }
+        
+        li {
+            margin-bottom: 8px;
+        }
+        
+        .section {
+            margin-bottom: 30px;
+            page-break-inside: avoid;
+        }
+        
+        .statement-item {
+            margin-bottom: 25px;
+        }
+        
+        .statement-title {
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 5px;
+        }
+        
+        .scripture-ref {
+            font-style: italic;
+            color: var(--dark-gray);
+            font-size: 0.9em;
+        }
+        
+        .signature {
+            margin-top: 50px;
+            text-align: right;
+        }
+        
+        .signature-line {
+            display: inline-block;
+            width: 300px;
+            border-top: 1px solid var(--text-color);
+            margin-top: 40px;
+            padding-top: 5px;
+        }
+        
+        .footer {
+            text-align: center;
+            font-size: 12px;
+            color: var(--dark-gray);
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid var(--medium-gray);
+        }
+        
+        .page-number {
+            position: absolute;
+            bottom: 30px;
+            right: 40px;
+            font-size: 12px;
+            color: var(--dark-gray);
+        }
+        
+        /* Cover Page Styles */
+        .cover-page {
+            text-align: center;
+            padding: 60px 40px;
+            page-break-after: always;
+            position: relative;
+        }
+        
+        .cover-logo {
+            width: 300px;
+            height: 300px;
+            object-fit: contain;
+            border-radius: 50%;
+            margin: 0 auto 30px;
+            border: 5px solid var(--primary-color);
+        }
+        
+        .cover-title {
+            color: var(--primary-color);
+            font-size: 42px;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+        
+        .cover-subtitle {
+            font-size: 24px;
+            color: var(--secondary-color);
+            margin-bottom: 40px;
+        }
+        
+        .cover-history {
+            max-width: 600px;
+            margin: 40px auto;
+            font-size: 18px;
+            line-height: 1.8;
+        }
+        
+        .cover-footer {
+            position: absolute;
+            bottom: 40px;
+            left: 0;
+            right: 0;
+            font-size: 16px;
+        }
+        
+        /* Watermark Styles */
+        .watermark {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 0.1;
+            z-index: -1;
+            pointer-events: none;
+        }
+        
+        .watermark img {
+            width: 400px;
+            height: 400px;
+            object-fit: contain;
+        }
+        
+        @media print {
+            body {
+                background-color: white;
+            }
+            
+            .container {
+                box-shadow: none;
+                max-width: 100%;
+                padding-bottom: 0;
+            }
+            
+            .print-btn {
+                display: none;
+            }
+            
+            header, .content {
+                padding: 20px;
+            }
+            
+            .page-number {
+                position: fixed;
+            }
+            
+            .cover-page {
+                height: 100vh;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                padding: 0;
+            }
+            
+            .watermark {
+                display: block;
+            }
+        }
+        
+        @page {
+            size: A4;
+            margin: 20mm;
+            
+            @top-center {
+                content: "Gospel Springs Mission Statement of Faith";
+                font-size: 14px;
+                color: var(--dark-gray);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Watermark for all pages -->
+        <div class="watermark">
+            <img src="Gospel springs logo.jpg" alt="Watermark">
+        </div>
+        
+        <!-- Cover Page -->
+        <div class="cover-page">
+            <img src="Gospel springs logo.jpg" alt="Gospel Springs Mission Logo" class="cover-logo">
+            <h1 class="cover-title">Gospel Springs Mission</h1>
+            <h2 class="cover-subtitle">Statement of Faith</h2>
+            
+            <div class="cover-history">
+                <p>Founded in 1996 by Bishop William Laktari, Gospel Springs Mission holds to these foundational biblical truths. This Statement of Faith, adopted in 1998, summarizes the essential doctrines we believe and teach.</p>
+            </div>
+            
+            <div class="cover-footer">
+                <p>In Isongo, along Isongo Ingoste Road, Navakholo Subcounty, Kakamega County</p>
+                <p>Date of Adoption: 1998 | Last Amended: 1998</p>
+            </div>
+        </div>
+        
+        <header>
+            <div class="logo-header">
+                <img src="Gospel springs logo.jpg" alt="Gospel Springs Mission Logo" class="logo">
+                <div>
+                    <div class="header-title">Gospel Springs Mission</div>
+                    <div class="church-info">In Isongo, along Isongo Ingoste Road, Navakholo Subcounty, Kakamega County</div>
+                </div>
+            </div>
+            <h1>Statement of Faith</h1>
+            <button class="print-btn" onclick="printDocument()">Print Statement</button>
+        </header>
+        
+        <div class="content">
+            <div class="section">
+                <p><strong>Date of Adoption:</strong> 1998</p>
+                <p><strong>Last Amended:</strong> 1998</p>
+            </div>
+            
+            <div class="section">
+                <p>We believe the following statements to be an accurate summary of biblical doctrine. All members and leaders of Gospel Springs Mission affirm these essential truths.</p>
+            </div>
+            
+            <div class="section">
+                <div class="statement-item">
+                    <div class="statement-title">1. The Scriptures</div>
+                    <p>We believe the Bible, consisting of the Old and New Testaments, is the verbally inspired Word of God, without error in the original writings, and the supreme authority in all matters of faith and conduct.</p>
+                    <div class="scripture-ref">2 Timothy 3:16-17; 2 Peter 1:20-21</div>
+                </div>
+                
+                <div class="statement-item">
+                    <div class="statement-title">2. The Trinity</div>
+                    <p>We believe in one God, eternally existing in three persons: Father, Son, and Holy Spirit, equal in power and glory, having the same attributes and perfections.</p>
+                    <div class="scripture-ref">Matthew 28:19; 2 Corinthians 13:14</div>
+                </div>
+                
+                <div class="statement-item">
+                    <div class="statement-title">3. God the Father</div>
+                    <p>We believe in God the Father, an infinite, personal spirit, perfect in holiness, wisdom, power and love. He concerns Himself mercifully in the affairs of men, hears and answers prayer, and saves from sin and death all who come to Him through Jesus Christ.</p>
+                    <div class="scripture-ref">John 4:24; 1 Peter 1:3</div>
+                </div>
+                
+                <div class="statement-item">
+                    <div class="statement-title">4. Jesus Christ</div>
+                    <p>We believe in Jesus Christ, God's only begotten Son, conceived by the Holy Spirit. We believe in His virgin birth, sinless life, miracles, and teachings. We believe in His substitutionary atoning death, bodily resurrection, ascension into heaven, perpetual intercession for His people, and personal visible return to earth.</p>
+                    <div class="scripture-ref">John 1:1-14; 1 Corinthians 15:3-4</div>
+                </div>
+                
+                <div class="statement-item">
+                    <div class="statement-title">5. The Holy Spirit</div>
+                    <p>We believe in the Holy Spirit who came forth from the Father and Son to convict the world of sin, righteousness, and judgment, and to regenerate, sanctify, and empower all who believe in Jesus Christ. We believe the Holy Spirit indwells every believer and is an abiding helper, teacher and guide.</p>
+                    <div class="scripture-ref">John 14:16-17; Acts 1:8</div>
+                </div>
+                
+                <div class="statement-item">
+                    <div class="statement-title">6. Humanity</div>
+                    <p>We believe that man was created in the image of God but fell into sin and is therefore lost. Only through regeneration by the Holy Spirit can salvation and spiritual life be obtained.</p>
+                    <div class="scripture-ref">Genesis 1:26-27; Romans 3:23</div>
+                </div>
+                
+                <div class="statement-item">
+                    <div class="statement-title">7. Salvation</div>
+                    <p>We believe that salvation is by grace through faith in Jesus Christ alone, not by works. All who receive by faith the Lord Jesus Christ are born again of the Holy Spirit and thereby become children of God.</p>
+                    <div class="scripture-ref">Ephesians 2:8-9; John 1:12</div>
+                </div>
+                
+                <div class="statement-item">
+                    <div class="statement-title">8. The Church</div>
+                    <p>We believe in the universal church, a living spiritual body of which Christ is the head and all regenerated persons are members. We believe in the local church, consisting of a company of believers in Jesus Christ, baptized on a credible profession of faith, and associated for worship, work, and fellowship.</p>
+                    <div class="scripture-ref">Matthew 16:18; Ephesians 1:22-23</div>
+                </div>
+                
+                <div class="statement-item">
+                    <div class="statement-title">9. Christian Conduct</div>
+                    <p>We believe that Christians should live for the glory of God and the well-being of others, that their conduct should be blameless before the world, that they should be faithful stewards of their possessions, and that they should seek to realize for themselves and others the full stature of maturity in Christ.</p>
+                    <div class="scripture-ref">Colossians 3:17; 1 Peter 2:12</div>
+                </div>
+                
+                <div class="statement-item">
+                    <div class="statement-title">10. The Ordinances</div>
+                    <p>We believe that the Lord Jesus Christ has committed two ordinances to the local church: baptism and the Lord's Supper. We believe that Christian baptism is the immersion of a believer in water into the name of the triune God. We believe that the Lord's Supper was instituted by Christ for commemoration of His death.</p>
+                    <div class="scripture-ref">Matthew 28:19-20; 1 Corinthians 11:23-26</div>
+                </div>
+                
+                <div class="statement-item">
+                    <div class="statement-title">11. Last Things</div>
+                    <p>We believe in the personal and visible return of the Lord Jesus Christ to earth and the establishment of His kingdom. We believe in the resurrection of the body, the final judgment, the eternal joy of the righteous, and the endless suffering of the wicked.</p>
+                    <div class="scripture-ref">Acts 1:11; Revelation 20:11-15</div>
+                </div>
+            </div>
+            
+            <div class="signature">
+                <div class="signature-line">Pastor/Chairman: ___________________________________</div>
+                <div class="signature-line">Secretary: ___________________________________</div>
+                <div class="signature-line">Date: ___________________________________</div>
+            </div>
+            
+            <div class="footer">
+                Gospel Springs Mission - In Isongo, along Isongo Ingoste Road, Navakholo Subcounty, Kakamega County
+            </div>
+            
+            <div class="page-number">Page 2</div>
+        </div>
+    </div>
 
+    <script>
+        function printDocument() {
+            // Add page numbers before printing
+            addPageNumbers();
+            window.print();
+        }
+        
+        function addPageNumbers() {
+            const sections = document.querySelectorAll('.statement-item');
+            let pageCount = 2; // Starting from page 2 (cover is page 1)
+            
+            // Remove existing page numbers
+            document.querySelectorAll('.page-number').forEach(el => el.remove());
+            
+            // Add page numbers after every few sections
+            sections.forEach((section, index) => {
+                if (index > 0 && index % 5 === 0) {
+                    const pageNum = document.createElement('div');
+                    pageNum.className = 'page-number';
+                    pageNum.textContent = `Page ${pageCount}`;
+                    section.parentNode.insertBefore(pageNum, section);
+                    pageCount++;
+                }
+            });
+            
+            // Add final page number
+            const lastPageNum = document.createElement('div');
+            lastPageNum.className = 'page-number';
+            lastPageNum.textContent = `Page ${pageCount}`;
+            document.querySelector('.footer').after(lastPageNum);
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize page numbers
+            addPageNumbers();
+        });
+    </script>
+</body>
+</html>
