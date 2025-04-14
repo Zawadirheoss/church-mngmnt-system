@@ -1,23 +1,39 @@
-// sw.js - Updated for Netlify compatibility
-const CACHE_NAME = 'gospel-springs-v1';
-const urlsToCache = [
+// Precached core files
+const CACHE_NAME = 'gospel-v3';
+const PRECACHE_URLS = [
   '/',
-  '/index.html',
-  '/Gospel%20springs%20logo.jpg',
-  '/styles.css',
-  '/app.js'
+  'index.html',
+  'Gospel springs logo.jpg',
+  'Homepage.css',
 ];
 
-self.addEventListener('install', (event) => {
-  event.waitUntil(
+// Install: Cache critical resources
+self.addEventListener('install', (e) => {
+  e.waitUntil(
     caches.open(CACHE_NAME)
-      .then((cache) => cache.addAll(urlsToCache))
+      .then(cache => {
+        return Promise.all(
+          PRECACHE_URLS.map(url => {
+            return fetch(url)
+              .then(res => {
+                if (res.ok) return cache.put(url, res.clone());
+                console.warn(`Failed to cache ${url}: ${res.status}`);
+                return Promise.resolve();
+              })
+              .catch(err => console.warn(`Skipped ${url}:`, err));
+          })
+        );
+      })
+      .then(() => self.skipWaiting())
   );
 });
 
-self.addEventListener('fetch', (event) => {
-  event.respondWith(
-    caches.match(event.request)
-      .then((response) => response || fetch(event.request))
-  );
+// Fetch: Cache-first with network fallback
+self.addEventListener('fetch', (e) => {
+  if (e.request.url.startsWith(self.location.origin)) {
+    e.respondWith(
+      caches.match(e.request)
+        .then(cached => cached || fetch(e.request))
+    );
+  }
 });
