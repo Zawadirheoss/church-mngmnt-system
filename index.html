@@ -4,32 +4,47 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gospel Springs Church-CMS Login</title>
-    <head>
-  <!-- Corrected PWA Meta Tags -->
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#3367D6">
-  <meta name="mobile-web-app-capable" content="yes"> <!-- Fixed deprecated tag -->
-
-  <!-- iOS Support (kept for Safari) -->
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Gospel Springs">
-  <link rel="apple-touch-icon" href="Gospel%20springs%20logo.jpg">
-
-  <!-- Viewport -->
+    
+  <!-- PWA Essentials -->
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#3367D6">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link rel="manifest" href="manifest.json" crossorigin="use-credentials">
 
-  <!-- Service Worker Registration -->
+  <!-- iOS Meta Tags -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Gospel Springs">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="apple-touch-icon" href="Gospel springs logo.jpg">
+
+  <!-- Install Prompt Controller -->
   <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js')
-          .then(reg => console.log('Service Worker registered'))
-          .catch(err => console.log('SW registration failed: ', err));
-      });
+    let deferredPrompt;
+    
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      console.log('Install prompt ready');
+      
+      // Auto-show prompt after 5s
+      setTimeout(showInstallPrompt, 5000);
+    });
+
+    function showInstallPrompt() {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then(choice => {
+          if (choice.outcome === 'accepted') {
+            console.log('User installed');
+          }
+          deferredPrompt = null;
+        });
+      }
     }
   </script>
 </head>
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
