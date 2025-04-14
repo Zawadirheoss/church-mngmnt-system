@@ -1,6 +1,12 @@
-// sw.js - Barebones service worker to meet PWA requirements
+// sw.js - Updated for Netlify compatibility
 const CACHE_NAME = 'gospel-springs-v1';
-const urlsToCache = ['/', '/index.html', '/Gospel%20springs%20logo.jpg'];
+const urlsToCache = [
+  '/',
+  '/index.html',
+  '/Gospel%20springs%20logo.jpg',
+  '/styles.css',
+  '/app.js'
+];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
