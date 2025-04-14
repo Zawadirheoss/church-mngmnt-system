@@ -1,1 +1,17 @@
-
+{
+  "name": "Gospel Springs",
+  "short_name": "GospelSprings",
+  "description": "Your inspirational app description here",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3367D6",
+  "icons": [
+    {
+      "src": "Gospel springs logo.jpg",
+      "sizes": "192x192 512x512",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    }
+  ]
+}
