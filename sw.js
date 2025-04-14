@@ -4,7 +4,6 @@ const PRECACHE_URLS = [
   '/',
   'index.html',
   'Gospel springs logo.jpg',
-  'Homepage.css',
 ];
 
 // Install: Cache critical resources
