@@ -249,7 +249,7 @@
                     </td>
                     <td>
                         <button class="btn btn-sm ${memberId ? 'btn-secondary disabled' : 'btn-primary'}" 
-                                onclick="openGenerateIdModal(${JSON.stringify(member)})"
+                                onclick="window.openGenerateIdModal(${JSON.stringify(member).replace(/"/g, '&quot;')})"
                                 ${memberId ? 'disabled' : ''}>
                             Generate ID
                         </button>
@@ -283,7 +283,11 @@
                 
                 // Create the user account object
                 const userAccount = {
-                    ...currentMember,
+                    firstName: currentMember.firstName,
+                    secondName: currentMember.secondName,
+                    email: currentMember.email,
+                    gender: currentMember.gender,
+                    phone: currentMember.phone,
                     memberId: memberId,
                     createdAt: new Date().toISOString()
                 };
