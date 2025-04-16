@@ -1,1 +1,253 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Member ID Management</title>
+    <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        tr:hover {
+            background-color: #f9f9f9;
+        }
+        .btn {
+            padding: 8px 12px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .btn:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .btn:hover:not(:disabled) {
+            background-color: #45a049;
+        }
+        .status {
+            color: #ff9800;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Member ID Management</h1>
+        <table id="membersTable">
+            <thead>
+                <tr>
+                    <th>First Name</th>
+                    <th>Second Name</th>
+                    <th>Email</th>
+                    <th>Auto ID</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Table content will be populated by JavaScript -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Firebase configuration for the first project (to read members) -->
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+
+        // Your web app's Firebase configuration for reading members
+        const readConfig = {
+            apiKey: "AIzaSyAyiRtkvdxnGWaiG-Xn-50Vm_Pb1J0ya6E",
+            authDomain: "church-cms-96407.firebaseapp.com",
+            projectId: "church-cms-96407",
+            storageBucket: "church-cms-96407.appspot.com",
+            messagingSenderId: "19370427001",
+            appId: "1:19370427001:web:b1d20215c437fc324e4aa8",
+            measurementId: "G-NKDZSFGR4X"
+        };
+
+        // Initialize Firebase for reading
+        const readApp = initializeApp(readConfig, "readApp");
+        const readDb = getFirestore(readApp);
+    </script>
+
+    <!-- Firebase configuration for the second project (to write member IDs) -->
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, doc, setDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+
+        // Your web app's Firebase configuration for writing member IDs
+        const writeConfig = {
+            apiKey: "AIzaSyDJJqxh3UOsTcBPAXLeEWeLoQRmIy_6hNU",
+            authDomain: "web-app-ae5b6.firebaseapp.com",
+            projectId: "web-app-ae5b6",
+            storageBucket: "web-app-ae5b6.appspot.com",
+            messagingSenderId: "921251501161",
+            appId: "1:921251501161:web:316ff3fc4345735762bef8"
+        };
+
+        // Initialize Firebase for writing
+        const writeApp = initializeApp(writeConfig, "writeApp");
+        const writeDb = getFirestore(writeApp);
+    </script>
+
+    <script>
+        // Main application script
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Get references to both Firestore instances
+            const readDb = getFirestore(initializeApp.getApp("readApp"));
+            const writeDb = getFirestore(initializeApp.getApp("writeApp"));
+
+            // Fetch members from the first Firebase project
+            async function fetchMembers() {
+                const membersCol = collection(readDb, 'members');
+                const memberSnapshot = await getDocs(membersCol);
+                const membersList = memberSnapshot.docs.map(doc => {
+                    return { id: doc.id, ...doc.data() };
+                });
+
+                return membersList;
+            }
+
+            // Generate auto ID in the format GS/-----/YY
+            function generateAutoId(sequenceNumber) {
+                const currentYearLastTwoDigits = new Date().getFullYear().toString().slice(-2);
+                return `GS/${sequenceNumber.toString().padStart(5, '0')}/${currentYearLastTwoDigits}`;
+            }
+
+            // Get the next sequence number for ID generation
+            async function getNextSequenceNumber() {
+                const countersCol = collection(writeDb, 'counters');
+                const counterDocRef = doc(countersCol, 'memberIdCounter');
+                
+                try {
+                    // In a real app, you would use transactions for this
+                    // For simplicity, we'll just increment based on current member count
+                    const memberIdsCol = collection(writeDb, 'memberid');
+                    const memberIdsSnapshot = await getDocs(memberIdsCol);
+                    return memberIdsSnapshot.size + 1;
+                } catch (error) {
+                    console.error("Error getting sequence number:", error);
+                    return 1; // Fallback to 1 if there's an error
+                }
+            }
+
+            // Check if a member already has an ID in the second database
+            async function memberHasId(memberEmail) {
+                const memberIdsCol = collection(writeDb, 'memberid');
+                const querySnapshot = await getDocs(memberIdsCol);
+                
+                for (const doc of querySnapshot.docs) {
+                    if (doc.data().email === memberEmail) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            // Generate and store ID for a member
+            async function generateAndStoreId(member) {
+                try {
+                    // Check if member already has an ID
+                    const hasId = await memberHasId(member.email);
+                    if (hasId) {
+                        alert('This member already has an ID');
+                        return;
+                    }
+
+                    // Get next sequence number and generate ID
+                    const sequenceNumber = await getNextSequenceNumber();
+                    const autoId = generateAutoId(sequenceNumber);
+
+                    // Store all member data plus the autoId in the second collection
+                    const memberWithId = {
+                        ...member,
+                        autoId: autoId,
+                        generatedAt: new Date().toISOString()
+                    };
+
+                    await addDoc(collection(writeDb, 'memberid'), memberWithId);
+                    
+                    // Update the UI
+                    renderMembersTable();
+                    alert(`ID generated successfully: ${autoId}`);
+                } catch (error) {
+                    console.error("Error generating ID:", error);
+                    alert('Error generating ID. Please check console for details.');
+                }
+            }
+
+            // Render the members table
+            async function renderMembersTable() {
+                const members = await fetchMembers();
+                const tableBody = document.querySelector('#membersTable tbody');
+                tableBody.innerHTML = '';
+
+                for (const member of members) {
+                    const row = document.createElement('tr');
+                    
+                    // Check if this member already has an ID in the second database
+                    const hasId = await memberHasId(member.email);
+                    
+                    row.innerHTML = `
+                        <td>${member.firstName || 'N/A'}</td>
+                        <td>${member.secondName || 'N/A'}</td>
+                        <td>${member.email || 'N/A'}</td>
+                        <td class="status">${hasId ? 'Generated' : 'No auto ID yet'}</td>
+                        <td>
+                            <button class="btn" ${hasId ? 'disabled' : ''} 
+                                    onclick="generateAndStoreId(${JSON.stringify(member).replace(/"/g, '&quot;')})">
+                                Generate ID
+                            </button>
+                        </td>
+                    `;
+                    
+                    tableBody.appendChild(row);
+                }
+            }
+
+            // Make the generateAndStoreId function available globally
+            window.generateAndStoreId = generateAndStoreId;
+
+            // Initial render
+            renderMembersTable();
+        });
+    </script>
+</body>
+</html>
