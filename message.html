@@ -1,1 +1,504 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Messaging Panel</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+        import { 
+            getFirestore, 
+            collection, 
+            getDocs, 
+            addDoc, 
+            query, 
+            where, 
+            deleteDoc, 
+            doc,
+            onSnapshot 
+        } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDJJqxh3UOsTcBPAXLeEWeLoQRmIy_6hNU",
+            authDomain: "web-app-ae5b6.firebaseapp.com",
+            projectId: "web-app-ae5b6",
+            storageBucket: "web-app-ae5b6.appspot.com",
+            messagingSenderId: "921251501161",
+            appId: "1:921251501161:web:316ff3fc4345735762bef8"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Global variables
+        let users = [];
+        let totalMessages = 0;
+        let selectedMemberId = '';
+        let sentMessages = [];
+
+        // DOM elements
+        const usersTable = document.getElementById('usersTable');
+        const totalMessagesBadge = document.getElementById('totalMessagesBadge');
+        const sendMessageModal = new bootstrap.Modal(document.getElementById('sendMessageModal'));
+        const viewMessagesModal = new bootstrap.Modal(document.getElementById('viewMessagesModal'));
+        const messagesContainer = document.getElementById('messagesContainer');
+        const sendMessageForm = document.getElementById('sendMessageForm');
+        const searchInput = document.getElementById('searchInput');
+
+        // Fetch all users
+        async function fetchUsers() {
+            const querySnapshot = await getDocs(collection(db, "useraccount"));
+            users = [];
+            totalMessages = 0;
+            
+            querySnapshot.forEach((doc) => {
+                const user = doc.data();
+                user.id = doc.id;
+                users.push(user);
+            });
+
+            // For each user, fetch their message count
+            for (let user of users) {
+                const messagesQuery = query(collection(db, user.memberId));
+                const messagesSnapshot = await getDocs(messagesQuery);
+                user.messageCount = messagesSnapshot.size;
+                totalMessages += user.messageCount;
+            }
+
+            renderUsersTable(users);
+            updateTotalMessagesBadge();
+        }
+
+        // Render users table
+        function renderUsersTable(usersToRender) {
+            usersTable.innerHTML = '';
+            
+            if (usersToRender.length === 0) {
+                usersTable.innerHTML = '<tr><td colspan="6" class="text-center">No users found</td></tr>';
+                return;
+            }
+            
+            usersToRender.forEach(user => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${user.email}</td>
+                    <td>${user.memberId}</td>
+                    <td><span class="badge bg-primary">${user.messageCount || 0}</span></td>
+                    <td>
+                        <button class="btn btn-sm btn-success send-message-btn" data-email="${user.email}" data-memberid="${user.memberId}">
+                            <i class="fas fa-paper-plane"></i> Send
+                        </button>
+                        <button class="btn btn-sm btn-info view-messages-btn" data-memberid="${user.memberId}">
+                            <i class="fas fa-envelope-open-text"></i> View
+                        </button>
+                    </td>
+                `;
+                usersTable.appendChild(row);
+            });
+
+            // Add event listeners to buttons
+            document.querySelectorAll('.send-message-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const email = e.target.getAttribute('data-email') || 
+                                 e.target.parentElement.getAttribute('data-email');
+                    const memberId = e.target.getAttribute('data-memberid') || 
+                                   e.target.parentElement.getAttribute('data-memberid');
+                    openSendMessageModal(email, memberId);
+                });
+            });
+
+            document.querySelectorAll('.view-messages-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const memberId = e.target.getAttribute('data-memberid') || 
+                                     e.target.parentElement.getAttribute('data-memberid');
+                    openViewMessagesModal(memberId);
+                });
+            });
+        }
+
+        // Open send message modal
+        function openSendMessageModal(email, memberId) {
+            document.getElementById('recipientEmail').value = email;
+            document.getElementById('recipientMemberId').value = memberId;
+            document.getElementById('messageSubject').value = '';
+            document.getElementById('messageContent').value = '';
+            sendMessageModal.show();
+        }
+
+        // Open view messages modal
+        function openViewMessagesModal(memberId) {
+            selectedMemberId = memberId;
+            document.getElementById('messagesModalTitle').textContent = `Messages for ${memberId}`;
+            messagesContainer.innerHTML = '<p>Loading messages...</p>';
+            viewMessagesModal.show();
+            fetchSentMessages(memberId);
+        }
+
+        // Fetch sent messages for a user
+        async function fetchSentMessages(memberId) {
+            const q = query(collection(db, memberId));
+            
+            onSnapshot(q, (querySnapshot) => {
+                sentMessages = [];
+                messagesContainer.innerHTML = '';
+                
+                if (querySnapshot.empty) {
+                    messagesContainer.innerHTML = '<p>No messages found for this user.</p>';
+                    return;
+                }
+                
+                querySnapshot.forEach((doc) => {
+                    const message = doc.data();
+                    message.id = doc.id;
+                    sentMessages.push(message);
+                    
+                    const messageElement = document.createElement('div');
+                    messageElement.className = 'card mb-3';
+                    messageElement.innerHTML = `
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <h5 class="card-title">${message.subject}</h5>
+                                <small class="text-muted">${formatDate(message.timestamp)}</small>
+                            </div>
+                            <p class="card-text">${message.content}</p>
+                            <button class="btn btn-sm btn-danger delete-message-btn" data-messageid="${doc.id}">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </div>
+                    `;
+                    messagesContainer.appendChild(messageElement);
+                });
+                
+                // Add event listeners to delete buttons
+                document.querySelectorAll('.delete-message-btn').forEach(btn => {
+                    btn.addEventListener('click', async (e) => {
+                        const messageId = e.target.getAttribute('data-messageid') || 
+                                         e.target.parentElement.getAttribute('data-messageid');
+                        if (confirm('Are you sure you want to delete this message?')) {
+                            await deleteMessage(messageId);
+                        }
+                    });
+                });
+            });
+        }
+
+        // Delete a message
+        async function deleteMessage(messageId) {
+            try {
+                await deleteDoc(doc(db, selectedMemberId, messageId));
+                fetchUsers(); // Refresh the message counts
+            } catch (error) {
+                console.error("Error deleting message: ", error);
+                alert('Error deleting message');
+            }
+        }
+
+        // Format date
+        function formatDate(timestamp) {
+            if (!timestamp) return 'No date';
+            const date = timestamp.toDate();
+            return date.toLocaleString();
+        }
+
+        // Update total messages badge
+        function updateTotalMessagesBadge() {
+            totalMessagesBadge.textContent = totalMessages;
+        }
+
+        // Search users
+        function searchUsers() {
+            const searchTerm = searchInput.value.toLowerCase();
+            if (!searchTerm) {
+                renderUsersTable(users);
+                return;
+            }
+            
+            const filteredUsers = users.filter(user => 
+                user.email.toLowerCase().includes(searchTerm) || 
+                user.memberId.toLowerCase().includes(searchTerm)
+            );
+            
+            renderUsersTable(filteredUsers);
+        }
+
+        // Send message
+        async function sendMessage(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('recipientEmail').value;
+            const memberId = document.getElementById('recipientMemberId').value;
+            const subject = document.getElementById('messageSubject').value;
+            const content = document.getElementById('messageContent').value;
+            
+            if (!subject || !content) {
+                alert('Please fill in all fields');
+                return;
+            }
+            
+            try {
+                await addDoc(collection(db, memberId), {
+                    email,
+                    memberId,
+                    subject,
+                    content,
+                    timestamp: new Date()
+                });
+                
+                alert('Message sent successfully!');
+                sendMessageModal.hide();
+                fetchUsers(); // Refresh the message counts
+            } catch (error) {
+                console.error("Error sending message: ", error);
+                alert('Error sending message');
+            }
+        }
+
+        // Event listeners
+        sendMessageForm.addEventListener('submit', sendMessage);
+        searchInput.addEventListener('input', searchUsers);
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', fetchUsers);
+    </script>
+    <style>
+        :root {
+            --primary-color: #4e73df;
+            --secondary-color: #1cc88a;
+            --dark-color: #5a5c69;
+            --light-color: #f8f9fc;
+        }
+        
+        body {
+            background-color: #f8f9fc;
+            font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        }
+        
+        .sidebar {
+            background: linear-gradient(180deg, var(--primary-color) 10%, #224abe 100%);
+            min-height: 100vh;
+        }
+        
+        .card {
+            border: none;
+            border-radius: 0.35rem;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+        }
+        
+        .card-header {
+            background-color: #f8f9fc;
+            border-bottom: 1px solid #e3e6f0;
+        }
+        
+        .badge {
+            font-size: 0.85rem;
+            font-weight: 600;
+            padding: 0.35rem 0.65rem;
+        }
+        
+        .btn-success {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+        }
+        
+        .btn-success:hover {
+            background-color: #17a673;
+            border-color: #17a673;
+        }
+        
+        .table-responsive {
+            overflow-x: auto;
+        }
+        
+        .table {
+            background-color: white;
+        }
+        
+        .table th {
+            border-top: none;
+        }
+        
+        .message-card {
+            transition: all 0.3s;
+        }
+        
+        .message-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0.5rem 1.5rem 0 rgba(58, 59, 69, 0.2);
+        }
+        
+        .search-box {
+            position: relative;
+        }
+        
+        .search-box i {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: #d1d3e2;
+        }
+        
+        .search-box input {
+            padding-left: 2.5rem;
+            border-radius: 0.35rem;
+            border: 1px solid #d1d3e2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-3 col-lg-2 d-md-block sidebar collapse bg-primary text-white p-4">
+                <div class="position-sticky pt-3">
+                    <div class="text-center mb-4">
+                        <h4><i class="fas fa-envelope me-2"></i> Messaging Panel</h4>
+                    </div>
+                    <ul class="nav flex-column">
+                        <li class="nav-item mb-2">
+                            <a href="#" class="nav-link text-white active">
+                                <i class="fas fa-tachometer-alt me-2"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item mb-2">
+                            <a href="#" class="nav-link text-white">
+                                <i class="fas fa-users me-2"></i> Users
+                            </a>
+                        </li>
+                        <li class="nav-item mb-2">
+                            <a href="#" class="nav-link text-white">
+                                <i class="fas fa-cog me-2"></i> Settings
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Main content -->
+            <div class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">User Messages</h1>
+                    <div class="btn-toolbar mb-2 mb-md-0">
+                        <div class="btn-group me-2">
+                            <button type="button" class="btn btn-sm btn-outline-secondary">
+                                <i class="fas fa-sync-alt me-1"></i> Refresh
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Stats Card -->
+                <div class="row mb-4">
+                    <div class="col-xl-12 col-md-12 mb-4">
+                        <div class="card border-left-primary shadow h-100 py-2">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                            Total Messages Sent</div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                            <span id="totalMessagesBadge">0</span> messages
+                                        </div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fas fa-envelope fa-2x text-gray-300"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Users Table -->
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                        <h6 class="m-0 font-weight-bold text-primary">User Accounts</h6>
+                        <div class="search-box">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="searchInput" class="form-control form-control-sm" placeholder="Search users...">
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th>Email</th>
+                                        <th>Member ID</th>
+                                        <th>Messages</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="usersTable">
+                                    <tr>
+                                        <td colspan="4" class="text-center">Loading users...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Send Message Modal -->
+    <div class="modal fade" id="sendMessageModal" tabindex="-1" aria-labelledby="sendMessageModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="sendMessageModalLabel">Send New Message</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="sendMessageForm">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="recipientEmail" class="form-label">Recipient Email</label>
+                            <input type="email" class="form-control" id="recipientEmail" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label for="recipientMemberId" class="form-label">Member ID</label>
+                            <input type="text" class="form-control" id="recipientMemberId" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label for="messageSubject" class="form-label">Subject</label>
+                            <input type="text" class="form-control" id="messageSubject" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="messageContent" class="form-label">Message</label>
+                            <textarea class="form-control" id="messageContent" rows="5" required></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-paper-plane me-1"></i> Send Message
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- View Messages Modal -->
+    <div class="modal fade" id="viewMessagesModal" tabindex="-1" aria-labelledby="viewMessagesModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-info text-white">
+                    <h5 class="modal-title" id="messagesModalTitle">Sent Messages</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="messagesContainer"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
